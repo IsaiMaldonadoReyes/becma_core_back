@@ -4,6 +4,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 
+use App\Http\Controllers\core\SistemaController;
+
 Route::get('/', function () {
     return 'API test becma-core';
 });
@@ -30,4 +32,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     # Información personal del usuario logeado
     Route::get('authUserInformation', [AuthController::class, 'authUserInformation']);
+
+    Route::get('indexSistema', [SistemaController::class, 'index']);
+    Route::post('storeSistema', [SistemaController::class, 'store']);
+    Route::put('updateSistema/{id}', [SistemaController::class, 'update']);
+    Route::delete('/destroySistema/{id}', [SistemaController::class, 'destroy']);
+
+
+
+
 });
