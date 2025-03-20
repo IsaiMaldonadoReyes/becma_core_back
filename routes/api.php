@@ -33,10 +33,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
     # Información personal del usuario logeado
     Route::get('authUserInformation', [AuthController::class, 'authUserInformation']);
 
+    Route::post('resetPassword', [AuthController::class, 'resetPassword']);
+
     Route::get('indexSistema', [SistemaController::class, 'index']);
     Route::post('storeSistema', [SistemaController::class, 'store']);
     Route::put('updateSistema/{id}', [SistemaController::class, 'update']);
     Route::delete('/destroySistema/{id}', [SistemaController::class, 'destroy']);
+    Route::delete('/destroySistemaByIds', [SistemaController::class, 'destroyByIds']);
 
 
 

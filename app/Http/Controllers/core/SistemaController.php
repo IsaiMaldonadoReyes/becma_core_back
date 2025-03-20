@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\core;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\core\StoreSistemaRequest;
-use App\Http\Requests\core\UpdateSistemaRequest;
+use App\Http\Requests\core\sistema\StoreSistemaRequest;
+use App\Http\Requests\core\sistema\UpdateSistemaRequest;
 use Illuminate\Http\Request;
 
 use App\Models\core\Sistema;
@@ -56,9 +56,6 @@ class SistemaController extends Controller
         try {
 
             $validateData = $request->validated();
-
-            //$validateData['estado'] = 1;
-
             $sistema = Sistema::create($validateData);
 
             return response()->json([
@@ -132,6 +129,36 @@ class SistemaController extends Controller
             return response()->json([
                 'code' => 500,
                 'message' => 'Error al eliminar el registro',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function destroyByIds(Request $request)
+    {
+        try {
+            // Validar que se envíe un array de IDs
+            $request->validate([
+                'ids' => 'required|array', // Asegura que 'ids' sea un array
+                'ids.*' => 'integer',      // Asegura que cada ID sea un número entero
+            ]);
+
+            // Obtener los IDs del request
+            $ids = $request->input('ids');
+
+            // Eliminar los sistemas cuyos IDs estén en el array
+            Sistema::whereIn('id', $ids)->delete();
+
+            // Respuesta de éxito
+            return response()->json([
+                'code' => 200,
+                'message' => 'Los registros seleccionados se eliminaron correctamente.',
+            ], 200);
+        } catch (\Exception $e) {
+            // Respuesta de error
+            return response()->json([
+                'code' => 500,
+                'message' => 'Error al eliminar los registros seleccionados',
                 'error' => $e->getMessage(),
             ], 500);
         }

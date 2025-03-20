@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\core\UpdatePasswordRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -87,13 +88,38 @@ class AuthController extends Controller
             ->where('users.id', '=', $request->user()->id)
             ->selectRaw("
                 users.name AS nombre
-                , users.apellido_parteno AS ap
-                , users.apellido_materno AS am
+                , users.apellido_parteno AS apellidoPaterno
+                , users.apellido_materno AS apellidoMaterno
                 , users.name + ' ' + COALESCE(users.apellido_parteno, ' ') + ' ' + COALESCE(users.apellido_materno, ' ') AS nombreCompleto
                 , SUBSTRING(ISNULL(users.name, ''),1,1) + SUBSTRING(ISNULL(users.apellido_parteno, ''), 1,1) AS iniciales
                 , users.imagen AS imagen
+                , users.email AS correo
+                , users.id AS id
+                , core_rol.nombre AS rol
             ")->first();
 
         return response()->json($user);
+    }
+
+    protected function resetPassword(UpdatePasswordRequest $request)
+    {
+        try {
+
+            $user = $request->user();
+
+            $user->password = bcrypt($request->password);
+            $user->save();
+
+            return response()->json([
+                'code' => 200,
+                'message' => 'Contraseña actualizada correctamente',
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'code' => 500,
+                'message' => 'Error al actualizar la contraseña',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 }
