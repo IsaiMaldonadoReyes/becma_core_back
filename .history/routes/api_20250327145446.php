@@ -13,6 +13,7 @@ Route::get('/', function () {
     return 'API test becma-core';
 });
 
+Route::get('exportExcel', [ExportController::class, 'exportExcel']);
 
 Route::post('login', [AuthController::class, 'login'])->middleware('web');
 
@@ -46,14 +47,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // empresas
 
-    Route::post('rptEmpresas', [EmpresaController::class, 'rptEmpresas']);
+    Route::post('rptEmpresas', [Rpt2VentasPorMarcaController::class, 'rptEmpresas']);
 
     // Rpt2 = Ventas por marcas
     Route::post('labelRpt2', [Rpt2VentasPorMarcaController::class, 'label']);
     Route::post('dataRpt2', [Rpt2VentasPorMarcaController::class, 'dataset']);
     Route::post('marcasRpt2', [Rpt2VentasPorMarcaController::class, 'marcas']);
-
-
-
-    Route::post('exportExcel', [ExportController::class, 'exportExcel']);
 });

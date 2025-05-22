@@ -11,20 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('core_directorio', function (Blueprint $table) {
+        Schema::create('empresa_usuario_database', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
             $table->boolean('estado')->nullable();
             $table->unsignedBigInteger('usuario_creador')->nullable();
             $table->unsignedBigInteger('usuario_modificador')->nullable();
-            $table->unsignedBigInteger('id_sistema')->nullable();
-            $table->unsignedBigInteger('id_padre')->nullable();
-            $table->string('nombre')->nullable();
-            $table->string('etiqueta')->nullable();
-            $table->string('descripcion')->nullable();
-            $table->string('ruta')->nullable();
-            $table->string('icono')->nullable();
-            $table->integer('orden')->nullable();
+            
+            $table->foreign('usuario_creador')->references('id')->on('users');
+            $table->foreign('usuario_modificador')->references('id')->on('users');
+            
         });
     }
 
@@ -33,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('core_directorio');
+        Schema::dropIfExists('empresa_usuario_database');
     }
 };

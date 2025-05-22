@@ -5,14 +5,12 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\core\SistemaController;
 use App\Http\Controllers\ExportController;
-use App\Http\Controllers\core\EmpresaController;
-
-use App\Http\Controllers\comercial\Rpt2VentasPorMarcaController;
 
 Route::get('/', function () {
     return 'API test becma-core';
 });
 
+Route::get('exportExcel', [ExportController::class, 'exportExcel']);
 
 Route::post('login', [AuthController::class, 'login'])->middleware('web');
 
@@ -44,16 +42,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/destroySistemaByIds', [SistemaController::class, 'destroyByIds']);
 
 
-    // empresas
-
-    Route::post('rptEmpresas', [EmpresaController::class, 'rptEmpresas']);
-
-    // Rpt2 = Ventas por marcas
-    Route::post('labelRpt2', [Rpt2VentasPorMarcaController::class, 'label']);
-    Route::post('dataRpt2', [Rpt2VentasPorMarcaController::class, 'dataset']);
-    Route::post('marcasRpt2', [Rpt2VentasPorMarcaController::class, 'marcas']);
 
 
-
-    Route::post('exportExcel', [ExportController::class, 'exportExcel']);
 });

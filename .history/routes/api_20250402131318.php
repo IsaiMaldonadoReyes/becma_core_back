@@ -54,6 +54,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('marcasRpt2', [Rpt2VentasPorMarcaController::class, 'marcas']);
 
 
-
-    Route::post('exportExcel', [ExportController::class, 'exportExcel']);
+    
+Route::post('exportExcel', [ExportController::class, 'exportExcel']);
 });
