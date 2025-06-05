@@ -9,6 +9,8 @@ use App\Http\Controllers\core\EmpresaController;
 
 use App\Http\Controllers\comercial\Rpt2VentasPorMarcaController;
 
+use App\Http\Controllers\nomina\CatalogosController;
+
 Route::get('/', function () {
     return 'API test becma-core';
 });
@@ -56,4 +58,46 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 
     Route::post('exportExcel', [ExportController::class, 'exportExcel']);
+
+
+    // Nomina
+
+    Route::post('empresasNominas', [EmpresaController::class, 'empresasNominas']);
+
+
+    // SATCatTipoContrato
+    Route::post('nominaTipoContrato/{id}', [CatalogosController::class, 'tipoContrato']);
+
+    // TipoPeriodo
+    Route::post('nominaTipoPeriodo/{id}', [CatalogosController::class, 'tipoPeriodo']);
+
+    // Departamento
+    Route::post('nominaDepartamento/{id}', [CatalogosController::class, 'departamento']);
+
+    // Puesto
+    Route::post('nominaPuesto/{id}', [CatalogosController::class, 'puesto']);
+
+    // Tipo prestacion
+    Route::post('nominaTipoPrestacion/{id}', [CatalogosController::class, 'tipoPrestacion']);
+
+    // Tipo prestacion
+    Route::post('nominaTurno/{id}', [CatalogosController::class, 'turno']);
+
+    // SATCatTipoContrato
+    Route::post('nominaTipoRegimen/{id}', [CatalogosController::class, 'tipoRegimen']);
+
+    // RegistroPatronal
+    Route::post('nominaRegistroPatronal/{id}', [CatalogosController::class, 'registroPatronal']);
+
+    // EntidadFederativa
+    Route::post('nominaEntidadFederativa/{id}', [CatalogosController::class, 'entidadFederativa']);
+
+    // Bancos
+    Route::post('nominaBanco/{id}', [CatalogosController::class, 'bancos']);
+
+    // Empresa
+    Route::post('nominaEmpresa/{id}', [CatalogosController::class, 'empresa']);
+
+    // Empresa
+    Route::post('nominaTipoJornada/{id}', [CatalogosController::class, 'tipoJornada']);
 });
