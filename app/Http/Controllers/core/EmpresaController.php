@@ -9,6 +9,46 @@ use Illuminate\Http\Request;
 class EmpresaController extends Controller
 {
 
+    public function empresasNominas(Request $request)
+    {
+        // $idEmpresaUsuario = $request->user()->id
+
+        $idEmpresaUsuario = 3;
+
+        try {
+
+            $empresas = EmpresaUsuario::select(
+                'empresa_database.id',
+                'empresa_database.nombre_empresa',
+                'empresa_database.nombre_base'
+            )
+                ->join('empresa_usuario_database', 'empresa_usuario.id', '=', 'empresa_usuario_database.id_empresa_usuario')
+                ->join('empresa_database', 'empresa_usuario_database.id_empresa_database', '=', 'empresa_database.id')
+                ->join('core_usuario_conexion', 'empresa_database.id_conexion', '=', 'core_usuario_conexion.id_conexion')
+                ->join('conexion', 'empresa_database.id_conexion', '=', 'conexion.id')
+                ->join('sistema', 'conexion.id_sistema', '=', 'sistema.id')
+                ->where('core_usuario_conexion.estado', 1)
+                ->where('empresa_database.estado', 1)
+                ->where('empresa_usuario_database.estado', 1)
+                ->where('sistema.codigo', '=', 'Nom')
+                ->where('sistema.estado', 1)
+                ->where('empresa_usuario.id', $idEmpresaUsuario)
+                ->get();
+
+            return response()->json([
+                'code' => 200,
+                'data' => $empresas,
+            ], 200);
+        } catch (\Exception $e) {
+            // Manejo de errores
+            return response()->json([
+                'code' => 500,
+                'message' => 'Error al obtener los datos',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function rptEmpresas(Request $request)
     {
         $idEmpresaUsuario = 1;
