@@ -9,4 +9,5 @@ class EmpresaUsuario extends Model
     //
     protected $primaryKey = 'id';
     protected $table = 'empresa_usuario';
+
 }

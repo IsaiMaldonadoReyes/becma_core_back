@@ -10,6 +10,7 @@ use App\Http\Controllers\core\EmpresaController;
 use App\Http\Controllers\comercial\Rpt2VentasPorMarcaController;
 
 use App\Http\Controllers\nomina\CatalogosController;
+use App\Http\Controllers\nomina\DispersionController;
 
 Route::get('/', function () {
     return 'API test becma-core';
@@ -60,7 +61,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('exportExcel', [ExportController::class, 'exportExcel']);
 
 
-    // Nomina
+    // Listar todas las empresas de nomina
 
     Route::post('empresasNominas', [EmpresaController::class, 'empresasNominas']);
 
@@ -100,4 +101,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Empresa
     Route::post('nominaTipoJornada/{id}', [CatalogosController::class, 'tipoJornada']);
+
+    Route::post('dispersion', [DispersionController::class, 'exportar']);
 });
