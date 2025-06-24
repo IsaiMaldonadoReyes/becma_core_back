@@ -35,29 +35,6 @@ class HelperController extends Controller
         DB::reconnect('sqlsrv');
     }
 
-    public function setDefaultConnection($datosEmpresa)
-    {
-        if (!$datosEmpresa || !isset($datosEmpresa->nombre_base)) {
-            throw new \Exception("Datos de empresa inválidos o falta 'base_datos'");
-        }
-
-        Config::set(['database.default' => 'sqlsrv']);
-        Config::set(['database.connections.sqlsrv' => [
-            'driver' => 'sqlsrv',
-            'database' => $datosEmpresa->nombre_base,
-            'host' => config('database.connections.sqlsrv.host'),
-            'port' => config('database.connections.sqlsrv.port'),
-            'username' => config('database.connections.sqlsrv.username'),
-            'password' => config('database.connections.sqlsrv.password'),
-            'charset' => 'utf8',
-            'prefix' => '',
-            'prefix_indexes' => true,
-        ]]);
-
-
-        DB::reconnect('sqlsrv');
-    }
-
     public function getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario)
     {
 
@@ -94,5 +71,22 @@ class HelperController extends Controller
             // Manejo de errores
             throw new \Exception("Error al obtener la conexión: " . $e->getMessage());
         }
+    }
+
+    public function resetToDefaultDatabase()
+    {
+        $default = config('database.default');
+        $defaultConfig = config("database.connections.$default");
+
+        if (!$defaultConfig) {
+            throw new \Exception("No se encontró la configuración para la conexión por defecto.");
+        }
+
+        // Restaurar la conexión por defecto en tiempo de ejecución
+        Config::set('database.default', $default);
+        DB::purge($default); // Limpia cualquier conexión activa
+        DB::reconnect($default); // Reconecta con la base de datos original
+
+        return true;
     }
 }

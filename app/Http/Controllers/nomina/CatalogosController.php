@@ -23,6 +23,7 @@ use App\Models\nomina\nomGenerales\SATCatEntidadFederativa;
 use App\Models\nomina\nomGenerales\SATCatBancos;
 use App\Models\nomina\default\Empresa;
 use App\Models\nomina\nomGenerales\IMSSCatTipoSemanaReducida;
+use App\Models\nomina\default\Empleado;
 
 use App\Http\Controllers\core\HelperController;
 
@@ -456,13 +457,26 @@ class CatalogosController extends Controller
         try {
             $empresa = Empresa::select(
                 'nombrecorto',
-                'mascarillacodigo'
+                'mascarillacodigo',
+                'zonasalariogeneral',
+                'tipocodigoempleado'
             )
                 ->first();
 
+            $mascarilla = $empresa->mascarillacodigo ?? 'XXXX';
+            $tipo = $empresa->tipocodigoempleado ?? 'A';
+            $longitud = substr_count($mascarilla, 'X');
+
+            $ultimo = Empleado::orderBy('codigoempleado', 'desc')->value('codigoempleado');
+
+            $siguiente = $this->generarSiguienteCodigo($ultimo, $longitud, $tipo);
+
             return response()->json([
                 'code' => 200,
-                'data' => $empresa,
+                'data' => [
+                    'empresa' => $empresa,
+                    'siguienteCodigo' => $siguiente,
+                ]
             ], 200);
         } catch (\Exception $e) {
             // Manejo de errores
@@ -503,5 +517,52 @@ class CatalogosController extends Controller
                 'error' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    private function generarSiguienteCodigo(?string $ultimo, int $longitud, string $tipo): string
+    {
+        $charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $base = strlen($charset);
+
+        // Convertidor de base alfanumérica a decimal
+        $toDecimal = function (string $input) use ($charset, $base): int {
+            $input = strtoupper($input);
+            $decimal = 0;
+            for ($i = 0; $i < strlen($input); $i++) {
+                $decimal *= $base;
+                $decimal += strpos($charset, $input[$i]);
+            }
+            return $decimal;
+        };
+
+        // Convertidor de decimal a base alfanumérica
+        $toAlphanumeric = function (int $number) use ($charset, $base): string {
+            $result = '';
+            do {
+                $result = $charset[$number % $base] . $result;
+                $number = intdiv($number, $base);
+            } while ($number > 0);
+            return $result;
+        };
+
+        $start = $ultimo
+            ? ($tipo === 'N' ? intval($ultimo) : $toDecimal($ultimo))
+            : 0;
+
+        $intento = $start;
+
+        // Intentar encontrar un código que no exista
+        do {
+            $intento++;
+            $codigo = $tipo === 'N'
+                ? str_pad((string)$intento, $longitud, '0', STR_PAD_LEFT)
+                : str_pad($toAlphanumeric($intento), $longitud, '0', STR_PAD_LEFT);
+
+            $existe = Empleado::where('codigoempleado', $codigo)->exists();
+
+            if (!$existe) return $codigo;
+        } while ($intento < pow($base, $longitud)); // evitar bucle infinito
+
+        throw new \Exception('No hay códigos disponibles');
     }
 }
