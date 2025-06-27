@@ -11,21 +11,25 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('nomina_gape_caracteristica_importacion_incidencia', function (Blueprint $table) {
+        Schema::create('nomina_gape_empresa', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
 
             $table->boolean('estado')->nullable();
             $table->unsignedBigInteger('usuario_creador')->nullable();
             $table->unsignedBigInteger('usuario_modificador')->nullable();
+            $table->unsignedBigInteger('id_nomina_gape_cliente')->nullable();
+            $table->unsignedBigInteger('id_empresa_database')->nullable();
 
-            $table->unsignedBigInteger('id_concepto')->nullable();
-            $table->string('columna')->nullable();
-            $table->string('version')->nullable();
+            $table->boolean('fiscal')->nullable();
 
-            $table->foreign('usuario_creador')->references('id')->on('users');
-            $table->foreign('usuario_modificador')->references('id')->on('users');
+            $table->string('razon_social')->nullable();
+            $table->string('rfc')->nullable();
+            $table->string('codigo_interno')->nullable();
+            $table->string('correo_notificacion')->nullable();
         });
+
+        Schema::dropIfExists('nomina_gape_empresa');
     }
 
     /**
@@ -33,6 +37,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('nomina_gape_caracteristica_importacion_incidencia');
+
     }
 };

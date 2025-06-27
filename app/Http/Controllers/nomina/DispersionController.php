@@ -39,28 +39,28 @@ class DispersionController extends Controller
         $ordenante = $this->obtenerDatosOrdenante($conexion);
 
         switch ($tipo) {
-            case 'fondeadora':
+            case 'Fondeadora':
                 return Excel::download(
                     new FondeadoraExport($datos),
                     'dispersion_fondeadora.csv',
                     \Maatwebsite\Excel\Excel::CSV
                 );
 
-            case 'azteca_bancario':
+            case 'AztecaBancario':
                 return Excel::download(
                     new AztecaBancarioExport($datos, $cuentaOrigen, $ordenante->NombreEmpresaFiscal, $ordenante->rfc),
                     'dispersion_bancaria.xlsx',
                     \Maatwebsite\Excel\Excel::XLSX
                 );
 
-            case 'azteca_interbancario':
+            case 'AztecaInterbancario':
                 return Excel::download(
                     new AztecaInterbancarioExport($datos, $cuentaOrigen, $ordenante->NombreEmpresaFiscal, $ordenante->rfc),
-                    'dispersion_interbancaria.csv',
+                    'dispersion_interbancaria.xlsx',
                     \Maatwebsite\Excel\Excel::XLSX
                 );
 
-            case 'banorte_tercero':
+            case 'BanorteTerceros':
                 return Excel::download(
                     new BanorteTerceroExport($datos, $claveId, $cuentaOrigen, $ordenante->rfc),
                     'dispersion_banorte_tab.xlsx',

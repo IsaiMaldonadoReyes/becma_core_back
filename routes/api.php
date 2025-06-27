@@ -72,6 +72,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // TipoPeriodo
     Route::post('nominaTipoPeriodo/{id}', [CatalogosController::class, 'tipoPeriodo']);
 
+    // Periodo
+    Route::post('nominaPeriodo/{id}/{idTipoPeriodo}', [CatalogosController::class, 'periodo']);
+
     // Departamento
     Route::post('nominaDepartamento/{id}', [CatalogosController::class, 'departamento']);
 

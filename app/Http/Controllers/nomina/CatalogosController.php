@@ -13,6 +13,7 @@ use App\Models\core\Sistema;
 
 use App\Models\nomina\nomGenerales\SATCatTipoContrato;
 use App\Models\nomina\default\TipoPeriodo;
+use App\Models\nomina\default\Periodo;
 use App\Models\nomina\default\Departamento;
 use App\Models\nomina\default\Puesto;
 use App\Models\nomina\default\TipoPrestacion;
@@ -184,6 +185,43 @@ class CatalogosController extends Controller
             return response()->json([
                 'code' => 200,
                 'data' => $tipoPeriodo,
+            ], 200);
+        } catch (\Exception $e) {
+            // Manejo de errores
+            return response()->json([
+                'code' => 500,
+                'message' => 'Error al obtener los datos',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function periodo(Request $request)
+    {
+        // $idEmpresaUsuario = $request->user()->id
+        $idEmpresaUsuario = 3;
+        $idEmpresaDatabase =  $request->id;
+        $idTipoPeriodo =  $request->idTipoPeriodo;
+
+        $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario);
+
+        $this->helperController->setDatabaseConnection($conexion, $conexion->nombre_base);
+
+        try {
+            $periodo = Periodo::select(
+                'idperiodo',
+                'numeroperiodo',
+                'ejercicio',
+                'mes',
+                'fechainicio',
+                'fechafin',
+            )
+                ->where('idtipoperiodo', $idTipoPeriodo)
+                ->get();
+
+            return response()->json([
+                'code' => 200,
+                'data' => $periodo,
             ], 200);
         } catch (\Exception $e) {
             // Manejo de errores
