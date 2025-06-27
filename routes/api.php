@@ -19,6 +19,8 @@ Route::get('/', function () {
 
 Route::post('login', [AuthController::class, 'login'])->middleware('web');
 
+Route::post('logout', [AuthController::class, 'logout'])->middleware('web');
+
 //Route::post('register', [AuthController::class, 'register']);
 
 
