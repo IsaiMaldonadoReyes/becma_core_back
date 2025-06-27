@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\JsonResponse;
 use App\Http\Requests\core\UpdatePasswordRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -45,6 +46,18 @@ class AuthController extends Controller
         } else {
             return response()->json(['error' => 'Credenciales inválidas'], 422);
         }
+    }
+
+    public function logout(Request $request)
+    {
+        Auth::guard('web')->logout(); // O simplemente $this->guard()->logout()
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return $request->wantsJson()
+            ? new JsonResponse([], 204)
+            : redirect('/');
     }
 
     protected function authenticated(Request $request, $user)
