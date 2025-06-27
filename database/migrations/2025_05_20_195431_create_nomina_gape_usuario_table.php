@@ -19,10 +19,8 @@ return new class extends Migration
             $table->unsignedBigInteger('usuario_modificador')->nullable();
 
             $table->unsignedBigInteger('id_empresa_usuario')->nullable();
-            $table->unsignedBigInteger('id_nomina_gape_empresa')->nullable();
 
             $table->foreign('id_empresa_usuario')->references('id')->on('empresa_usuario');
-            $table->foreign('id_nomina_gape_empresa')->references('id')->on('nomina_gape_empresa');
 
             $table->foreign('usuario_creador')->references('id')->on('users');
             $table->foreign('usuario_modificador')->references('id')->on('users');

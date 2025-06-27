@@ -17,7 +17,6 @@ return new class extends Migration
             $table->boolean('estado')->nullable();
 
             $table->unsignedBigInteger('id_nomina_gape_caracteristica_importacion_incidencia')->nullable();
-            $table->unsignedBigInteger('id_nomina_gape_empresa')->nullable();
 
             $table->string('dato_celda')->nullable();
             $table->string('celda')->nullable();

@@ -11,20 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('nomina_gape_caracteristica_importacion_incidencia', function (Blueprint $table) {
+        Schema::create('nomina_gape_cliente', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-
             $table->boolean('estado')->nullable();
             $table->unsignedBigInteger('usuario_creador')->nullable();
             $table->unsignedBigInteger('usuario_modificador')->nullable();
 
-            $table->unsignedBigInteger('id_concepto')->nullable();
-            $table->string('columna')->nullable();
-            $table->string('version')->nullable();
-
-            $table->foreign('usuario_creador')->references('id')->on('users');
-            $table->foreign('usuario_modificador')->references('id')->on('users');
+            $table->string('nombre')->nullable();
+            $table->string('codigo')->nullable();
+            $table->string('telefono')->nullable();
         });
     }
 
@@ -33,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('nomina_gape_caracteristica_importacion_incidencia');
+        Schema::dropIfExists('nomina_gape_cliente');
     }
 };

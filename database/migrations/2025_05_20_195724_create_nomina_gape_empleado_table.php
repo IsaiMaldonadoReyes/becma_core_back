@@ -19,8 +19,6 @@ return new class extends Migration
             $table->unsignedBigInteger('usuario_creador')->nullable();
             $table->unsignedBigInteger('usuario_modificador')->nullable();
 
-            $table->unsignedBigInteger('id_nomina_gape_empresa')->nullable();
-
 
             $table->bigInteger('idempleado')->nullable();
             $table->integer('iddepartamento')->nullable();
@@ -123,7 +121,6 @@ return new class extends Migration
             $table->foreign('usuario_creador')->references('id')->on('empresa_usuario');
             $table->foreign('usuario_modificador')->references('id')->on('empresa_usuario');
 
-            $table->foreign('id_nomina_gape_empresa')->references('id')->on('nomina_gape_empresa');
         });
     }
 
