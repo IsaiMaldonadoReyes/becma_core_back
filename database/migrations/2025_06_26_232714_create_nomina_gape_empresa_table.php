@@ -28,8 +28,6 @@ return new class extends Migration
             $table->string('codigo_interno')->nullable();
             $table->string('correo_notificacion')->nullable();
         });
-
-        Schema::dropIfExists('nomina_gape_empresa');
     }
 
     /**
@@ -37,6 +35,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-
+        Schema::dropIfExists('nomina_gape_empresa');
     }
 };
