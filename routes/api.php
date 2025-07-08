@@ -11,6 +11,9 @@ use App\Http\Controllers\comercial\Rpt2VentasPorMarcaController;
 
 use App\Http\Controllers\nomina\CatalogosController;
 use App\Http\Controllers\nomina\DispersionController;
+use App\Http\Controllers\nomina\EmpleadoController;
+
+use App\Http\Controllers\nomina\ClienteController;
 
 Route::get('/', function () {
     return 'API test becma-core';
@@ -42,11 +45,27 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::post('resetPassword', [AuthController::class, 'resetPassword']);
 
+    // sistema
     Route::get('indexSistema', [SistemaController::class, 'index']);
     Route::post('storeSistema', [SistemaController::class, 'store']);
     Route::put('updateSistema/{id}', [SistemaController::class, 'update']);
     Route::delete('/destroySistema/{id}', [SistemaController::class, 'destroy']);
     Route::delete('/destroySistemaByIds', [SistemaController::class, 'destroyByIds']);
+
+    // cliente
+    Route::get('indexCliente', [ClienteController::class, 'index']);
+    Route::post('storeCliente', [ClienteController::class, 'store']);
+    Route::put('updateCliente/{id}', [ClienteController::class, 'update']);0ñ{}
+    Route::delete('/destroyCliente/{id}', [ClienteController::class, 'destroy']);
+    Route::delete('/destroyClienteByIds', [ClienteController::class, 'destroyByIds']);
+
+
+    // Empleados
+    Route::get('indexEmpleado', [EmpleadoController::class, 'index']);
+    Route::post('storeEmpleado', [EmpleadoController::class, 'store']);
+    Route::put('updateEmpleado/{id}', [EmpleadoController::class, 'update']);
+    Route::delete('/destroyEmpleado/{id}', [EmpleadoController::class, 'destroy']);
+
 
 
     // empresas

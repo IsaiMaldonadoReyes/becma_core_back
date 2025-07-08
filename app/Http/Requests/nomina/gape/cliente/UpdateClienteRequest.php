@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\core\sistema;
+namespace App\Http\Requests\nomina\gape\cliente;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreSistemaRequest extends FormRequest
+class UpdateClienteRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -21,11 +21,13 @@ class StoreSistemaRequest extends FormRequest
      */
     public function rules(): array
     {
+        $clienteId = $this->route('id'); // Asegúrate de que la ruta tenga el parámetro "id"
+
         return [
-            'nombre' => 'required|unique:sistema,nombre',
-            'codigo' => 'required|unique:sistema,codigo',
-            'descripcion' => 'required',
-            'estado' => 'required|boolean',
+            'nombre' => 'required|unique:nomina_gape_cliente,nombre,' . $clienteId,
+            'codigo' => 'required|unique:nomina_gape_cliente,codigo,' . $clienteId,
+            'telefono' => 'required',
+            'estado' => 'required'
         ];
     }
 
@@ -36,9 +38,8 @@ class StoreSistemaRequest extends FormRequest
             'nombre.unique' => 'El nombre ya está en uso',
             'codigo.required' => 'El código es obligatorio',
             'codigo.unique' => 'El código ya está en uso',
-            'descripcion.required' => 'La descripción es obligatoria',
+            'telefono.required' => 'El teléfono es obligatorio',
             'estado.required' => 'El estado es obligatorio',
-            'estado.boolean' => 'El estado debe ser v/f',
         ];
     }
 }
