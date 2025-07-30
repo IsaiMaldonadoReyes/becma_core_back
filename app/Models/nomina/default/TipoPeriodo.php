@@ -9,6 +9,9 @@ use Illuminate\Database\Eloquent\Model;
 class TipoPeriodo extends Model
 {
     //
+
+    protected $connection = 'sqlsrv_dynamic';
+
     protected $primaryKey = 'idtipoperiodo';
     protected $table = 'nom10023';
 }

@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class Empresa extends Model
 {
     //
-    //protected $primaryKey = 'nombrecorto';
+
+    protected $connection = 'sqlsrv_dynamic';
+
     protected $table = 'nom10000';
 }
