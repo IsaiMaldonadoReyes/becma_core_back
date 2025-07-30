@@ -11,20 +11,21 @@ use App\Models\core\CoreUsuarioConexion;
 use App\Models\core\Conexion;
 use App\Models\core\Sistema;
 
-use App\Models\nomina\nomGenerales\SATCatTipoContrato;
 use App\Models\nomina\default\TipoPeriodo;
 use App\Models\nomina\default\Periodo;
 use App\Models\nomina\default\Departamento;
 use App\Models\nomina\default\Puesto;
 use App\Models\nomina\default\TipoPrestacion;
 use App\Models\nomina\default\Turno;
-use App\Models\nomina\nomGenerales\SATCatTipoRegimen;
 use App\Models\nomina\default\RegistroPatronal;
+use App\Models\nomina\default\Empresa;
+use App\Models\nomina\default\Empleado;
+use App\Models\nomina\nomGenerales\SATCatTipoContrato;
+use App\Models\nomina\nomGenerales\SATCatTipoRegimen;
 use App\Models\nomina\nomGenerales\SATCatEntidadFederativa;
 use App\Models\nomina\nomGenerales\SATCatBancos;
-use App\Models\nomina\default\Empresa;
 use App\Models\nomina\nomGenerales\IMSSCatTipoSemanaReducida;
-use App\Models\nomina\default\Empleado;
+use App\Models\nomina\nomGenerales\NominaEmpresa;
 
 use App\Http\Controllers\core\HelperController;
 
@@ -92,6 +93,49 @@ class CatalogosController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function sincronizarEmpresasNomGemerales()
+    {
+        $conexion = Conexion::select(
+            'id',
+            'usuario',
+            'password',
+            'ip',
+            'puerto',
+            'host'
+        )
+            ->first();
+
+        $this->helperController->setDatabaseConnection($conexion, 'nomGenerales');
+
+        $empresasGenerales = NominaEmpresa::select(
+            'IDEmpresa',
+            'NombreEmpresa',
+            'NombreCorto',
+            'RutaEmpresa'
+        )
+            ->where('RutaEmpresa', '!=', '')
+            ->get();
+
+        foreach ($empresasGenerales as $empresa) {
+            // Validamos si ya existe la RutaEmpresa como nombre_base
+            $yaExiste = EmpresaDatabase::where('nombre_base', $empresa->RutaEmpresa)->exists();
+
+            if (!$yaExiste) {
+                EmpresaDatabase::create([
+                    'estado'            => 1, // o el valor por default que uses
+                    'usuario_modificador' => null,
+                    'id_conexion'       => $conexion->id,
+                    'nombre_base'       => $empresa->RutaEmpresa,
+                    'nombre_empresa'    => $empresa->NombreEmpresa,
+                    'created_at'        => now(),
+                    'updated_at'        => now(),
+                ]);
+            }
+        }
+
+        return response()->json(['message' => 'Empresas sincronizadas correctamente.']);
     }
 
     public function empresasNominas(Request $request)

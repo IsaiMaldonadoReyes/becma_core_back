@@ -18,8 +18,7 @@ class HelperController extends Controller
             throw new \Exception("Datos de empresa inválidos o falta 'base_datos'");
         }
 
-        Config::set(['database.default' => 'sqlsrv']);
-        Config::set(['database.connections.sqlsrv' => [
+        Config::set('database.connections.sqlsrv_dynamic', [
             'driver' => 'sqlsrv',
             'database' => $nombre_base,
             'host' => "$datosEmpresa->ip\\$datosEmpresa->host",
@@ -29,10 +28,11 @@ class HelperController extends Controller
             'charset' => 'utf8',
             'prefix' => '',
             'prefix_indexes' => true,
-        ]]);
+        ]);
 
 
-        DB::reconnect('sqlsrv');
+        DB::purge('sqlsrv_dynamic');
+        DB::reconnect('sqlsrv_dynamic');
     }
 
     public function getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario)

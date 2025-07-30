@@ -126,5 +126,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Empresa
     Route::post('nominaTipoJornada/{id}', [CatalogosController::class, 'tipoJornada']);
 
+
+    // sincronizar empresas de nomina con empresa_database
+    Route::post('sincronizarEmpresas', [CatalogosController::class, 'sincronizarEmpresasNomGemerales']);
+
     Route::post('dispersion', [DispersionController::class, 'exportar']);
 });

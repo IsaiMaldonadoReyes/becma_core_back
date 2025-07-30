@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class SATCatTipoRegimen extends Model
 {
     //
+
+    protected $connection = 'sqlsrv_dynamic';
+
     protected $primaryKey = 'claveTipoRegimen';
     protected $table = 'SATCatTipoRegimen';
 
