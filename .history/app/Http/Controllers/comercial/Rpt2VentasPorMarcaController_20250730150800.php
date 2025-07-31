@@ -88,12 +88,11 @@ class Rpt2VentasPorMarcaController extends Controller
      */
     public function dataset(Request $request)
     {
-         $idEmpresaUsuario = 1;
-        $idEmpresaDatabase =  $request->empresa; 
+        //
 
-        $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario, 'Comercial');
+        $datosEmpresa = EmpresaDatabase::find($request->empresa);
 
-        $this->helperController->setDatabaseConnection($conexion, $conexion->nombre_base);
+        $this->helperController->setDatabaseConnection($datosEmpresa);
 
         $tipoConsulta = $request->modo == "cantidad" ? "SUM(mov.CUNIDADESCAPTURADAS)" : "SUM(mov.CTOTAL)";
 
@@ -217,7 +216,7 @@ class Rpt2VentasPorMarcaController extends Controller
                     END
                     EXEC sp_executesql @query; ";
 
-            $resultados = DB::connection('sqlsrv_dynamic')->select($data);
+            $resultados = DB::select($data);
 
             // Retornar una respuesta JSON con los datos
             return response()->json([

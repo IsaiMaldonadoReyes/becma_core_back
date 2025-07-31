@@ -51,7 +51,7 @@ class HelperController extends Controller
                 'conexion.password',
                 'conexion.ip',
                 'conexion.puerto',
-                'sistema.database_maestra',
+                'sistema.database_maestras',
             )
                 ->join('empresa_usuario_database', 'empresa_usuario.id', '=', 'empresa_usuario_database.id_empresa_usuario')
                 ->join('empresa_database', 'empresa_usuario_database.id_empresa_database', '=', 'empresa_database.id')

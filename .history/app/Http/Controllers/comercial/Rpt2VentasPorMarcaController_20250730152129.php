@@ -217,7 +217,7 @@ class Rpt2VentasPorMarcaController extends Controller
                     END
                     EXEC sp_executesql @query; ";
 
-            $resultados = DB::connection('sqlsrv_dynamic')->select($data);
+            $resultados = DB::connection('sqlsrv_dynamic')->select($marcas);
 
             // Retornar una respuesta JSON con los datos
             return response()->json([

@@ -64,7 +64,6 @@ class EmpresaController extends Controller
                 ->join('empresa_usuario_database', 'empresa_usuario.id', '=', 'empresa_usuario_database.id_empresa_usuario')
                 ->join('empresa_database', 'empresa_usuario_database.id_empresa_database', '=', 'empresa_database.id')
                 ->join('core_usuario_conexion', 'empresa_database.id_conexion', '=', 'core_usuario_conexion.id_conexion')
-                ->join('conexion', 'empresa_database.id_conexion', '=', 'conexion.id')
                 ->join('sistema', 'conexion.id_sistema', '=', 'sistema.id')
                 ->where('core_usuario_conexion.estado', 1)
                 ->where('empresa_database.estado', 1)

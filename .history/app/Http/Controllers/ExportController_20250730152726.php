@@ -141,7 +141,7 @@ class ExportController extends Controller
         //     Make it a vertical column rather than a horizontal bar graph
 
         switch ($tipoGrafica) {
-            case "tabBarV":
+            case "tabBarrasV":
                 $series = new DataSeries(
                     DataSeries::TYPE_BARCHART, // plotType
                     DataSeries::GROUPING_STANDARD, // plotGrouping
@@ -152,7 +152,7 @@ class ExportController extends Controller
                 );
                 $series->setPlotDirection(DataSeries::DIRECTION_COLUMN);
                 break;
-            case "tabBarH":
+            case "tabBarrasH":
                 $series = new DataSeries(
                     DataSeries::TYPE_BARCHART, // plotType
                     DataSeries::GROUPING_STANDARD, // plotGrouping
@@ -163,7 +163,7 @@ class ExportController extends Controller
                 );
                 $series->setPlotDirection(DataSeries::DIRECTION_BAR);
                 break;
-            case "tabLine":
+            case "tabLineal":
                 $series = new DataSeries(
                     DataSeries::TYPE_LINECHART, // plotType
                     null, //DataSeries::GROUPING_STANDARD, // plotGrouping

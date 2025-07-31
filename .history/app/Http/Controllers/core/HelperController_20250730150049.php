@@ -61,7 +61,7 @@ class HelperController extends Controller
                 ->where('core_usuario_conexion.estado', 1)
                 ->where('empresa_database.estado', 1)
                 ->where('empresa_usuario_database.estado', 1)
-                ->where('sistema.codigo', '=', $codigoSistema)
+                ->where('sistema.codigo', '=', 'Nom')
                 ->where('sistema.estado', 1)
                 ->where('empresa_database.id', $idEmpresaDatabase)
                 ->where('empresa_usuario.id', $idEmpresaUsuario)
