@@ -181,7 +181,7 @@ class ExportController extends Controller
         // Set the chart legend
         $legend = new ChartLegend(ChartLegend::POSITION_RIGHT, null, false);
 
-        $title = new Title('');
+        $title = new Title('Test Column Chart');
         //$yAxisLabel = new Title('Value ($k)');
 
         // Create the chart

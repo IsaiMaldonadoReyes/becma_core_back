@@ -181,7 +181,7 @@ class ExportController extends Controller
         // Set the chart legend
         $legend = new ChartLegend(ChartLegend::POSITION_RIGHT, null, false);
 
-        $title = new Title('');
+        $title = new Title('Test Column Chart');
         //$yAxisLabel = new Title('Value ($k)');
 
         // Create the chart
@@ -219,7 +219,8 @@ class ExportController extends Controller
 
         // Configurar los headers para la descarga
         $filename = "myfile.xlsx";
-        $response->headers->set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        //$response->headers->set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        $response->headers->set('Content-Type', 'application/pdf');
         $response->headers->set('Content-Disposition', 'attachment;filename="' . $filename . '"');
         $response->headers->set('Content-Transfer-Encoding', 'binary');
         $response->headers->set('Cache-Control', 'must-revalidate');

@@ -16,6 +16,9 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Settings;
 use Illuminate\Http\Request;
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Dompdf;
+
+\PhpOffice\PhpSpreadsheet\IOFactory::registerWriter('Pdf', Dompdf::class);
 
 class ExportController extends Controller
 {
@@ -174,14 +177,14 @@ class ExportController extends Controller
                 );
                 break;
         }
-        
+
 
         // Set the series in the plot area
         $plotArea = new PlotArea(null, [$series]);
         // Set the chart legend
         $legend = new ChartLegend(ChartLegend::POSITION_RIGHT, null, false);
 
-        $title = new Title('');
+        $title = new Title('Test Column Chart');
         //$yAxisLabel = new Title('Value ($k)');
 
         // Create the chart
@@ -204,7 +207,10 @@ class ExportController extends Controller
         $worksheet->addChart($chart);
 
         // Crear un writer para guardar el archivo
-        $writer = new Xlsx($spreadsheet);
+        //$writer = new Xlsx($spreadsheet);//excel
+
+
+        $writer = new Dompdf($spreadsheet);
 
         // Descargar el archivo
         $response = new StreamedResponse(function () use ($writer) {
@@ -219,7 +225,8 @@ class ExportController extends Controller
 
         // Configurar los headers para la descarga
         $filename = "myfile.xlsx";
-        $response->headers->set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        //$response->headers->set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        $response->headers->set('Content-Type', 'application/pdf');
         $response->headers->set('Content-Disposition', 'attachment;filename="' . $filename . '"');
         $response->headers->set('Content-Transfer-Encoding', 'binary');
         $response->headers->set('Cache-Control', 'must-revalidate');
