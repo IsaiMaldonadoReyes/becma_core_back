@@ -8,6 +8,7 @@ use App\Http\Controllers\ExportController;
 use App\Http\Controllers\core\EmpresaController;
 
 use App\Http\Controllers\comercial\Rpt2VentasPorMarcaController;
+use App\Http\Controllers\comercial\RptVentasPorConceptoController;
 
 use App\Http\Controllers\nomina\CatalogosController;
 use App\Http\Controllers\nomina\DispersionController;
@@ -76,6 +77,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('labelRpt2', [Rpt2VentasPorMarcaController::class, 'label']);
     Route::post('dataRpt2', [Rpt2VentasPorMarcaController::class, 'dataset']);
     Route::post('marcasRpt2', [Rpt2VentasPorMarcaController::class, 'marcas']);
+
+    // Rpt3 = Ventas por conceptos
+    Route::post('conceptosRpt3', [RptVentasPorConceptoController::class, 'conceptosFacturaComercial']);
+    Route::post('labelRpt3', [RptVentasPorConceptoController::class, 'label']);
+    Route::post('dataRpt3', [RptVentasPorConceptoController::class, 'dataset']);
 
 
 
