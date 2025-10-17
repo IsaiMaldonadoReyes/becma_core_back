@@ -17,6 +17,9 @@ use App\Http\Controllers\nomina\EmpleadoController;
 
 use App\Http\Controllers\nomina\ClienteController;
 
+
+use App\Http\Controllers\comercial\KioscoController;
+
 Route::get('/', function () {
     return 'API test becma-core';
 });
@@ -27,6 +30,26 @@ Route::post('login', [AuthController::class, 'login'])->middleware('web');
 Route::post('logout', [AuthController::class, 'logout'])->middleware('web');
 
 //Route::post('register', [AuthController::class, 'register']);
+
+
+
+
+// kiosco
+
+Route::post('empresas', [KioscoController::class, 'empresas']);
+Route::post('catalogos', [KioscoController::class, 'catalogos']);
+Route::post('listaCodigoPostal', [KioscoController::class, 'listaCodigoPostal']);
+Route::post('direccion', [KioscoController::class, 'direccion']);
+Route::post('cliente', [KioscoController::class, 'getCliente']);
+
+Route::post('validarTicket', [KioscoController::class, 'validarTicket']);
+Route::post('estatusTicket', [KioscoController::class, 'getEstatusTicket']);
+
+Route::post('upsetTicket', [KioscoController::class, 'upsetTicket']);
+Route::post('eliminarTicket', [KioscoController::class, 'deleteTicket']);
+
+Route::post('descargarPdf', [KioscoController::class, 'descargarPdf']);
+Route::post('descargarXml', [KioscoController::class, 'descargarXml']);
 
 
 

@@ -184,7 +184,7 @@ class CatalogosController extends Controller
         $idEmpresaUsuario = 3;
         $idEmpresaDatabase =  $request->id;
 
-        $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario);
+        $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario, 'Nom');
 
         $this->helperController->setDatabaseConnection($conexion, $conexion->database_maestra);
 
@@ -215,7 +215,7 @@ class CatalogosController extends Controller
         $idEmpresaUsuario = 3;
         $idEmpresaDatabase =  $request->id;
 
-        $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario);
+        $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario, 'Nom');
 
         $this->helperController->setDatabaseConnection($conexion, $conexion->nombre_base);
 
@@ -247,7 +247,7 @@ class CatalogosController extends Controller
         $idEmpresaDatabase =  $request->id;
         $idTipoPeriodo =  $request->idTipoPeriodo;
 
-        $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario);
+        $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario, 'Nom');
 
         $this->helperController->setDatabaseConnection($conexion, $conexion->nombre_base);
 
@@ -283,7 +283,7 @@ class CatalogosController extends Controller
         $idEmpresaUsuario = 3;
         $idEmpresaDatabase =  $request->id;
 
-        $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario);
+        $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario, 'Nom');
 
         $this->helperController->setDatabaseConnection($conexion, $conexion->nombre_base);
 
@@ -314,7 +314,7 @@ class CatalogosController extends Controller
         $idEmpresaUsuario = 3;
         $idEmpresaDatabase =  $request->id;
 
-        $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario);
+        $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario, 'Nom');
 
         $this->helperController->setDatabaseConnection($conexion, $conexion->nombre_base);
 
@@ -345,7 +345,7 @@ class CatalogosController extends Controller
         $idEmpresaUsuario = 3;
         $idEmpresaDatabase =  $request->id;
 
-        $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario);
+        $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario, 'Nom');
 
         $this->helperController->setDatabaseConnection($conexion, $conexion->nombre_base);
 
@@ -376,7 +376,7 @@ class CatalogosController extends Controller
         $idEmpresaUsuario = 3;
         $idEmpresaDatabase =  $request->id;
 
-        $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario);
+        $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario, 'Nom');
 
         $this->helperController->setDatabaseConnection($conexion, $conexion->nombre_base);
 
@@ -407,7 +407,7 @@ class CatalogosController extends Controller
         $idEmpresaUsuario = 3;
         $idEmpresaDatabase =  $request->id;
 
-        $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario);
+        $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario, 'Nom');
 
         $this->helperController->setDatabaseConnection($conexion, $conexion->database_maestra);
 
@@ -438,7 +438,7 @@ class CatalogosController extends Controller
         $idEmpresaUsuario = 3;
         $idEmpresaDatabase =  $request->id;
 
-        $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario);
+        $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario, 'Nom');
 
         $this->helperController->setDatabaseConnection($conexion, $conexion->nombre_base);
 
@@ -469,7 +469,7 @@ class CatalogosController extends Controller
         $idEmpresaUsuario = 3;
         $idEmpresaDatabase =  $request->id;
 
-        $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario);
+        $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario, 'Nom');
 
         $this->helperController->setDatabaseConnection($conexion, $conexion->database_maestra);
 
@@ -501,7 +501,7 @@ class CatalogosController extends Controller
         $idEmpresaUsuario = 3;
         $idEmpresaDatabase =  $request->id;
 
-        $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario);
+        $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario, 'Nom');
 
         $this->helperController->setDatabaseConnection($conexion, $conexion->database_maestra);
 
@@ -532,7 +532,7 @@ class CatalogosController extends Controller
         $idEmpresaUsuario = 3;
         $idEmpresaDatabase =  $request->id;
 
-        $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario);
+        $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario, 'Nom');
 
         $this->helperController->setDatabaseConnection($conexion, $conexion->nombre_empresa);
 
@@ -576,7 +576,7 @@ class CatalogosController extends Controller
         $idEmpresaUsuario = 3;
         $idEmpresaDatabase =  $request->id;
 
-        $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario);
+        $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario, 'Nom');
 
         $this->helperController->setDatabaseConnection($conexion, $conexion->database_maestra);
 
