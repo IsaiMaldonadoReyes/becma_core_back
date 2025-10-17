@@ -53,7 +53,7 @@ class EmpresaController extends Controller
     {
 
         // obtener empresas de sistema comercial
-        $idEmpresaUsuario = 1;
+        $idEmpresaUsuario = 5;
 
         try {
             $empresas = EmpresaUsuario::select(

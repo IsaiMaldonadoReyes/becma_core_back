@@ -26,13 +26,13 @@ class Rpt2VentasPorMarcaController extends Controller
     {
         try {
             $labels = "DECLARE @startDate DATE, @endDate DATE;
-                    SET @startDate = '$request->fechaInicio';  
-                    SET @endDate = '$request->fechaFin';    
+                    SET @startDate = '$request->fechaInicio';
+                    SET @endDate = '$request->fechaFin';
 
-                    
+
                     IF DATEDIFF(MONTH, @startDate, @endDate) > 0
                     BEGIN
-                        
+
                         WITH Meses AS (
                             SELECT @startDate AS Fecha
                             UNION ALL
@@ -46,10 +46,10 @@ class Rpt2VentasPorMarcaController extends Controller
                         ORDER  BY Month(Fecha)
                         OPTION (MAXRECURSION 12);
                     END
-                    
+
                     ELSE IF DATEDIFF(DAY, @startDate, @endDate) > 1
                     BEGIN
-                        
+
                         SELECT CONVERT(VARCHAR(10), @startDate, 23) AS labels
                         UNION ALL
                         SELECT CONVERT(VARCHAR(10), DATEADD(DAY, 7, @startDate), 23)
@@ -58,10 +58,10 @@ class Rpt2VentasPorMarcaController extends Controller
                         UNION ALL
                         SELECT CONVERT(VARCHAR(10), DATEADD(DAY, 21, @startDate), 23)
                     END
-                    
+
                     ELSE
                     BEGIN
-                        
+
                         SELECT CONVERT(VARCHAR(10), @startDate, 23) AS labels
                     END
                     ";
@@ -88,8 +88,8 @@ class Rpt2VentasPorMarcaController extends Controller
      */
     public function dataset(Request $request)
     {
-         $idEmpresaUsuario = 1;
-        $idEmpresaDatabase =  $request->empresa; 
+        $idEmpresaUsuario = 1;
+        $idEmpresaDatabase =  $request->empresa;
 
         $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario, 'Comercial');
 
@@ -98,7 +98,7 @@ class Rpt2VentasPorMarcaController extends Controller
         $tipoConsulta = $request->modo == "cantidad" ? "SUM(mov.CUNIDADESCAPTURADAS)" : "SUM(mov.CTOTAL)";
 
         try {
-            $data = "   
+            $data = "
                     DECLARE @cols NVARCHAR(MAX), @valorClasificacion NVARCHAR(MAX), @query NVARCHAR(MAX), @startDate DATE, @endDate DATE;
                     SET @startDate = '$request->fechaInicio';  -- Fecha de inicio del rango
                     SET @endDate = '$request->fechaFin';    -- Fecha de fin del rango
@@ -111,21 +111,21 @@ class Rpt2VentasPorMarcaController extends Controller
                         FROM Meses
                         WHERE DATEADD(MONTH, 1, Fecha) <= @endDate
                     )
-                    
+
                     SELECT @cols = STUFF((
                         SELECT ',' + QUOTENAME(FORMAT(Fecha, 'MMMM', 'es-ES'))
                         FROM Meses
                         GROUP BY FORMAT(Fecha, 'MMMM', 'es-ES'), MONTH(Fecha)
                         ORDER BY MONTH(Fecha)
                         FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 1, '');
-                    
+
                     -- Caso 1: El rango abarca más de un mes
                     IF DATEDIFF(MONTH, @startDate, @endDate) > 0
                     BEGIN
 
                         SET @query = 'SELECT marca, ' + @cols + '
                                     FROM (
-                                        SELECT 
+                                        SELECT
                                             claVal.CVALORCLASIFICACION AS marca
                                             , $tipoConsulta AS TotalVentas,
                                             FORMAT(doc.CFECHA, ''MMMM'', ''es-ES'') AS Periodo
@@ -138,7 +138,7 @@ class Rpt2VentasPorMarcaController extends Controller
                                         AND doc.CCANCELADO = 0
                                         AND doc.CFECHA BETWEEN ''' + CONVERT(VARCHAR, @startDate, 23) + ''' AND ''' + CONVERT(VARCHAR, @endDate, 23) + '''
                                         AND claVal.CIDVALORCLASIFICACION IN ('+ @valorClasificacion + ')
-                                        GROUP BY 
+                                        GROUP BY
                                             claVal.CVALORCLASIFICACION
                                             ,FORMAT(doc.CFECHA, ''MMMM'', ''es-ES'')
                                     ) AS SourceTable
@@ -158,10 +158,10 @@ class Rpt2VentasPorMarcaController extends Controller
 
                         SET @query = 'SELECT marca, ' + @cols + '
                                     FROM (
-                                        SELECT 
+                                        SELECT
                                             claVal.CVALORCLASIFICACION AS marca
                                             ,$tipoConsulta AS TotalVentas,
-                                            CASE 
+                                            CASE
                                                 WHEN doc.CFECHA BETWEEN ''' + CONVERT(VARCHAR, @startDate, 23) + ''' AND ''' + CONVERT(VARCHAR, DATEADD(DAY, 7, @startDate), 23) + ''' THEN ''' + CONVERT(VARCHAR, @startDate, 23) + '''
                                                 WHEN doc.CFECHA BETWEEN ''' + CONVERT(VARCHAR, DATEADD(DAY, 8, @startDate), 23) + ''' AND ''' + CONVERT(VARCHAR, DATEADD(DAY, 14, @startDate), 23) + ''' THEN ''' + CONVERT(VARCHAR, DATEADD(DAY, 7, @startDate), 23) + '''
                                                 WHEN doc.CFECHA BETWEEN ''' + CONVERT(VARCHAR, DATEADD(DAY, 15, @startDate), 23) + ''' AND ''' + CONVERT(VARCHAR, DATEADD(DAY, 21, @startDate), 23) + ''' THEN ''' + CONVERT(VARCHAR, DATEADD(DAY, 14, @startDate), 23) + '''
@@ -176,7 +176,7 @@ class Rpt2VentasPorMarcaController extends Controller
                                         AND doc.CCANCELADO = 0
                                         AND doc.CFECHA BETWEEN ''' + CONVERT(VARCHAR, @startDate, 23) + ''' AND ''' + CONVERT(VARCHAR, @endDate, 23) + '''
                                         AND claVal.CIDVALORCLASIFICACION IN ('+ @valorClasificacion + ')
-                                        GROUP BY 
+                                        GROUP BY
                                             claVal.CVALORCLASIFICACION,
                                             doc.CFECHA
                                     ) AS SourceTable
@@ -193,7 +193,7 @@ class Rpt2VentasPorMarcaController extends Controller
 
                         SET @query = 'SELECT marca, ' + @cols + '
                                     FROM (
-                                        SELECT 
+                                        SELECT
                                             claVal.CVALORCLASIFICACION AS marca
                                             ,$tipoConsulta AS TotalVentas,
                                             CONVERT(VARCHAR(10), doc.CFECHA, 23) AS Periodo
@@ -206,7 +206,7 @@ class Rpt2VentasPorMarcaController extends Controller
                                         AND doc.CCANCELADO = 0
                                         AND doc.CFECHA = ''' + CONVERT(VARCHAR, @startDate, 23) + '''
                                         AND claVal.CIDVALORCLASIFICACION IN ('+ @valorClasificacion + ')
-                                        GROUP BY 
+                                        GROUP BY
                                             claVal.CVALORCLASIFICACION,
                                             doc.CFECHA
                                     ) AS SourceTable
@@ -237,20 +237,20 @@ class Rpt2VentasPorMarcaController extends Controller
     public function marcas(Request $request)
     {
 
-        $idEmpresaUsuario = 1;
-        $idEmpresaDatabase =  $request->empresa; 
+        $idEmpresaUsuario = 5;
+        $idEmpresaDatabase =  $request->empresa;
 
         $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario, 'Comercial');
 
         $this->helperController->setDatabaseConnection($conexion, $conexion->nombre_base);
 
         try {
-            $marcas = " 
+            $marcas = "
                     DECLARE @startDate DATE, @endDate DATE;
-                    SET @startDate = '$request->fechaInicio';  
-                    SET @endDate = '$request->fechaFin';  
-                    
-                    SELECT 
+                    SET @startDate = '$request->fechaInicio';
+                    SET @endDate = '$request->fechaFin';
+
+                    SELECT
                         claVal.cidvalorclasificacion
                         , claVal.cvalorclasificacion
                     FROM admDocumentos AS doc
@@ -262,7 +262,7 @@ class Rpt2VentasPorMarcaController extends Controller
                         AND doc.CCANCELADO = 0
                         AND doc.CFECHA BETWEEN '' + CONVERT(VARCHAR, @startDate, 23) + '' AND '' + CONVERT(VARCHAR, @endDate, 23) + ''
                         AND claVal.CIDCLASIFICACION = 25
-                    GROUP BY 
+                    GROUP BY
                         claVal.cidvalorclasificacion
                         , claVal.cvalorclasificacion ";
 
