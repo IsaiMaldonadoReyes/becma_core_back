@@ -8,7 +8,6 @@ use App\Http\Controllers\ExportController;
 use App\Http\Controllers\core\EmpresaController;
 
 use App\Http\Controllers\comercial\Rpt2VentasPorMarcaController;
-use App\Http\Controllers\comercial\RptPresupuestoController;
 use App\Http\Controllers\comercial\RptVentasPorConceptoController;
 
 use App\Http\Controllers\nomina\CatalogosController;
@@ -85,11 +84,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('dataRpt3', [RptVentasPorConceptoController::class, 'dataset']);
 
     // Rpt5 = Presupuestos
-    Route::post('ejerciciosRpt5', [RptPresupuestoController::class, 'ejercicios']);
-    Route::post('marcasRpt5', [RptPresupuestoController::class, 'marcas']);
-    Route::post('agentesRpt5', [RptPresupuestoController::class, 'agentes']);
-    Route::post('dataRpt5', [RptPresupuestoController::class, 'dataset']);
-    Route::post('dataRpt5Individual', [RptPresupuestoController::class, 'presupuestoIndividual']);
+    Route::post('conceptosRpt3', [RptVentasPorConceptoController::class, 'conceptosFacturaComercial']);
+    Route::post('labelRpt3', [RptVentasPorConceptoController::class, 'label']);
+    Route::post('dataRpt3', [RptVentasPorConceptoController::class, 'dataset']);
 
 
     Route::post('exportExcel', [ExportController::class, 'exportExcel']);

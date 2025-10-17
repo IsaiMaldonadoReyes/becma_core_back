@@ -87,9 +87,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Rpt5 = Presupuestos
     Route::post('ejerciciosRpt5', [RptPresupuestoController::class, 'ejercicios']);
     Route::post('marcasRpt5', [RptPresupuestoController::class, 'marcas']);
-    Route::post('agentesRpt5', [RptPresupuestoController::class, 'agentes']);
-    Route::post('dataRpt5', [RptPresupuestoController::class, 'dataset']);
-    Route::post('dataRpt5Individual', [RptPresupuestoController::class, 'presupuestoIndividual']);
+    Route::post('agentesRpt5', [RptPresupuestoController::class, 'ejercicios']);
+    Route::post('labelRpt3', [RptPresupuestoController::class, 'label']);
+    Route::post('dataRpt3', [RptPresupuestoController::class, 'dataset']);
 
 
     Route::post('exportExcel', [ExportController::class, 'exportExcel']);

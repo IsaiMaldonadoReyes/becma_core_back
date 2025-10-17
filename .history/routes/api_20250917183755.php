@@ -89,7 +89,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('marcasRpt5', [RptPresupuestoController::class, 'marcas']);
     Route::post('agentesRpt5', [RptPresupuestoController::class, 'agentes']);
     Route::post('dataRpt5', [RptPresupuestoController::class, 'dataset']);
-    Route::post('dataRpt5Individual', [RptPresupuestoController::class, 'presupuestoIndividual']);
 
 
     Route::post('exportExcel', [ExportController::class, 'exportExcel']);

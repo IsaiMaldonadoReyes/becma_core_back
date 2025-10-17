@@ -75,7 +75,7 @@ class RptVentasPorConceptoController extends Controller
 
     public function conceptosFacturaComercial(Request $request)
     {
-        $idEmpresaUsuario = 1;
+        $idEmpresaUsuario = 5;
         $idEmpresaDatabase =  $request->empresa;
 
         $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario, 'Comercial');
@@ -177,7 +177,7 @@ class RptVentasPorConceptoController extends Controller
 
     public function dataset(Request $request)
     {
-        $idEmpresaUsuario = 1;
+        $idEmpresaUsuario = 5;
         $idEmpresaDatabase =  $request->empresa;
 
         $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario, 'Comercial');
