@@ -16,4 +16,6 @@ class NominaGapeCliente extends Model
         'telefono',
         'estado'
     ];
+
+    public $timestamps = true;
 }
