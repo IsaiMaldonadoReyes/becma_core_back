@@ -84,6 +84,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/destroyCliente/{id}', [ClienteController::class, 'destroy']);
     Route::delete('/destroyClienteByIds', [ClienteController::class, 'destroyByIds']);
 
+    // cliente catalogo
 
     // Empleados
     Route::get('indexEmpleado', [EmpleadoController::class, 'index']);
@@ -122,6 +123,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::post('empresasNominas', [EmpresaController::class, 'empresasNominas']);
 
+    Route::post('empresasNominasPorCliente/{id}', [EmpresaController::class, 'empresasNominasPorCliente']);
+
+    Route::post('empresasDatosNominasPorCliente/{idCliente}/{idEmpresa}/{rutaBD}', [EmpresaController::class, 'empresaDatosNominaPorCliente']);
+
+    // CATALOGOS NOMINA GAPE
+
+    // Cliente
+    Route::post('nominaCliente', [CatalogosController::class, 'cliente']);
 
     // SATCatTipoContrato
     Route::post('nominaTipoContrato/{id}', [CatalogosController::class, 'tipoContrato']);

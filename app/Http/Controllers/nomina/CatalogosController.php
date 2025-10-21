@@ -27,6 +27,8 @@ use App\Models\nomina\nomGenerales\SATCatBancos;
 use App\Models\nomina\nomGenerales\IMSSCatTipoSemanaReducida;
 use App\Models\nomina\nomGenerales\NominaEmpresa;
 
+use App\Models\nomina\GAPE\NominaGapeCliente;
+
 use App\Http\Controllers\core\HelperController;
 
 class CatalogosController extends Controller
@@ -111,7 +113,7 @@ class CatalogosController extends Controller
 
         $empresasGenerales = NominaEmpresa::select(
             'IDEmpresa',
-            'NombreEmpresa',
+            'NombreEmpresaFiscal',
             'NombreCorto',
             'RutaEmpresa'
         )
@@ -128,7 +130,7 @@ class CatalogosController extends Controller
                     'usuario_modificador' => null,
                     'id_conexion'       => $conexion->id,
                     'nombre_base'       => $empresa->RutaEmpresa,
-                    'nombre_empresa'    => $empresa->NombreEmpresa,
+                    'nombre_empresa'    => $empresa->NombreEmpresaFiscal,
                     'created_at'        => now(),
                     'updated_at'        => now(),
                 ]);
@@ -167,6 +169,30 @@ class CatalogosController extends Controller
             return response()->json([
                 'code' => 200,
                 'data' => $empresas,
+            ], 200);
+        } catch (\Exception $e) {
+            // Manejo de errores
+            return response()->json([
+                'code' => 500,
+                'message' => 'Error al obtener los datos',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function cliente(Request $request)
+    {
+        try {
+            $cliente = NominaGapeCliente::select(
+                'id',
+                'nombre',
+                'codigo',
+            )
+                ->get();
+
+            return response()->json([
+                'code' => 200,
+                'data' => $cliente,
             ], 200);
         } catch (\Exception $e) {
             // Manejo de errores
