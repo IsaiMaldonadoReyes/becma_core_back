@@ -113,7 +113,7 @@ class CatalogosController extends Controller
 
         $empresasGenerales = NominaEmpresa::select(
             'IDEmpresa',
-            'NombreEmpresaFiscal',
+            'NombreEmpresa',
             'NombreCorto',
             'RutaEmpresa'
         )
@@ -130,7 +130,7 @@ class CatalogosController extends Controller
                     'usuario_modificador' => null,
                     'id_conexion'       => $conexion->id,
                     'nombre_base'       => $empresa->RutaEmpresa,
-                    'nombre_empresa'    => $empresa->NombreEmpresaFiscal,
+                    'nombre_empresa'    => $empresa->NombreEmpresa,
                     'created_at'        => now(),
                     'updated_at'        => now(),
                 ]);

@@ -16,6 +16,7 @@ use App\Http\Controllers\nomina\DispersionController;
 use App\Http\Controllers\nomina\EmpleadoController;
 
 use App\Http\Controllers\nomina\ClienteController;
+use App\Http\Controllers\nomina\EmpresaController as NominaEmpresaController;
 
 
 use App\Http\Controllers\comercial\KioscoController;
@@ -92,6 +93,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('updateEmpleado/{id}', [EmpleadoController::class, 'update']);
     Route::delete('/destroyEmpleado/{id}', [EmpleadoController::class, 'destroy']);
 
+    // Nomina Gape empresa
+    Route::post('storeNominaEmpresa', [NominaEmpresaController::class, 'store']);
 
 
     // empresas
@@ -123,9 +126,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::post('empresasNominas', [EmpresaController::class, 'empresasNominas']);
 
-    Route::post('empresasNominasPorCliente/{id}', [EmpresaController::class, 'empresasNominasPorCliente']);
+    Route::post('empresasNominasPorCliente/{idCliente}', [EmpresaController::class, 'empresasNominasPorCliente']);
 
-    Route::post('empresasDatosNominasPorCliente/{idCliente}/{idEmpresa}/{rutaBD}', [EmpresaController::class, 'empresaDatosNominaPorCliente']);
+    Route::post('empresasDatosNominasPorCliente', [EmpresaController::class, 'empresaDatosNominaPorCliente']);
+
+    Route::post('empresasDatosNominasPorClienteId', [EmpresaController::class, 'empresaDatosNominaPorClienteId']);
 
     // CATALOGOS NOMINA GAPE
 
