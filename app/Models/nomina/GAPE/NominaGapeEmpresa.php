@@ -9,4 +9,14 @@ class NominaGapeEmpresa extends Model
     //
     protected $primaryKey = 'id';
     protected $table = 'nomina_gape_empresa';
+
+    protected $fillable = [
+        'id_nomina_gape_cliente',
+        'id_empresa_database',
+        'fiscal',
+        'razon_social',
+        'rfc',
+        'codigo_interno',
+        'correo_notificacion'
+    ];
 }
