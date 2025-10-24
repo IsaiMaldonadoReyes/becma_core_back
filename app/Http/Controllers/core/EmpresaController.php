@@ -145,7 +145,8 @@ class EmpresaController extends Controller
                 'razon_social',
                 'rfc',
                 'codigo_interno',
-                'correo_notificacion'
+                'correo_notificacion',
+                'fiscal'
             )
                 ->where('id', $id)
                 ->first();
@@ -160,6 +161,7 @@ class EmpresaController extends Controller
                 'rfc'                 => $empresa->rfc,
                 'codigo_interno'      => $empresa->codigo_interno ?? '',
                 'correo_notificacion' => $empresa->correo_notificacion ?? '',
+                'fiscal' => $empresa->fiscal,
             ];
 
             return response()->json([
@@ -188,6 +190,33 @@ class EmpresaController extends Controller
                 ->where('ed.estado', 1)
                 ->where('sis.codigo', 'Nom')
                 ->whereNull('nge.id_nomina_gape_cliente') // 👈 solo las NO relacionadas
+                ->get();
+
+            return response()->json([
+                'code' => 200,
+                'data' => $empresas,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'code' => 500,
+                'message' => 'Error al obtener las empresas disponibles',
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+    public function empresasNominasPorClienteEdit(Request $request)
+    {
+        $idCliente = $request->idCliente ?? 2; // ejemplo, o puedes obtenerlo del usuario autenticado
+
+        try {
+            $empresas = DB::table('empresa_database as ed')
+                ->leftJoin('nomina_gape_empresa as nge', 'nge.id_empresa_database', '=', 'ed.id')
+                ->leftJoin('conexion as con', 'ed.id_conexion', '=', 'con.id')
+                ->leftJoin('sistema as sis', 'con.id_sistema', '=', 'sis.id')
+                ->select('ed.id', 'ed.nombre_empresa', 'ed.nombre_base')
+                ->where('ed.estado', 1)
+                ->where('sis.codigo', 'Nom')
+                ->where('nge.id_nomina_gape_cliente', $idCliente) // 👈 solo las NO relacionadas
                 ->get();
 
             return response()->json([

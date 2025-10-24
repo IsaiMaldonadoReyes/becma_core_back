@@ -18,6 +18,8 @@ use App\Http\Controllers\nomina\EmpleadoController;
 use App\Http\Controllers\nomina\ClienteController;
 use App\Http\Controllers\nomina\EmpresaController as NominaEmpresaController;
 
+use App\Http\Controllers\nomina\BancosDispersionController;
+
 
 use App\Http\Controllers\comercial\KioscoController;
 
@@ -85,6 +87,27 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/destroyCliente/{id}', [ClienteController::class, 'destroy']);
     Route::delete('/destroyClienteByIds', [ClienteController::class, 'destroyByIds']);
 
+    // Bancos dispersion
+
+    Route::prefix('bancos')
+        ->controller(BancosDispersionController::class)
+        ->group(function () {
+
+            // General
+            Route::get('getBancosByEmpresa/{id}', 'getBancosByEmpresa');
+
+            // Fondeadora
+            Route::post('upsertBancoFondeadora', 'upsertBancoFondeadora');
+
+            // Azteca
+            Route::post('storeBancoAzteca', 'storeBancoAzteca');
+            Route::put('updateBancoAzteca/{id}', 'updateBancoAzteca');
+
+            // Banorte
+            Route::post('storeBancoBanorte', 'storeBancoBanorte');
+            Route::put('updateBancoBanorte/{id}', 'updateBancoBanorte');
+        });
+
     // cliente catalogo
 
     // Empleados
@@ -95,6 +118,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Nomina Gape empresa
     Route::post('storeNominaEmpresa', [NominaEmpresaController::class, 'store']);
+    Route::put('updateNominaEmpresa/{id}', [NominaEmpresaController::class, 'update']);
+    Route::get('indexNominaEmpresa', [NominaEmpresaController::class, 'index']);
 
 
     // empresas
@@ -127,6 +152,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('empresasNominas', [EmpresaController::class, 'empresasNominas']);
 
     Route::post('empresasNominasPorCliente/{idCliente}', [EmpresaController::class, 'empresasNominasPorCliente']);
+
+    Route::post('empresasNominasPorClienteEdit/{idCliente}', [EmpresaController::class, 'empresasNominasPorClienteEdit']);
 
     Route::post('empresasDatosNominasPorCliente', [EmpresaController::class, 'empresaDatosNominaPorCliente']);
 
