@@ -76,13 +76,13 @@ class BancosDispersionController extends Controller
             // Azteca - usa el mismo modelo, diferenciando por tipo_banco
             $aztecaInterbancario = NominaGapeBancoAzteca::where('id_nomina_gape_empresa', $idEmpresa)
                 ->where('tipo_banco', 'interbancario')
-                ->first();
+                ->get();
 
             $aztecaBancario = NominaGapeBancoAzteca::where('id_nomina_gape_empresa', $idEmpresa)
                 ->where('tipo_banco', 'bancario')
-                ->first();
+                ->get();
 
-            $banorte = NominaGapeBancoBanorte::where('id_nomina_gape_empresa', $idEmpresa)->first();
+            $banorte = NominaGapeBancoBanorte::where('id_nomina_gape_empresa', $idEmpresa)->get();
 
             // Respuesta unificada
             return response()->json([
