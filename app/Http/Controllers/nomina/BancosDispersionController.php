@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 
 use App\Models\nomina\GAPE\NominaGapeBancoAzteca;
 use App\Models\nomina\GAPE\NominaGapeBancoBanorte;
+use App\Models\nomina\GAPE\NominaGapeBancoDispersion;
 use App\Models\nomina\GAPE\NominaGapeBancoFondeadora;
 
 class BancosDispersionController extends Controller
@@ -71,8 +72,24 @@ class BancosDispersionController extends Controller
     {
         try {
             // Consultar cada banco
-            $fondeadora = NominaGapeBancoFondeadora::where('id_nomina_gape_empresa', $idEmpresa)->first();
+            $bancos = NominaGapeBancoDispersion::where('id_nomina_gape_empresa', $idEmpresa)->first();
 
+            if (!$bancos) {
+                $bancos = [
+                    'fondeadora' => false,
+                    'azteca_interbancario' => false,
+                    'azteca_bancario' => false,
+                    'banorte' => false,
+                ];
+            } else {
+                // 3️⃣ Convertir correctamente a booleanos
+                $bancos = [
+                    'fondeadora' => (bool) $bancos->fondeadora,
+                    'azteca_interbancario' => (bool) $bancos->azteca_interbancario,
+                    'azteca_bancario' => (bool) $bancos->azteca_bancario,
+                    'banorte' => (bool) $bancos->banorte,
+                ];
+            }
             // Azteca - usa el mismo modelo, diferenciando por tipo_banco
             $aztecaInterbancario = NominaGapeBancoAzteca::where('id_nomina_gape_empresa', $idEmpresa)
                 ->where('tipo_banco', 'interbancario')
@@ -89,7 +106,7 @@ class BancosDispersionController extends Controller
                 'code' => 200,
                 'message' => 'Datos de bancos obtenidos correctamente',
                 'data' => [
-                    'fondeadora' => $fondeadora,
+                    'dispersion' => $bancos,
                     'azteca_interbancario' => $aztecaInterbancario,
                     'azteca_bancario' => $aztecaBancario,
                     'banorte' => $banorte,
@@ -105,47 +122,71 @@ class BancosDispersionController extends Controller
     }
 
 
-    public function upsertBancoFondeadora(Request $request)
+    public function upsertBancoDispersion(Request $request)
     {
         try {
-            // 1️⃣ Validar los datos
-            $validatedData = $request->validate([
+            // 1️⃣ Validar siempre el id de empresa
+            $validated = $request->validate([
                 'id_nomina_gape_empresa' => 'required|integer|exists:nomina_gape_empresa,id',
-                'activo_dispersion' => 'required|boolean',
             ]);
 
-            // 2️⃣ Usar updateOrCreate: busca por id_nomina_gape_empresa
-            $bancoFondeadora = NominaGapeBancoFondeadora::updateOrCreate(
-                ['id_nomina_gape_empresa' => $validatedData['id_nomina_gape_empresa']], // criterios de búsqueda
-                ['activo_dispersion' => $validatedData['activo_dispersion']] // valores a actualizar
-            );
+            // 2️⃣ Filtrar solo los campos permitidos que vengan en el request
+            $camposPermitidos = ['fondeadora', 'azteca_interbancario', 'azteca_bancario', 'banorte'];
+            $data = array_intersect_key($request->all(), array_flip($camposPermitidos));
 
-            // 3️⃣ Responder según si fue creado o actualizado
-            $message = $bancoFondeadora->wasRecentlyCreated
+            // 3️⃣ Validar que los campos opcionales (si vienen) sean booleanos
+            foreach ($data as $campo => $valor) {
+                if (!is_bool($valor) && !in_array($valor, [0, 1, '0', '1'], true)) {
+                    return response()->json([
+                        'code' => 422,
+                        'message' => "El campo '{$campo}' debe ser booleano (true/false)",
+                    ], 422);
+                }
+                // convertir a boolean real
+                $data[$campo] = filter_var($valor, FILTER_VALIDATE_BOOLEAN);
+            }
+
+            if (empty($data)) {
+                return response()->json([
+                    'code' => 400,
+                    'message' => 'No se recibieron campos válidos para actualizar',
+                ], 400);
+            }
+
+            // 4️⃣ Buscar o crear registro
+            $registro = NominaGapeBancoDispersion::firstOrNew([
+                'id_nomina_gape_empresa' => $validated['id_nomina_gape_empresa'],
+            ]);
+
+            // 5️⃣ Actualizar solo los campos enviados
+            $registro->fill($data);
+            $registro->save();
+
+            // 6️⃣ Responder éxito
+            $message = $registro->wasRecentlyCreated
                 ? 'Registro creado correctamente'
                 : 'Registro actualizado correctamente';
 
             return response()->json([
                 'code' => 200,
                 'message' => $message,
-                'data' => $bancoFondeadora, // 👈 opcional: devolvemos el registro
+                'data' => $registro,
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
-            // ⚠️ Error de validación
             return response()->json([
                 'code' => 422,
                 'message' => 'Error de validación',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
-            // ⚠️ Error general
             return response()->json([
                 'code' => 500,
-                'message' => 'Se generó un error al guardar o actualizar',
+                'message' => 'Error al guardar o actualizar el registro',
                 'error' => $e->getMessage(),
             ], 500);
         }
     }
+
 
     public function storeBancoAzteca(Request $request)
     {
@@ -226,6 +267,39 @@ class BancosDispersionController extends Controller
         }
     }
 
+    // 1️⃣ ================= AZTECA =================
+    public function deleteBancoAzteca(string $id)
+    {
+        try {
+            // 1️⃣ Validar el ID del registro a eliminar
+            $cliente = NominaGapeBancoAzteca::findOrFail($id);
+            $cliente->delete();
+
+            // 4️⃣ Responder éxito
+            return response()->json([
+                'code' => 200,
+                'message' => 'Registro eliminado correctamente',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // ⚠️ Error de validación
+            return response()->json([
+                'code' => 422,
+                'message' => 'Error de validación',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            // ⚠️ Error general
+            return response()->json([
+                'code' => 500,
+                'message' => 'Error al eliminar el registro',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+
+
+
     public function storeBancoBanorte(Request $request)
     {
         try {
@@ -300,6 +374,36 @@ class BancosDispersionController extends Controller
             return response()->json([
                 'code' => 500,
                 'message' => 'Se generó un error al actualizar',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    // 2️⃣ ================= BANORTE =================
+    public function deleteBancoBanorte(string $id)
+    {
+        try {
+            $cliente = NominaGapeBancoBanorte::findOrFail($id);
+            // 3️⃣ Eliminar registro
+            $cliente->delete();
+
+            // 5️⃣ Respuesta exitosa
+            return response()->json([
+                'code' => 200,
+                'message' => 'Registro eliminado correctamente',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // ⚠️ Error de validación
+            return response()->json([
+                'code' => 422,
+                'message' => 'Error de validación',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            // ⚠️ Error general
+            return response()->json([
+                'code' => 500,
+                'message' => 'Error al eliminar el registro',
                 'error' => $e->getMessage(),
             ], 500);
         }

@@ -97,15 +97,17 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::get('getBancosByEmpresa/{id}', 'getBancosByEmpresa');
 
             // Fondeadora
-            Route::post('upsertBancoFondeadora', 'upsertBancoFondeadora');
+            Route::post('upsertBancoDispersion', 'upsertBancoDispersion');
 
             // Azteca
             Route::post('storeBancoAzteca', 'storeBancoAzteca');
             Route::put('updateBancoAzteca/{id}', 'updateBancoAzteca');
+            Route::delete('deleteBancoAzteca/{id}', 'deleteBancoAzteca');
 
             // Banorte
             Route::post('storeBancoBanorte', 'storeBancoBanorte');
             Route::put('updateBancoBanorte/{id}', 'updateBancoBanorte');
+            Route::delete('deleteBancoBanorte/{id}', 'deleteBancoBanorte');
         });
 
     // cliente catalogo
