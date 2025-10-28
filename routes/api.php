@@ -19,6 +19,7 @@ use App\Http\Controllers\nomina\ClienteController;
 use App\Http\Controllers\nomina\EmpresaController as NominaEmpresaController;
 
 use App\Http\Controllers\nomina\BancosDispersionController;
+use App\Http\Controllers\nomina\ParametrizacionController;
 
 
 use App\Http\Controllers\comercial\KioscoController;
@@ -73,56 +74,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::post('resetPassword', [AuthController::class, 'resetPassword']);
 
-    // sistema
-    Route::get('indexSistema', [SistemaController::class, 'index']);
-    Route::post('storeSistema', [SistemaController::class, 'store']);
-    Route::put('updateSistema/{id}', [SistemaController::class, 'update']);
-    Route::delete('/destroySistema/{id}', [SistemaController::class, 'destroy']);
-    Route::delete('/destroySistemaByIds', [SistemaController::class, 'destroyByIds']);
-
-    // cliente
-    Route::get('indexCliente', [ClienteController::class, 'index']);
-    Route::post('storeCliente', [ClienteController::class, 'store']);
-    Route::put('updateCliente/{id}', [ClienteController::class, 'update']);
-    Route::delete('/destroyCliente/{id}', [ClienteController::class, 'destroy']);
-    Route::delete('/destroyClienteByIds', [ClienteController::class, 'destroyByIds']);
-
-    // Bancos dispersion
-
-    Route::prefix('bancos')
-        ->controller(BancosDispersionController::class)
-        ->group(function () {
-
-            // General
-            Route::get('getBancosByEmpresa/{id}', 'getBancosByEmpresa');
-
-            // Fondeadora
-            Route::post('upsertBancoDispersion', 'upsertBancoDispersion');
-
-            // Azteca
-            Route::post('storeBancoAzteca', 'storeBancoAzteca');
-            Route::put('updateBancoAzteca/{id}', 'updateBancoAzteca');
-            Route::delete('deleteBancoAzteca/{id}', 'deleteBancoAzteca');
-
-            // Banorte
-            Route::post('storeBancoBanorte', 'storeBancoBanorte');
-            Route::put('updateBancoBanorte/{id}', 'updateBancoBanorte');
-            Route::delete('deleteBancoBanorte/{id}', 'deleteBancoBanorte');
-        });
-
-    // cliente catalogo
-
-    // Empleados
-    Route::get('indexEmpleado', [EmpleadoController::class, 'index']);
-    Route::post('storeEmpleado', [EmpleadoController::class, 'store']);
-    Route::put('updateEmpleado/{id}', [EmpleadoController::class, 'update']);
-    Route::delete('/destroyEmpleado/{id}', [EmpleadoController::class, 'destroy']);
-
-    // Nomina Gape empresa
-    Route::post('storeNominaEmpresa', [NominaEmpresaController::class, 'store']);
-    Route::put('updateNominaEmpresa/{id}', [NominaEmpresaController::class, 'update']);
-    Route::get('indexNominaEmpresa', [NominaEmpresaController::class, 'index']);
-
 
     // empresas
 
@@ -148,23 +99,111 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::post('exportExcel', [ExportController::class, 'exportExcel']);
 
+    // sistema
+    Route::get('indexSistema', [SistemaController::class, 'index']);
+    Route::post('storeSistema', [SistemaController::class, 'store']);
+    Route::put('updateSistema/{id}', [SistemaController::class, 'update']);
+    Route::delete('/destroySistema/{id}', [SistemaController::class, 'destroy']);
+    Route::delete('/destroySistemaByIds', [SistemaController::class, 'destroyByIds']);
+
+    // cliente
+    Route::prefix('nominaGapeCliente')->group(function () {
+        Route::get('index', [ClienteController::class, 'index']);
+        Route::post('store', [ClienteController::class, 'store']);
+        Route::put('update/{id}', [ClienteController::class, 'update']);
+        Route::delete('/destroy/{id}', [ClienteController::class, 'destroy']);
+        Route::delete('/destroyByIds', [ClienteController::class, 'destroyByIds']);
+    });
+
+
+    // Nomina Gape empresa
+    Route::prefix('nominaGapeEmpresa')->group(function () {
+        Route::get('index', [NominaEmpresaController::class, 'index']);
+        Route::post('store', [NominaEmpresaController::class, 'store']);
+        Route::put('update/{id}', [NominaEmpresaController::class, 'update']);
+
+        Route::post('sinAsignar', [NominaEmpresaController::class, 'empresasNominasSinAsginar']);
+        Route::post('asignadasACliente', [NominaEmpresaController::class, 'asignadasACliente']);
+        Route::post('asignadasAClienteTipo', [NominaEmpresaController::class, 'asignadasAClienteTipo']);
+
+        Route::post('datosNominasPorCliente', [NominaEmpresaController::class, 'empresaDatosNominaPorCliente']);
+        Route::post('datosNominasPorClienteId', [NominaEmpresaController::class, 'empresaDatosNominaPorClienteId']);
+    });
+
+
+    // Bancos dispersion
+    Route::prefix('bancos')->group(function () {
+        // General
+        Route::get('getBancosByEmpresa/{id}', [BancosDispersionController::class, 'getBancosByEmpresa']);
+
+        // Fondeadora
+        Route::post('upsertBancoDispersion', [BancosDispersionController::class, 'upsertBancoDispersion']);
+
+        // Azteca
+        Route::post('storeBancoAzteca', [BancosDispersionController::class, 'storeBancoAzteca']);
+        Route::put('updateBancoAzteca/{id}', [BancosDispersionController::class, 'updateBancoAzteca']);
+        Route::delete('deleteBancoAzteca/{id}', [BancosDispersionController::class, 'deleteBancoAzteca']);
+
+        // Banorte
+        Route::post('storeBancoBanorte', [BancosDispersionController::class, 'storeBancoBanorte']);
+        Route::put('updateBancoBanorte/{id}', [BancosDispersionController::class, 'updateBancoBanorte']);
+        Route::delete('deleteBancoBanorte/{id}', [BancosDispersionController::class, 'deleteBancoBanorte']);
+    });
+
+
+
+
+    // Parametrizacion
+    Route::post('upsertConceptoParametrizacion', [ParametrizacionController::class, 'upsertConceptoPagoParametrizacion']);
+
+    // cliente catalogo
+
+    // Empleados
+    Route::prefix('nominaGapeEmpleado')->group(function () {
+        Route::get('indexEmpleado', [EmpleadoController::class, 'index']);
+        Route::post('storeEmpleado', [EmpleadoController::class, 'store']);
+        Route::put('updateEmpleado/{id}', [EmpleadoController::class, 'update']);
+        Route::delete('/destroyEmpleado/{id}', [EmpleadoController::class, 'destroy']);
+    });
+
+
+    Route::prefix('catalogoNomina')->group(function () {
+        // Cliente
+        Route::post('gapeCliente', [CatalogosController::class, 'gapeCliente']);
+
+        // TipoPeriodo nomina_gape_cliente
+        Route::post('tipoPeriodo', [CatalogosController::class, 'tipoPeriodoNGE']);
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     // Listar todas las empresas de nomina
 
+    //* no se usa*/
     Route::post('empresasNominas', [EmpresaController::class, 'empresasNominas']);
 
-    Route::post('empresasNominasPorCliente/{idCliente}', [EmpresaController::class, 'empresasNominasPorCliente']);
-
-    Route::post('empresasNominasPorClienteEdit/{idCliente}', [EmpresaController::class, 'empresasNominasPorClienteEdit']);
-
-    Route::post('empresasDatosNominasPorCliente', [EmpresaController::class, 'empresaDatosNominaPorCliente']);
-
-    Route::post('empresasDatosNominasPorClienteId', [EmpresaController::class, 'empresaDatosNominaPorClienteId']);
 
     // CATALOGOS NOMINA GAPE
 
-    // Cliente
-    Route::post('nominaCliente', [CatalogosController::class, 'cliente']);
+
+
+    // Empresa
+    Route::post('nominaEmpresaPorCliente', [CatalogosController::class, 'empresa']);
 
     // SATCatTipoContrato
     Route::post('nominaTipoContrato/{id}', [CatalogosController::class, 'tipoContrato']);
