@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 
 use App\Models\core\EmpresaUsuario;
+use App\Models\core\EmpresaDatabase;
+use App\Models\nomina\GAPE\NominaGapeEmpresa;
 
 class HelperController extends Controller
 {
@@ -72,6 +74,40 @@ class HelperController extends Controller
             throw new \Exception("Error al obtener la conexión: " . $e->getMessage());
         }
     }
+
+    public function getConexionDatabaseNGE($idEmpresaDatabase, $codigoSistema)
+    {
+        if (!isset($idEmpresaDatabase)) {
+            throw new \Exception("Falta el parámetro 'idEmpresaDatabase'");
+        }
+
+        try {
+            $conexion = EmpresaDatabase::select(
+                'conexion.id',
+                'empresa_database.nombre_empresa',
+                'empresa_database.nombre_base',
+                'conexion.usuario',
+                'conexion.password',
+                'conexion.ip',
+                'conexion.puerto',
+                'sistema.database_maestra'
+            )
+                ->join('conexion', 'empresa_database.id_conexion', '=', 'conexion.id')
+                ->join('sistema', 'conexion.id_sistema', '=', 'sistema.id')
+                ->where('empresa_database.id', $idEmpresaDatabase)
+                ->where('sistema.codigo', '=', $codigoSistema)
+                ->first();
+
+            if (!$conexion) {
+                throw new \Exception("No se encontró conexión válida para la base con ID {$idEmpresaDatabase}");
+            }
+
+            return $conexion;
+        } catch (\Exception $e) {
+            throw new \Exception("Error al obtener la conexión: " . $e->getMessage());
+        }
+    }
+
 
     public function resetToDefaultDatabase()
     {

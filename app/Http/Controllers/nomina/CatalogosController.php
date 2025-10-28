@@ -41,62 +41,6 @@ class CatalogosController extends Controller
         $this->helperController = $helperController;
     }
 
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
-
     public function sincronizarEmpresasNomGemerales()
     {
         $conexion = Conexion::select(
@@ -140,6 +84,61 @@ class CatalogosController extends Controller
         return response()->json(['message' => 'Empresas sincronizadas correctamente.']);
     }
 
+    /**
+     * Obtiene un catálogo de nómina (periodos, contratos, régimen, etc.)
+     * usando conexión dinámica por empresa_database (NGE)
+     */
+    public function obtenerCatalogoNominaNGE(Request $request, string $modelo, array $columnas)
+    {
+        try {
+            // 1️⃣ Validar parámetro de empresa
+            $validated = $request->validate([
+                'id' => 'required|integer',
+            ]);
+
+            $idEmpresaDatabase = $validated['id'];
+
+            // 2️⃣ Obtener conexión desde empresa_database
+            $conexion = $this->helperController->getConexionDatabaseNGE($idEmpresaDatabase, 'Nom');
+            $this->helperController->setDatabaseConnection($conexion, $conexion->nombre_base);
+
+            // 3️⃣ Verificar que el modelo exista
+            if (!class_exists($modelo)) {
+                throw new \Exception("El modelo {$modelo} no existe.");
+            }
+
+            // 4️⃣ Consultar el catálogo solicitado
+            $data = $modelo::select($columnas)->get();
+
+            // 5️⃣ Retornar respuesta uniforme
+            return response()->json([
+                'code' => 200,
+                'data' => $data,
+            ], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'code' => 422,
+                'message' => 'Datos de entrada inválidos.',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'code' => 500,
+                'message' => 'Error al obtener datos del catálogo.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+
+    public function tipoPeriodoNGE(Request $request)
+    {
+        return $this->obtenerCatalogoNominaNGE($request, TipoPeriodo::class, [
+            'idtipoperiodo',
+            'nombretipoperiodo'
+        ]);
+    }
+
     public function empresasNominas(Request $request)
     {
         // $idEmpresaUsuario = $request->user()->id
@@ -180,7 +179,7 @@ class CatalogosController extends Controller
         }
     }
 
-    public function cliente(Request $request)
+    public function gapeCliente(Request $request)
     {
         try {
             $cliente = NominaGapeCliente::select(
@@ -237,34 +236,61 @@ class CatalogosController extends Controller
 
     public function tipoPeriodo(Request $request)
     {
-        // $idEmpresaUsuario = $request->user()->id
-        $idEmpresaUsuario = 3;
-        $idEmpresaDatabase =  $request->id;
-
-        $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario, 'Nom');
-
-        $this->helperController->setDatabaseConnection($conexion, $conexion->nombre_base);
-
         try {
-            $tipoPeriodo = TipoPeriodo::select(
-                'idtipoperiodo',
-                'nombretipoperiodo'
-            )
-                ->get();
+            // 1️⃣ Obtener el idEmpresaUsuario según sea superadmin o usuario normal
+            if ($request->boolean('superadmin')) {
+                // Buscar el primer usuario asociado a la empresa "GAPE"
+                $empresaUsuario = EmpresaUsuario::select('empresa_usuario.id')
+                    ->join('empresa', 'empresa_usuario.id_empresa', '=', 'empresa.id')
+                    ->where('empresa.nombre', 'GAPE')
+                    ->first();
 
+                if (!$empresaUsuario) {
+                    return response()->json([
+                        'code' => 404,
+                        'message' => 'No se encontró la empresa GAPE o su usuario asociado.',
+                    ], 404);
+                }
+
+                $idEmpresaUsuario = $empresaUsuario->id;
+            } else {
+                // Si no es superadmin, usar el usuario autenticado o fallback
+                $idEmpresaUsuario = optional($request->user())->id ?? 3;
+            }
+
+            // 2️⃣ Validar parámetro id de empresa
+            $validated = $request->validate([
+                'id' => 'required|integer',
+            ]);
+            $idEmpresaDatabase = $validated['id'];
+
+            // 3️⃣ Conectarse a la base de datos dinámica de nómina
+            $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario, 'Nom');
+            $this->helperController->setDatabaseConnection($conexion, $conexion->nombre_base);
+
+            // 4️⃣ Obtener tipos de periodo
+            $tipoPeriodo = TipoPeriodo::select('idtipoperiodo', 'nombretipoperiodo')->get();
+
+            // 5️⃣ Devolver respuesta exitosa
             return response()->json([
                 'code' => 200,
                 'data' => $tipoPeriodo,
             ], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'code' => 422,
+                'message' => 'Datos de entrada inválidos.',
+                'errors' => $e->errors(),
+            ], 422);
         } catch (\Exception $e) {
-            // Manejo de errores
             return response()->json([
                 'code' => 500,
-                'message' => 'Error al obtener los datos',
+                'message' => 'Error al obtener los datos del tipo de periodo.',
                 'error' => $e->getMessage(),
             ], 500);
         }
     }
+
 
     public function periodo(Request $request)
     {
