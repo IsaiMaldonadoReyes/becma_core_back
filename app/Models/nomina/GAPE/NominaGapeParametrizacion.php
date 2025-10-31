@@ -11,9 +11,11 @@ class NominaGapeParametrizacion extends Model
     protected $table = 'nomina_gape_parametrizacion';
 
     protected $fillable = [
+        'estado',
         'id_nomina_gape_cliente',
         'id_nomina_gape_empresa',
         'id_tipo_periodo',
+        'tipo_periodo_nombre',
         'clase_prima_riesgo',
         'clase_prima_riesgo_valor',
         'fee',
@@ -26,4 +28,8 @@ class NominaGapeParametrizacion extends Model
     ];
 
     public $timestamps = true;
+
+    protected $casts = [
+        'estado' => 'boolean',
+    ];
 }

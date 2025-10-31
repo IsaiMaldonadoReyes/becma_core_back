@@ -154,7 +154,16 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 
     // Parametrizacion
-    Route::post('upsertConceptoParametrizacion', [ParametrizacionController::class, 'upsertConceptoPagoParametrizacion']);
+    Route::prefix('parametrizacion')->group(function () {
+        Route::get('index', [ParametrizacionController::class, 'index']);
+
+        Route::post('datosConceptosPorId', [ParametrizacionController::class, 'datosConceptosPorId']);
+        Route::post('datosParametrizacionPorId', [ParametrizacionController::class, 'datosParametrizacionPorId']);
+
+        Route::post('upsertConcepto', [ParametrizacionController::class, 'upsertConceptoPagoParametrizacion']);
+
+        Route::post('upsertParametrizacion', [ParametrizacionController::class, 'upsertParametrizacion']);
+    });
 
     // cliente catalogo
 

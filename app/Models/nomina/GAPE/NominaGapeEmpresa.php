@@ -17,6 +17,13 @@ class NominaGapeEmpresa extends Model
         'razon_social',
         'rfc',
         'codigo_interno',
-        'correo_notificacion'
+        'correo_notificacion',
+        'estado'
+    ];
+
+    public $timestamps = true;
+
+    protected $casts = [
+        'estado' => 'boolean',
     ];
 }

@@ -23,6 +23,7 @@ return new class extends Migration
             $table->unsignedBigInteger('id_nomina_gape_empresa')->nullable();
 
             $table->unsignedBigInteger('id_tipo_periodo')->nullable();
+            $table->string('tipo_periodo_nombre')->nullable();
 
             $table->boolean('sueldo_imss')->nullable();
             $table->double('sueldo_imss_tope')->nullable();
@@ -47,7 +48,6 @@ return new class extends Migration
             $table->boolean('gastos_compro')->nullable();
             $table->double('gastos_compro_tope')->nullable();
             $table->integer('gastos_compro_orden')->nullable();
-
         });
     }
 

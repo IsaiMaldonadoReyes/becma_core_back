@@ -75,9 +75,9 @@ class HelperController extends Controller
         }
     }
 
-    public function getConexionDatabaseNGE($idEmpresaDatabase, $codigoSistema)
+    public function getConexionDatabaseNGE($idNominaGapeEmpresa, $codigoSistema)
     {
-        if (!isset($idEmpresaDatabase)) {
+        if (!isset($idNominaGapeEmpresa)) {
             throw new \Exception("Falta el parámetro 'idEmpresaDatabase'");
         }
 
@@ -94,12 +94,13 @@ class HelperController extends Controller
             )
                 ->join('conexion', 'empresa_database.id_conexion', '=', 'conexion.id')
                 ->join('sistema', 'conexion.id_sistema', '=', 'sistema.id')
-                ->where('empresa_database.id', $idEmpresaDatabase)
+                ->join('nomina_gape_empresa', 'empresa_database.id', '=', 'nomina_gape_empresa.id_empresa_database')
+                ->where('nomina_gape_empresa.id', $idNominaGapeEmpresa)
                 ->where('sistema.codigo', '=', $codigoSistema)
                 ->first();
 
             if (!$conexion) {
-                throw new \Exception("No se encontró conexión válida para la base con ID {$idEmpresaDatabase}");
+                throw new \Exception("No se encontró conexión válida para la base con ID {$idNominaGapeEmpresa}");
             }
 
             return $conexion;

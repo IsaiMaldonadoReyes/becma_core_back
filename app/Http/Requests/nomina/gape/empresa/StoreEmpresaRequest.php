@@ -28,6 +28,7 @@ class StoreEmpresaRequest extends FormRequest
             'id_empresa_database' => 'required_if:fiscal,true|nullable|integer',
             'codigo_interno' => 'required|string|max:50',
             'fiscal' => 'required|boolean',
+            'estado' => 'required|boolean',
             'correo_notificacion' => 'required|email|max:255',
         ];
     }
@@ -55,6 +56,9 @@ class StoreEmpresaRequest extends FormRequest
 
             'fiscal.required' => 'Debe especificar si la empresa es fiscal o no.',
             'fiscal.boolean' => 'El campo fiscal debe ser verdadero o falso.',
+
+            'estado.required' => 'Debe especificar si la empresa es activa o no.',
+            'estado.boolean' => 'El campo estado debe ser verdadero o falso.',
 
             'codigo_interno.required' => 'El código interno es obligatorio.',
             'codigo_interno.string' => 'El código interno debe ser texto.',

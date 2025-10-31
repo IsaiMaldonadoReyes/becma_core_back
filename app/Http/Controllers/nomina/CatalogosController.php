@@ -28,6 +28,7 @@ use App\Models\nomina\nomGenerales\IMSSCatTipoSemanaReducida;
 use App\Models\nomina\nomGenerales\NominaEmpresa;
 
 use App\Models\nomina\GAPE\NominaGapeCliente;
+use App\Models\nomina\GAPE\NominaGapeParametrizacion;
 
 use App\Http\Controllers\core\HelperController;
 
@@ -96,10 +97,10 @@ class CatalogosController extends Controller
                 'id' => 'required|integer',
             ]);
 
-            $idEmpresaDatabase = $validated['id'];
+            $idNominaGapeEmpresa = $validated['id'];
 
             // 2️⃣ Obtener conexión desde empresa_database
-            $conexion = $this->helperController->getConexionDatabaseNGE($idEmpresaDatabase, 'Nom');
+            $conexion = $this->helperController->getConexionDatabaseNGE($idNominaGapeEmpresa, 'Nom');
             $this->helperController->setDatabaseConnection($conexion, $conexion->nombre_base);
 
             // 3️⃣ Verificar que el modelo exista
@@ -131,6 +132,7 @@ class CatalogosController extends Controller
     }
 
 
+    /*
     public function tipoPeriodoNGE(Request $request)
     {
         return $this->obtenerCatalogoNominaNGE($request, TipoPeriodo::class, [
@@ -138,6 +140,66 @@ class CatalogosController extends Controller
             'nombretipoperiodo'
         ]);
     }
+        */
+
+
+    public function tipoPeriodoNGE(Request $request)
+    {
+        try {
+            // 1️⃣ Validar parámetros de entrada
+            $validated = $request->validate([
+                'id' => 'required|integer',          // id de la empresa
+                'idCliente' => 'required|integer',   // id del cliente
+                'action' => 'required|string',       // 'new' o 'update'
+            ]);
+
+            $idNominaGapeEmpresa = $validated['id'];
+            $idNominaGapeCliente = $validated['idCliente'];
+            $action = strtolower($validated['action']); // normalize case
+
+            // 2️⃣ Obtener los tipos de periodo ya configurados para esa empresa
+            $tiposExistentes = NominaGapeParametrizacion::where('id_nomina_gape_cliente', $idNominaGapeCliente)
+                ->where('id_nomina_gape_empresa', $idNominaGapeEmpresa)
+                ->pluck('id_tipo_periodo')
+                ->filter()
+                ->toArray();
+
+            // 3️⃣ Conectarse a la base de datos de nómina (según empresa)
+            $conexion = $this->helperController->getConexionDatabaseNGE($idNominaGapeEmpresa, 'Nom');
+            $this->helperController->setDatabaseConnection($conexion, $conexion->nombre_base);
+
+            // 4️⃣ Obtener todos los tipos de periodo desde la base NGE
+            $tipoPeriodo = TipoPeriodo::select('idtipoperiodo', 'nombretipoperiodo')->get();
+
+            // 5️⃣ Filtrar según acción
+            if ($action === 'new') {
+                // Solo mostrar los que NO estén ya registrados
+                $tipoPeriodo = $tipoPeriodo->filter(function ($item) use ($tiposExistentes) {
+                    return !in_array($item->idtipoperiodo, $tiposExistentes);
+                })->values();
+            }
+            // Si es "update", no se filtra (se devuelven todos)
+
+            // 6️⃣ Estructurar respuesta
+            return response()->json([
+                'code' => 200,
+                'data' => $tipoPeriodo,
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'code' => 422,
+                'message' => 'Datos de entrada inválidos.',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'code' => 500,
+                'message' => 'Error al obtener datos del catálogo de periodos.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
 
     public function empresasNominas(Request $request)
     {
