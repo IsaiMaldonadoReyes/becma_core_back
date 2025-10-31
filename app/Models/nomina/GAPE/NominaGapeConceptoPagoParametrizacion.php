@@ -14,6 +14,7 @@ class NominaGapeConceptoPagoParametrizacion extends Model
         'id_nomina_gape_cliente',
         'id_nomina_gape_empresa',
         'id_tipo_periodo',
+        'tipo_periodo_nombre',
         'sueldo_imss',
         'sueldo_imss_tope',
         'sueldo_imss_orden',
@@ -37,7 +38,13 @@ class NominaGapeConceptoPagoParametrizacion extends Model
         'gastos_compro',
         'gastos_compro_tope',
         'gastos_compro_orden',
+
+        'estado',
     ];
 
     public $timestamps = true;
+
+    protected $casts = [
+        'estado' => 'boolean',
+    ];
 }

@@ -18,4 +18,8 @@ class NominaGapeCliente extends Model
     ];
 
     public $timestamps = true;
+
+    protected $casts = [
+        'estado' => 'boolean',
+    ];
 }

@@ -117,7 +117,6 @@ class EmpresaController extends Controller
     {
         //
         try {
-
             $empresa = NominaGapeEmpresa::findOrFail($id);
             $empresa->update($request->validated());
 
@@ -233,13 +232,8 @@ class EmpresaController extends Controller
         $fiscal = $request->fiscal; // fiscal no fiscal
 
         try {
-            $empresas = DB::table('empresa_database as ed')
-                ->leftJoin('nomina_gape_empresa as nge', 'nge.id_empresa_database', '=', 'ed.id')
-                ->leftJoin('conexion as con', 'ed.id_conexion', '=', 'con.id')
-                ->leftJoin('sistema as sis', 'con.id_sistema', '=', 'sis.id')
-                ->select('ed.id', 'ed.nombre_empresa', 'ed.nombre_base')
-                ->where('ed.estado', 1)
-                ->where('sis.codigo', 'Nom')
+            $empresas = DB::table('nomina_gape_empresa as nge')
+                ->select('nge.id', 'nge.id_empresa_database', 'nge.razon_social', 'nge.rfc')
                 ->where('nge.id_nomina_gape_cliente', $idCliente) // 👈 solo las NO relacionadas
                 ->where('nge.fiscal', $fiscal) // 👈 solo las NO relacionadas
                 ->get();
@@ -342,7 +336,8 @@ class EmpresaController extends Controller
                 'rfc',
                 'codigo_interno',
                 'correo_notificacion',
-                'fiscal'
+                'fiscal',
+                'estado'
             )
                 ->where('id', $id)
                 ->first();
@@ -358,6 +353,7 @@ class EmpresaController extends Controller
                 'codigo_interno'      => $empresa->codigo_interno ?? '',
                 'correo_notificacion' => $empresa->correo_notificacion ?? '',
                 'fiscal' => $empresa->fiscal,
+                'estado' => $empresa->estado
             ];
 
             return response()->json([

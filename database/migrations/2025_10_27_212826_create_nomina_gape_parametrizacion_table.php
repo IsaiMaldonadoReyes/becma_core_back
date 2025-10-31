@@ -23,6 +23,8 @@ return new class extends Migration
             $table->unsignedBigInteger('id_nomina_gape_empresa')->nullable();
 
             $table->unsignedBigInteger('id_tipo_periodo')->nullable();
+            $table->string('tipo_periodo_nombre')->nullable();
+
             $table->string('clase_prima_riesgo')->nullable();
             $table->double('clase_prima_riesgo_valor')->nullable();
 
