@@ -15,4 +15,9 @@ class EmpresaDatabase extends Model
     ];
     protected $primaryKey = 'id';
     protected $table = 'empresa_database';
+
+    protected $casts = [
+        'id' => 'integer',
+        'estado' => 'boolean',
+    ];
 }

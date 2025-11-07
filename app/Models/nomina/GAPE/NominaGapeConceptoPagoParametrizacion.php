@@ -46,5 +46,7 @@ class NominaGapeConceptoPagoParametrizacion extends Model
 
     protected $casts = [
         'estado' => 'boolean',
+        'id_nomina_gape_cliente' => 'integer',
+        'id_nomina_gape_empresa' => 'integer',
     ];
 }

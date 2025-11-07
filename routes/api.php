@@ -169,9 +169,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Empleados
     Route::prefix('nominaGapeEmpleado')->group(function () {
-        Route::get('indexEmpleado', [EmpleadoController::class, 'index']);
-        Route::post('storeEmpleado', [EmpleadoController::class, 'store']);
-        Route::put('updateEmpleado/{id}', [EmpleadoController::class, 'update']);
+        Route::post('index', [EmpleadoController::class, 'index']);
+        Route::post('edit', [EmpleadoController::class, 'edit']);
+        Route::post('store', [EmpleadoController::class, 'store']);
+        Route::put('update', [EmpleadoController::class, 'update']);
+
+        Route::post('storeNoFiscal', [EmpleadoController::class, 'storeNoFiscal']);
+        Route::put('updateNoFiscal', [EmpleadoController::class, 'updateNoFiscal']);
+
         Route::delete('/destroyEmpleado/{id}', [EmpleadoController::class, 'destroy']);
     });
 
@@ -181,7 +186,43 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('gapeCliente', [CatalogosController::class, 'gapeCliente']);
 
         // TipoPeriodo nomina_gape_cliente
-        Route::post('tipoPeriodo', [CatalogosController::class, 'tipoPeriodoNGE']);
+        Route::post('tipoPeriodoNGE', [CatalogosController::class, 'tipoPeriodoNGE']);
+
+        // SATCatTipoContrato
+        Route::post('tipoContrato', [CatalogosController::class, 'tipoContrato']);
+
+        // tipoPeriodo
+        Route::post('tipoPeriodo', [CatalogosController::class, 'tipoPeriodo']);
+
+        // departamento
+        Route::post('departamento', [CatalogosController::class, 'departamento']);
+
+        // puesto
+        Route::post('puesto', [CatalogosController::class, 'puesto']);
+
+        // tipoPrestacion
+        Route::post('tipoPrestacion', [CatalogosController::class, 'tipoPrestacion']);
+
+        // turno
+        Route::post('turno', [CatalogosController::class, 'turno']);
+
+        // tipoRegimen
+        Route::post('tipoRegimen', [CatalogosController::class, 'tipoRegimen']);
+
+        // registroPatronal
+        Route::post('registroPatronal', [CatalogosController::class, 'registroPatronal']);
+
+        // entidadFederativa
+        Route::post('entidadFederativa', [CatalogosController::class, 'entidadFederativa']);
+
+        // banco
+        Route::post('bancos', [CatalogosController::class, 'bancos']);
+
+        // tipoJornada
+        Route::post('tipoJornada', [CatalogosController::class, 'tipoJornada']);
+
+        // empresa
+        Route::post('empresa', [CatalogosController::class, 'empresa']);
     });
 
 
