@@ -18,12 +18,17 @@ class NominaGapeEmpresa extends Model
         'rfc',
         'codigo_interno',
         'correo_notificacion',
-        'estado'
+        'estado',
+        'mascara_codigo',
+        'codigo_inicial',
+        'codigo_actual',
     ];
 
     public $timestamps = true;
 
     protected $casts = [
         'estado' => 'boolean',
+        'id_nomina_gape_cliente' => 'integer',
+        'id_empresa_database' => 'integer',
     ];
 }

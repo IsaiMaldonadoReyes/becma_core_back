@@ -22,7 +22,16 @@ class NominaGapeEmpleado extends Model
         'cambiocotizacionimss' => 'boolean',
         'Subcontratacion' => 'boolean',
         'carga_masiva' => 'boolean',
-        // agrega más según lo necesites
+        'fiscal' => 'boolean',
+        'id_nomina_gape_empresa' => 'integer',
+        'id_nomina_gape_cliente' => 'integer',
+        'ExtranjeroSinCURP' => 'boolean',
+
+        'iddepartamento' => 'integer',
+        'idpuesto' => 'integer',
+        'idtipoperiodo' => 'integer',
+        'idturno' => 'integer',
+        'cidregistropatronal' => 'integer',
     ];
 
     protected $fillable = [
@@ -125,5 +134,10 @@ class NominaGapeEmpleado extends Model
         'carga_masiva',
         'estado',
         'curpCompleto',
+        'id_nomina_gape_cliente',
+        'fiscal',
+        'fecha_alta_gape',
+        'sueldo_real',
+        'sueldo_imss_gape'
     ];
 }

@@ -89,29 +89,47 @@ class CatalogosController extends Controller
      * Obtiene un catálogo de nómina (periodos, contratos, régimen, etc.)
      * usando conexión dinámica por empresa_database (NGE)
      */
-    public function obtenerCatalogoNominaNGE(Request $request, string $modelo, array $columnas)
+    public function obtenerCatalogoNominaNGE(Request $request, ?string $nombreBase, string $modelo, array $columnas, array $filtros = [])
     {
         try {
             // 1️⃣ Validar parámetro de empresa
             $validated = $request->validate([
-                'id' => 'required|integer',
+                'idEmpresa' => 'required|integer',
             ]);
 
-            $idNominaGapeEmpresa = $validated['id'];
+            $idNominaGapeEmpresa = $validated['idEmpresa'];
 
             // 2️⃣ Obtener conexión desde empresa_database
             $conexion = $this->helperController->getConexionDatabaseNGE($idNominaGapeEmpresa, 'Nom');
-            $this->helperController->setDatabaseConnection($conexion, $conexion->nombre_base);
 
-            // 3️⃣ Verificar que el modelo exista
+            // 3️⃣ Si no se especifica una base, usar la base por defecto del cliente
+            if (empty($nombreBase)) {
+                $nombreBase = $conexion->nombre_base; // 👈 usa la base normal por defecto
+            }
+
+            // 4️⃣ Cambiar la conexión
+            $this->helperController->setDatabaseConnection($conexion, $nombreBase);
+
+            // 5️⃣ Verificar que el modelo exista
             if (!class_exists($modelo)) {
                 throw new \Exception("El modelo {$modelo} no existe.");
             }
 
-            // 4️⃣ Consultar el catálogo solicitado
-            $data = $modelo::select($columnas)->get();
+            // 6️⃣ Construir la consulta
+            $query = $modelo::select($columnas);
 
-            // 5️⃣ Retornar respuesta uniforme
+            // 7️⃣ Aplicar filtros dinámicos si existen
+            if (!empty($filtros)) {
+                foreach ($filtros as $columna => $valor) {
+                    $query->where($columna, '=', $valor);
+                }
+            }
+
+            // 8️⃣ Ejecutar la consulta
+            $data = $query->get();
+
+
+            // 7️⃣ Retornar respuesta uniforme
             return response()->json([
                 'code' => 200,
                 'data' => $data,
@@ -132,15 +150,148 @@ class CatalogosController extends Controller
     }
 
 
-    /*
-    public function tipoPeriodoNGE(Request $request)
+
+
+    public function tipoContrato(Request $request)
     {
-        return $this->obtenerCatalogoNominaNGE($request, TipoPeriodo::class, [
+        return $this->obtenerCatalogoNominaNGE($request, 'nomGenerales', SATCatTipoContrato::class, [
+            'ClaveTipoContrato',
+            'Descripcion'
+        ]);
+    }
+
+    public function tipoPeriodo(Request $request)
+    {
+        return $this->obtenerCatalogoNominaNGE($request, '', TipoPeriodo::class, [
             'idtipoperiodo',
             'nombretipoperiodo'
         ]);
     }
-        */
+
+    public function departamento(Request $request)
+    {
+        return $this->obtenerCatalogoNominaNGE($request, '', Departamento::class, [
+            'iddepartamento',
+            'descripcion'
+        ]);
+    }
+
+    public function puesto(Request $request)
+    {
+        return $this->obtenerCatalogoNominaNGE($request, '', Puesto::class, [
+            'idpuesto',
+            'descripcion'
+        ]);
+    }
+
+    public function tipoPrestacion(Request $request)
+    {
+        return $this->obtenerCatalogoNominaNGE($request, '', TipoPrestacion::class, [
+            'IDTabla',
+            'Nombre'
+        ]);
+    }
+
+    public function turno(Request $request)
+    {
+        return $this->obtenerCatalogoNominaNGE($request, '', Turno::class, [
+            'idturno',
+            'descripcion'
+        ]);
+    }
+
+    public function tipoRegimen(Request $request)
+    {
+        return $this->obtenerCatalogoNominaNGE($request, 'nomGenerales', SATCatTipoRegimen::class, [
+            'claveTipoRegimen',
+            'descripcion'
+        ]);
+    }
+
+    public function registroPatronal(Request $request)
+    {
+        return $this->obtenerCatalogoNominaNGE($request, '', RegistroPatronal::class, [
+            'cidregistropatronal',
+            'cregistroimss'
+        ]);
+    }
+
+    public function entidadFederativa(Request $request)
+    {
+        return $this->obtenerCatalogoNominaNGE(
+            $request,
+            'nomGenerales',
+            SATCatEntidadFederativa::class,
+            [
+                'ClaveEstado',
+                'Descripcion'
+            ],
+            ['ClavePais' => 'MEX']
+        );
+    }
+
+    public function bancos(Request $request)
+    {
+        return $this->obtenerCatalogoNominaNGE($request, 'nomGenerales', SATCatBancos::class, [
+            'ClaveBanco',
+            'Descripcion'
+        ]);
+    }
+
+    public function tipoJornada(Request $request)
+    {
+        return $this->obtenerCatalogoNominaNGE($request, 'nomGenerales', IMSSCatTipoSemanaReducida::class, [
+            'TipoSemanaReducida',
+            'Descripcion'
+        ]);
+    }
+
+    public function empresa(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'idEmpresa' => 'required|integer',
+            ]);
+
+            $idNominaGapeEmpresa = $validated['idEmpresa'];
+
+            // 2️⃣ Obtener conexión desde empresa_database
+            $conexion = $this->helperController->getConexionDatabaseNGE($idNominaGapeEmpresa, 'Nom');
+
+            $this->helperController->setDatabaseConnection($conexion, $conexion->nombre_base);
+
+            $empresa = Empresa::select(
+                'nombrecorto',
+                'mascarillacodigo',
+                'zonasalariogeneral',
+                'tipocodigoempleado'
+            )
+                ->first();
+
+            $mascarilla = $empresa->mascarillacodigo ?? 'XXXX';
+            $tipo = $empresa->tipocodigoempleado ?? 'A';
+            $longitud = substr_count($mascarilla, 'X');
+
+            $ultimo = Empleado::orderBy('codigoempleado', 'desc')->value('codigoempleado');
+
+            $siguiente = $this->generarSiguienteCodigo($ultimo, $longitud, $tipo);
+
+            return response()->json([
+                'code' => 200,
+                'data' => [
+                    'empresa' => $empresa,
+                    'siguienteCodigo' => $siguiente,
+                ]
+            ], 200);
+        } catch (\Exception $e) {
+            // Manejo de errores
+            return response()->json([
+                'code' => 500,
+                'message' => 'Error al obtener los datos',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 
 
     public function tipoPeriodoNGE(Request $request)
@@ -199,7 +350,6 @@ class CatalogosController extends Controller
             ], 500);
         }
     }
-
 
     public function empresasNominas(Request $request)
     {
@@ -265,17 +415,20 @@ class CatalogosController extends Controller
         }
     }
 
-    public function tipoContrato(Request $request)
+    public function tipoContratoxxx(Request $request)
     {
-        // $idEmpresaUsuario = $request->user()->id
-        $idEmpresaUsuario = 3;
-        $idEmpresaDatabase =  $request->id;
-
-        $conexion = $this->helperController->getConexionDatabase($idEmpresaDatabase, $idEmpresaUsuario, 'Nom');
-
-        $this->helperController->setDatabaseConnection($conexion, $conexion->database_maestra);
-
         try {
+            $validated = $request->validate([
+                'idCliente' => 'required|integer',          // id del cliente
+                'idEmpresa' => 'required|integer',   // id de la empresa
+            ]);
+
+            $idNominaGapeCliente = $validated['idCliente'];
+            $idNominaGapeEmpresa = $validated['idEmpresa'];
+
+            $conexion = $this->helperController->getConexionDatabaseNGE($idNominaGapeEmpresa, 'Nom');
+            $this->helperController->setDatabaseConnection($conexion, $conexion->database_maestra);
+
             $tipoContrato = SATCatTipoContrato::select(
                 'ClaveTipoContrato',
                 'Descripcion'
@@ -285,18 +438,23 @@ class CatalogosController extends Controller
             return response()->json([
                 'code' => 200,
                 'data' => $tipoContrato,
-            ], 200);
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'code' => 422,
+                'message' => 'Datos de entrada inválidos.',
+                'errors' => $e->errors(),
+            ], 422);
         } catch (\Exception $e) {
-            // Manejo de errores
             return response()->json([
                 'code' => 500,
-                'message' => 'Error al obtener los datos',
+                'message' => 'Error al obtener datos del catálogo de periodos.',
                 'error' => $e->getMessage(),
             ], 500);
         }
     }
 
-    public function tipoPeriodo(Request $request)
+    public function tipoPeriodoxxx(Request $request)
     {
         try {
             // 1️⃣ Obtener el idEmpresaUsuario según sea superadmin o usuario normal
@@ -353,7 +511,6 @@ class CatalogosController extends Controller
         }
     }
 
-
     public function periodo(Request $request)
     {
         // $idEmpresaUsuario = $request->user()->id
@@ -391,7 +548,7 @@ class CatalogosController extends Controller
         }
     }
 
-    public function departamento(Request $request)
+    public function departamentoxxx(Request $request)
     {
         // $idEmpresaUsuario = $request->user()->id
         $idEmpresaUsuario = 3;
@@ -422,7 +579,7 @@ class CatalogosController extends Controller
         }
     }
 
-    public function puesto(Request $request)
+    public function puestoxxx(Request $request)
     {
         // $idEmpresaUsuario = $request->user()->id
         $idEmpresaUsuario = 3;
@@ -453,7 +610,7 @@ class CatalogosController extends Controller
         }
     }
 
-    public function tipoPrestacion(Request $request)
+    public function tipoPrestacionxxx(Request $request)
     {
         // $idEmpresaUsuario = $request->user()->id
         $idEmpresaUsuario = 3;
@@ -484,7 +641,7 @@ class CatalogosController extends Controller
         }
     }
 
-    public function turno(Request $request)
+    public function turnoxxx(Request $request)
     {
         // $idEmpresaUsuario = $request->user()->id
         $idEmpresaUsuario = 3;
@@ -515,7 +672,7 @@ class CatalogosController extends Controller
         }
     }
 
-    public function tipoRegimen(Request $request)
+    public function tipoRegimenxxx(Request $request)
     {
         // $idEmpresaUsuario = $request->user()->id
         $idEmpresaUsuario = 3;
@@ -546,7 +703,7 @@ class CatalogosController extends Controller
         }
     }
 
-    public function registroPatronal(Request $request)
+    public function registroPatronalxxx(Request $request)
     {
         // $idEmpresaUsuario = $request->user()->id
         $idEmpresaUsuario = 3;
@@ -577,7 +734,7 @@ class CatalogosController extends Controller
         }
     }
 
-    public function entidadFederativa(Request $request)
+    public function entidadFederativaxxx(Request $request)
     {
         // $idEmpresaUsuario = $request->user()->id
         $idEmpresaUsuario = 3;
@@ -609,7 +766,7 @@ class CatalogosController extends Controller
         }
     }
 
-    public function bancos(Request $request)
+    public function bancosxxx(Request $request)
     {
         // $idEmpresaUsuario = $request->user()->id
         $idEmpresaUsuario = 3;
@@ -640,7 +797,7 @@ class CatalogosController extends Controller
         }
     }
 
-    public function empresa(Request $request)
+    public function empresaxxx(Request $request)
     {
         // $idEmpresaUsuario = $request->user()->id
         $idEmpresaUsuario = 3;
@@ -684,7 +841,7 @@ class CatalogosController extends Controller
         }
     }
 
-    public function tipoJornada(Request $request)
+    public function tipoJornadaxxx(Request $request)
     {
         // $idEmpresaUsuario = $request->user()->id
         $idEmpresaUsuario = 3;
