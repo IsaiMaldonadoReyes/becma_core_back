@@ -338,28 +338,17 @@ class EmpresaController extends Controller
                 'codigo_interno',
                 'correo_notificacion',
                 'fiscal',
-                'estado'
+                'estado',
+                'mascara_codigo',
+                'codigo_inicial',
+                'codigo_actual'
             )
                 ->where('id', $id)
                 ->first();
 
-            /**
-             * 3️⃣ Combinar los datos (simulando un LEFT JOIN)
-             */
-            $resultado = [
-                'id_nomina_gape_cliente' => $empresa->id_nomina_gape_cliente,
-                'id_empresa_database' => $empresa->id_empresa_database ?? 0,
-                'razon_social'        => $empresa->razon_social,
-                'rfc'                 => $empresa->rfc,
-                'codigo_interno'      => $empresa->codigo_interno ?? '',
-                'correo_notificacion' => $empresa->correo_notificacion ?? '',
-                'fiscal' => $empresa->fiscal,
-                'estado' => $empresa->estado
-            ];
-
             return response()->json([
                 'code' => 200,
-                'data' => $resultado,
+                'data' => $empresa,
             ]);
         } catch (\Exception $e) {
             return response()->json([

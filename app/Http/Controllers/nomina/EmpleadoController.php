@@ -11,6 +11,7 @@ use App\Models\nomina\GAPE\NominaGapeEmpleado; // Asegúrate de que este modelo 
 use App\Models\nomina\default\Empleado; // Asegúrate de que este modelo exista
 use App\Models\nomina\default\Periodo; // Asegúrate de que este modelo exista
 use App\Models\nomina\default\EmpleadosPorPeriodo; // Asegúrate de que este modelo exista
+use App\Models\nomina\GAPE\NominaGapeEmpresa;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -343,21 +344,11 @@ class EmpleadoController extends Controller
     public function storeNoFiscal(Request $request)
     {
         try {
-            // 1️⃣ Validar datos de entrada
+            // 1️⃣ Validar datos básicos (sin validar todavía la unicidad del código)
             $validated = $request->validate([
                 'id_nomina_gape_cliente' => 'required|integer|exists:nomina_gape_cliente,id',
                 'id_nomina_gape_empresa' => 'required|integer|exists:nomina_gape_empresa,id',
                 'fiscal' => 'required|boolean',
-                'codigoempleado' => [
-                    'required',
-                    'string',
-                    Rule::unique('nomina_gape_empleado', 'codigoempleado')
-                        ->where(
-                            fn($query) =>
-                            $query->where('id_nomina_gape_cliente', $request->id_nomina_gape_cliente)
-                                ->where('id_nomina_gape_empresa', $request->id_nomina_gape_empresa)
-                        ),
-                ],
                 'fechaalta' => 'required|date',
                 'apellidopaterno' => 'required|string|max:84',
                 'apellidomaterno' => 'required|string|max:83',
@@ -368,7 +359,18 @@ class EmpleadoController extends Controller
                 'sueldo_imss_gape' => 'required|numeric|min:0',
             ]);
 
-            // 2️⃣ Agregar valores por defecto (para columnas NOT NULL)
+            $idEmpresa = $validated['id_nomina_gape_empresa'];
+            $idCliente = $validated['id_nomina_gape_cliente'];
+
+            // 2️⃣ Obtener la configuración de la empresa (máscara y códigos)
+            $empresa = NominaGapeEmpresa::select('mascara_codigo', 'codigo_inicial', 'codigo_actual')
+                ->where('id', $idEmpresa)
+                ->firstOrFail();
+
+            // 3️⃣ Generar un código único automáticamente
+            $codigoGenerado = $this->generarCodigoUnico($idEmpresa, $idCliente, $empresa);
+
+            // 4️⃣ Unir los valores por defecto con los datos validados
             $defaults = [
                 'calculado' => false,
                 'afectado' => false,
@@ -389,19 +391,24 @@ class EmpleadoController extends Controller
                 'DiasPrimaVacTomadasAntesdeAlta' => 0,
                 'TipoSemanaReducida' => 0,
                 'Teletrabajador' => 0,
-                'EntidadFederativa' => 'MC', // Valor por defecto (México CDMX)
+                'EntidadFederativa' => 'MC', // Por defecto
             ];
 
-            // 3️⃣ Unir los datos validados con los valores por defecto
-            $data = array_merge($defaults, $validated);
+            $data = array_merge($defaults, $validated, [
+                'codigoempleado' => $codigoGenerado,
+            ]);
 
-            // 4️⃣ Crear el registro
+            // 5️⃣ Crear el empleado
             $empleado = NominaGapeEmpleado::create($data);
+
+            // 6️⃣ Actualizar el código actual de la empresa
+            $empresa->update(['codigo_actual' => $codigoGenerado]);
 
             return response()->json([
                 'code' => 200,
                 'message' => 'Empleado creado correctamente',
                 'id' => $empleado->id,
+                'codigoempleado' => $codigoGenerado,
             ], 200);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
@@ -417,6 +424,49 @@ class EmpleadoController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Genera un nuevo código de empleado único basado en la máscara y los códigos existentes.
+     */
+    private function generarCodigoUnico(int $idEmpresa, int $idCliente, $empresa): string
+    {
+        $mascara = $empresa->mascara_codigo ?? 'XXXX';
+        $longitud = substr_count($mascara, 'X');
+
+        if ($longitud < 1) {
+            $longitud = 4; // valor por defecto de seguridad
+        }
+
+        // Obtener el código actual o inicial
+        $codigoBase = $empresa->codigo_actual ?? $empresa->codigo_inicial ?? str_pad('1', $longitud, '0', STR_PAD_LEFT);
+
+        // Asegurar formato (solo dígitos)
+        $codigoBase = preg_replace('/\D/', '', $codigoBase);
+        $codigoBase = str_pad($codigoBase, $longitud, '0', STR_PAD_LEFT);
+
+        // Convertir a número para incrementar
+        $numero = intval($codigoBase);
+
+        $maxIntentos = 9999;
+        for ($i = 0; $i < $maxIntentos; $i++) {
+            $numero++;
+            $nuevoCodigo = str_pad($numero, $longitud, '0', STR_PAD_LEFT);
+
+            // Verificar que no exista ya
+            $existe = NominaGapeEmpleado::where('id_nomina_gape_empresa', $idEmpresa)
+                ->where('id_nomina_gape_cliente', $idCliente)
+                ->where('codigoempleado', $nuevoCodigo)
+                ->exists();
+
+            if (!$existe) {
+                return $nuevoCodigo;
+            }
+        }
+
+        throw new \Exception('No se pudo generar un nuevo código único después de múltiples intentos.');
+    }
+
+
 
 
     /**

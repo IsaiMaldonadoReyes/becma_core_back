@@ -48,5 +48,6 @@ class NominaGapeConceptoPagoParametrizacion extends Model
         'estado' => 'boolean',
         'id_nomina_gape_cliente' => 'integer',
         'id_nomina_gape_empresa' => 'integer',
+        'id_tipo_periodo' => 'integer',
     ];
 }

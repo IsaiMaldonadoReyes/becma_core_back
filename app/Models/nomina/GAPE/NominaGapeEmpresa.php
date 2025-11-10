@@ -28,6 +28,7 @@ class NominaGapeEmpresa extends Model
 
     protected $casts = [
         'estado' => 'boolean',
+        'fiscal' => 'boolean',
         'id_nomina_gape_cliente' => 'integer',
         'id_empresa_database' => 'integer',
     ];
