@@ -28,9 +28,11 @@ use App\Models\nomina\nomGenerales\IMSSCatTipoSemanaReducida;
 use App\Models\nomina\nomGenerales\NominaEmpresa;
 
 use App\Models\nomina\GAPE\NominaGapeCliente;
+use App\Models\nomina\GAPE\NominaGapeEmpleado;
 use App\Models\nomina\GAPE\NominaGapeParametrizacion;
 
 use App\Http\Controllers\core\HelperController;
+use App\Models\nomina\GAPE\NominaGapeEmpresa;
 
 class CatalogosController extends Controller
 {
@@ -292,6 +294,105 @@ class CatalogosController extends Controller
             ], 500);
         }
     }
+
+    public function sigCodigoPorEmpresa(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'idEmpresa' => 'required|integer',
+                'idCliente' => 'required|integer',
+                'fiscal' => 'required|boolean',
+            ]);
+
+            $idEmpresa = $validated['idEmpresa'];
+            $idCliente = $validated['idCliente'];
+
+            // 1️⃣ Obtener configuración de empresa
+            $empresa = NominaGapeEmpresa::select(
+                'mascara_codigo',
+                'codigo_inicial',
+                'codigo_actual'
+            )
+                ->where('id', $idEmpresa)
+                ->first();
+
+            if (!$empresa) {
+                return response()->json([
+                    'code' => 404,
+                    'message' => 'No se encontró la empresa especificada',
+                ], 404);
+            }
+
+            $mascarilla = $empresa->mascara_codigo ?? 'XXXX';
+            $longitud = substr_count($mascarilla, 'X');
+
+            // Si no tiene longitud válida
+            if ($longitud < 1) {
+                return response()->json([
+                    'code' => 422,
+                    'message' => 'La máscara de código no es válida',
+                ], 422);
+            }
+
+            // 2️⃣ Buscar el último código de empleado registrado
+            $ultimoCodigo = NominaGapeEmpleado::where('id_nomina_gape_empresa', $idEmpresa)
+                ->where('id_nomina_gape_cliente', $idCliente)
+                ->orderBy('codigoempleado', 'desc')
+                ->value('codigoempleado');
+
+            // 3️⃣ Determinar el punto de partida
+            $baseCodigo = $ultimoCodigo ?? $empresa->codigo_actual ?? $empresa->codigo_inicial ?? str_pad('1', $longitud, '0', STR_PAD_LEFT);
+
+            // Asegurar formato correcto (rellenar con ceros)
+            $baseCodigo = str_pad(preg_replace('/\D/', '', $baseCodigo), $longitud, '0', STR_PAD_LEFT);
+
+            // Convertir a entero para incrementar
+            $siguienteNum = intval($baseCodigo);
+
+            // 4️⃣ Generar siguiente disponible
+            $maxIntentos = 9999; // evitar bucles infinitos
+            $encontrado = false;
+
+            for ($i = 0; $i < $maxIntentos; $i++) {
+                $siguienteNum++;
+                $nuevoCodigo = str_pad($siguienteNum, $longitud, '0', STR_PAD_LEFT);
+
+                // Verificar si ya existe
+                $existe = NominaGapeEmpleado::where('id_nomina_gape_empresa', $idEmpresa)
+                    ->where('id_nomina_gape_cliente', $idCliente)
+                    ->where('codigoempleado', $nuevoCodigo)
+                    ->exists();
+
+                if (!$existe) {
+                    $encontrado = true;
+                    break;
+                }
+            }
+
+            if (!$encontrado) {
+                return response()->json([
+                    'code' => 500,
+                    'message' => 'No se pudo generar un nuevo código único después de múltiples intentos',
+                ], 500);
+            }
+
+            // 5️⃣ Retornar el siguiente código disponible
+            return response()->json([
+                'code' => 200,
+                'data' => [
+                    'empresa' => $empresa,
+                    'siguienteCodigo' => $nuevoCodigo,
+                ],
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'code' => 500,
+                'message' => 'Error al obtener el siguiente código',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
 
 
     public function tipoPeriodoNGE(Request $request)

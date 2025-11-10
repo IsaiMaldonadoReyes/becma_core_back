@@ -223,6 +223,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
         // empresa
         Route::post('empresa', [CatalogosController::class, 'empresa']);
+
+        // nominaGapeEmpresa
+        Route::post('sigCodigoPorEmpresa', [CatalogosController::class, 'sigCodigoPorEmpresa']);
     });
 
 
