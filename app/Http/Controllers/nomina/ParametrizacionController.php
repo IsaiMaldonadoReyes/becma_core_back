@@ -59,7 +59,11 @@ class ParametrizacionController extends Controller
     public function datosConceptosPorId(Request $request)
     {
         try {
-            $id = $request->id;
+            $validated = $request->validate([
+                'id' => 'required|integer',
+            ]);
+
+            $id = $validated['id'];
 
             $parametrizacionConcepto = NominaGapeConceptoPagoParametrizacion::select(
                 'id',
@@ -113,9 +117,15 @@ class ParametrizacionController extends Controller
     public function datosParametrizacionPorId(Request $request)
     {
         try {
-            $idNominaGapeCliente = $request->idNominaGapeCliente;
-            $idNominaGapeEmpresa = $request->idNominaGapeEmpresa;
-            $idTipoPeriodo = $request->idTipoPeriodo;
+            $validated = $request->validate([
+                'idNominaGapeCliente' => 'required|integer',
+                'idNominaGapeEmpresa' => 'required|integer',
+                'idTipoPeriodo' => 'required|integer',
+            ]);
+
+            $idNominaGapeCliente = $validated['idNominaGapeCliente'];
+            $idNominaGapeEmpresa = $validated['idNominaGapeEmpresa'];
+            $idTipoPeriodo = $validated['idTipoPeriodo'];
 
             $query = NominaGapeParametrizacion::select(
                 'id',
