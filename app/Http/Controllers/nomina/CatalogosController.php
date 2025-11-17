@@ -266,17 +266,15 @@ class CatalogosController extends Controller
                 'nombrecorto',
                 'mascarillacodigo',
                 'zonasalariogeneral',
-                'tipocodigoempleado'
             )
                 ->first();
 
             $mascarilla = $empresa->mascarillacodigo ?? 'XXXX';
-            $tipo = $empresa->tipocodigoempleado ?? 'A';
             $longitud = substr_count($mascarilla, 'X');
 
             $ultimo = Empleado::orderBy('codigoempleado', 'desc')->value('codigoempleado');
 
-            $siguiente = $this->generarSiguienteCodigo($ultimo, $longitud, $tipo);
+            $siguiente = $this->generarSiguienteCodigo($ultimo, $longitud);
 
             return response()->json([
                 'code' => 200,
@@ -973,50 +971,25 @@ class CatalogosController extends Controller
         }
     }
 
-    private function generarSiguienteCodigo(?string $ultimo, int $longitud, string $tipo): string
+    private function generarSiguienteCodigo(?string $ultimo, int $longitud): string
     {
-        $charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        $base = strlen($charset);
+        // Si no hay empleados aún, inicia en 1
+        $ultimoNumerico = $ultimo ? intval(preg_replace('/\D/', '', $ultimo)) : 0;
 
-        // Convertidor de base alfanumérica a decimal
-        $toDecimal = function (string $input) use ($charset, $base): int {
-            $input = strtoupper($input);
-            $decimal = 0;
-            for ($i = 0; $i < strlen($input); $i++) {
-                $decimal *= $base;
-                $decimal += strpos($charset, $input[$i]);
+        $maxIntentos = 9999;
+        for ($i = 0; $i < $maxIntentos; $i++) {
+            $nuevo = $ultimoNumerico + $i + 1;
+            $codigoNumerico = str_pad($nuevo, $longitud, '0', STR_PAD_LEFT);
+
+            // Validar que no exista ya en la base dinámica
+            $existe = Empleado::where('codigoempleado', $codigoNumerico)
+                ->exists();
+
+            if (!$existe) {
+                return $codigoNumerico;
             }
-            return $decimal;
-        };
+        }
 
-        // Convertidor de decimal a base alfanumérica
-        $toAlphanumeric = function (int $number) use ($charset, $base): string {
-            $result = '';
-            do {
-                $result = $charset[$number % $base] . $result;
-                $number = intdiv($number, $base);
-            } while ($number > 0);
-            return $result;
-        };
-
-        $start = $ultimo
-            ? ($tipo === 'N' ? intval($ultimo) : $toDecimal($ultimo))
-            : 0;
-
-        $intento = $start;
-
-        // Intentar encontrar un código que no exista
-        do {
-            $intento++;
-            $codigo = $tipo === 'N'
-                ? str_pad((string)$intento, $longitud, '0', STR_PAD_LEFT)
-                : str_pad($toAlphanumeric($intento), $longitud, '0', STR_PAD_LEFT);
-
-            $existe = Empleado::where('codigoempleado', $codigo)->exists();
-
-            if (!$existe) return $codigo;
-        } while ($intento < pow($base, $longitud)); // evitar bucle infinito
-
-        throw new \Exception('No hay códigos disponibles');
+        throw new \Exception('No se pudo generar un nuevo código único después de múltiples intentos.');
     }
 }

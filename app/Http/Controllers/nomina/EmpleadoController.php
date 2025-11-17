@@ -3,19 +3,23 @@
 namespace App\Http\Controllers\nomina;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\nomina\gape\StoreEmpleadoRequest;
+use App\Http\Requests\nomina\gape\Empleado\StoreEmpleadoRequest;
+use App\Http\Requests\nomina\gape\Empleado\StoreNoFiscalRequest;
 use Illuminate\Http\Request;
 
 // Importar modelos necesarios
 use App\Models\nomina\GAPE\NominaGapeEmpleado; // Asegúrate de que este modelo exista
 use App\Models\nomina\default\Empleado; // Asegúrate de que este modelo exista
 use App\Models\nomina\default\Periodo; // Asegúrate de que este modelo exista
+use App\Models\nomina\default\Empresa;
 use App\Models\nomina\default\EmpleadosPorPeriodo; // Asegúrate de que este modelo exista
 use App\Models\nomina\GAPE\NominaGapeEmpresa;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use App\Http\Controllers\core\HelperController;
+
+use Illuminate\Support\Facades\Log;
 
 class EmpleadoController extends Controller
 {
@@ -84,18 +88,297 @@ class EmpleadoController extends Controller
         }
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    private function getStringFields(): array
     {
-        //
+        return [
+            'codigoempleado',
+            'nombre',
+            'apellidopaterno',
+            'apellidomaterno',
+            'nombrelargo',
+            'lugarnacimiento',
+            'estadocivil',
+            'sexo',
+            'curpi',
+            'curpf',
+            'rfc',
+            'umf',
+            'homoclave',
+            'cuentapagoelectronico',
+            'sucursalpagoelectronico',
+            'bancopagoelectronico',
+            'estadoempleado',
+            'tipocontrato',
+            'basecotizacionimss',
+            'tipoempleado',
+            'basepago',
+            'formapago',
+            'zonasalario',
+            'telefono',
+            'codigopostal',
+            'direccion',
+            'poblacion',
+            'estado',
+            'nombrepadre',
+            'nombremadre',
+            'numeroafore',
+            'causabaja',
+            'TipoRegimen',
+            'CorreoElectronico',
+            'ClabeInterbancaria',
+            'EntidadFederativa',
+            'NumeroFonacot'
+        ];
     }
+
+    private function mapEmpleadoData($empleado): array
+    {
+        return [
+            'iddepartamento' => $empleado->iddepartamento,
+            'idpuesto' => $empleado->idpuesto,
+            'idtipoperiodo' => $empleado->idtipoperiodo,
+            'idturno' => $empleado->idturno,
+            'codigoempleado' => $empleado->codigoempleado,
+            'nombre' => $empleado->nombre,
+            'apellidopaterno' => $empleado->apellidopaterno,
+            'apellidomaterno' => $empleado->apellidomaterno,
+            'nombrelargo' => $empleado->nombrelargo,
+            'fechanacimiento' => $empleado->fechanacimiento,
+            'lugarnacimiento' => $empleado->lugarnacimiento,
+            'estadocivil' => $empleado->estadocivil,
+            'sexo' => $empleado->sexo,
+            'curpi' => $empleado->curpi,
+            'curpf' => $empleado->curpf,
+            'numerosegurosocial' => $empleado->numerosegurosocial,
+            'umf' => $empleado->umf,
+            'rfc' => $empleado->curpi,
+            'homoclave' => $empleado->homoclave,
+            'cuentapagoelectronico' => $empleado->cuentapagoelectronico,
+            'sucursalpagoelectronico' => $empleado->sucursalpagoelectronico,
+            'bancopagoelectronico' => $empleado->bancopagoelectronico,
+            'estadoempleado' => $empleado->estadoempleado,
+            'sueldodiario' => $empleado->sueldodiario,
+            'fechasueldodiario' => $empleado->fechasueldodiario ?? $empleado->fechaalta,
+            'sueldovariable' => $empleado->sueldovariable ?? 1,
+            'fechasueldovariable' => $empleado->fechasueldovariable ?? $empleado->fechaalta,
+            'sueldopromedio' => $empleado->sueldopromedio ?? 1,
+            'fechasueldopromedio' => $empleado->fechasueldopromedio ?? $empleado->fechaalta,
+            'sueldointegrado' => $empleado->sueldointegrado ?? 1,
+            'fechasueldointegrado' => $empleado->fechasueldointegrado ?? $empleado->fechaalta,
+            'calculado' => $empleado->calculado,
+            'afectado' => $empleado->afectado,
+            'calculadoextraordinario' => $empleado->calculadoextraordinario,
+            'afectadoextraordinario' => $empleado->afectadoextraordinario,
+            'interfazcheqpaqw' => $empleado->interfazcheqpaqw,
+            'modificacionneto' => $empleado->modificacionneto,
+            'fechaalta' => $empleado->fechaalta,
+            'tipocontrato' => $empleado->tipocontrato,
+            'basecotizacionimss' => $empleado->basecotizacionimss,
+            'tipoempleado' => $empleado->tipoempleado,
+            'basepago' => $empleado->basepago,
+            'formapago' => $empleado->formapago,
+            'zonasalario' => $empleado->zonasalario,
+            'calculoptu' => $empleado->calculoptu ?? 1,
+            'calculoaguinaldo' => $empleado->calculoaguinaldo ?? 1,
+            'modificacionsalarioimss' => $empleado->modificacionsalarioimss,
+            'altaimss' => $empleado->altaimss,
+            'bajaimss' => $empleado->bajaimss,
+            'cambiocotizacionimss' => $empleado->cambiocotizacionimss,
+            'telefono' => $empleado->telefono,
+            'codigopostal' => $empleado->codigopostal,
+            'direccion' => $empleado->direccion,
+            'poblacion' => $empleado->poblacion,
+            'estado' => $empleado->estado,
+            'nombrepadre' => $empleado->nombrepadre,
+            'nombremadre' => $empleado->nombremadre,
+            'numeroafore' => $empleado->numeroafore,
+            'causabaja' => $empleado->causabaja,
+            'ClabeInterbancaria' => $empleado->ClabeInterbancaria,
+            'TipoRegimen' => $empleado->TipoRegimen,
+            'Subcontratacion' => $empleado->Subcontratacion,
+            'ExtranjeroSinCURP' => $empleado->ExtranjeroSinCURP,
+            'TipoPrestacion' => $empleado->TipoPrestacion,
+            'CorreoElectronico' => $empleado->CorreoElectronico,
+            'DiasVacTomadasAntesdeAlta' => $empleado->DiasVacTomadasAntesdeAlta,
+            'DiasPrimaVacTomadasAntesdeAlta' => $empleado->DiasPrimaVacTomadasAntesdeAlta,
+            'TipoSemanaReducida' => $empleado->TipoSemanaReducida,
+            'Teletrabajador' => $empleado->Teletrabajador,
+            'EntidadFederativa' => $empleado->EntidadFederativa,
+            'cestadoempleadoperiodo' => 'A_',
+            'fechabaja' => '1899-12-30',
+            'fechareingreso' => '1899-12-30',
+            'cfechasueldomixto' => '1899-12-30',
+            'csueldomixto' => '0',
+            'cidregistropatronal' => $empleado->cidregistropatronal,
+            'NumeroFonacot' => $empleado->NumeroFonacot,
+            'ajustealneto' => 0,
+            'sueldobaseliquidacion' => $empleado->sueldobaseliquidacion ?? 0,
+        ];
+    }
+
+
+    public function store(StoreEmpleadoRequest $request)
+    {
+        try {
+            DB::beginTransaction();
+
+            $validated = $request->validated();
+
+            // 🔹 1️⃣ Inicializar campos booleanos con false si no existen
+            $booleanFields = [
+                'calculado',
+                'afectado',
+                'calculadoextraordinario',
+                'afectadoextraordinario',
+                'interfazcheqpaqw',
+                'modificacionneto',
+                'calculoptu',
+                'calculoaguinaldo',
+                'modificacionsalarioimss',
+                'altaimss',
+                'bajaimss',
+                'cambiocotizacionimss',
+                'Subcontratacion',
+                'ExtranjeroSinCURP'
+            ];
+
+            foreach ($booleanFields as $field) {
+                if (!isset($validated[$field])) {
+                    $validated[$field] = false;
+                }
+            }
+
+            // 🔹 2️⃣ Crear empleado en tu tabla interna
+            $empleado = NominaGapeEmpleado::create($validated);
+
+
+            // 🔹 3️⃣ Conectarse a base dinámica
+            $conexion = $this->helperController->getConexionDatabaseNGE($empleado->id_nomina_gape_empresa, 'Nom');
+            $this->helperController->setDatabaseConnection($conexion, $conexion->nombre_base);
+            $nombreConexion = $conexion->nombre_base;
+
+
+            // 🔹 4️⃣ Transacción anidada sobre la conexión dinámica
+            DB::transaction(function () use ($empleado) {
+                // 4.1️⃣ Obtener la configuración de empresa
+                $empresa = Empresa::select('mascarillacodigo')
+                    ->first();
+
+                $mascara = $empresa->mascarillacodigo ?? 'XXXX';
+                $longitud = substr_count($mascara, 'X');
+
+                // 4.2️⃣ Obtener último código de empleado (bloqueado)
+                $ultimoCodigo = Empleado::orderBy('codigoempleado', 'desc')
+                    ->lockForUpdate()
+                    ->value('codigoempleado');
+
+                // 4.3️⃣ Generar código único
+                $nuevoCodigo = $this->generarSiguienteCodigoSimple($ultimoCodigo, $longitud);
+
+                // 4.4️⃣ Actualizar en modelo principal
+                $empleado->codigoempleado = $nuevoCodigo;
+                $empleado->save();
+
+                // 🔹 4.5️⃣ Preparar datos para insertar en Empleado (base dinámica)
+                $empleadoData = $this->mapEmpleadoData($empleado);
+
+                // 🔹 4.6️⃣ Limpieza de campos nulos (texto)
+                $stringFields = $this->getStringFields();
+                foreach ($stringFields as $field) {
+                    if (!isset($empleadoData[$field]) || is_null($empleadoData[$field])) {
+                        $empleadoData[$field] = '';
+                    }
+                }
+
+                // 🔹 4.7️⃣ Insertar en tabla Empleado (dinámica)
+                $empleadoInsertado = Empleado::create($empleadoData);
+                $idempleado = $empleadoInsertado->idempleado;
+
+                // 🔹 4.8️⃣ Guardar id en tabla interna
+                $empleado->update([
+                    'idempleado' => $idempleado,
+                    'rfc' => $empleado->curpi,
+                ]);
+
+                // 🔹 4.9️⃣ Buscar periodo activo
+                $cidPeriodo = Periodo::where('idtipoperiodo', $empleado->idtipoperiodo)
+                    ->where('afectado', 0)
+                    ->orderBy('idperiodo', 'asc')
+                    ->value('idperiodo');
+
+                if (!$cidPeriodo) {
+                    throw new \Exception("No se encontró un periodo activo para el tipo de periodo {$empleado->idtipoperiodo}");
+                }
+
+                // 🔹 4.10️⃣ Crear EmpleadosPorPeriodo (nom10034)
+                $empleadoPeriodoData = array_merge($empleadoData, [
+                    'idempleado' => $idempleado,
+                    'idtipoperiodo' => $empleado->idtipoperiodo,
+                    'cidperiodo' => $cidPeriodo,
+                    'estadoempleado' => 'A',
+                ]);
+
+                foreach ($stringFields as $field) {
+                    if (!isset($empleadoPeriodoData[$field]) || is_null($empleadoPeriodoData[$field])) {
+                        $empleadoPeriodoData[$field] = '';
+                    }
+                }
+
+                EmpleadosPorPeriodo::create($empleadoPeriodoData);
+            });
+
+
+            DB::commit();
+
+            return response()->json([
+                'code' => 200,
+                'message' => 'Empleado creado correctamente',
+                'id' => $empleado->id,
+                'codigoempleado' => $empleado->codigoempleado,
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error en store empleado: ' . $e->getMessage());
+
+            return response()->json([
+                'code' => 500,
+                'message' => 'Error al guardar empleado',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Genera el siguiente código correlativo de empleado sin usar prefijos.
+     * Ejemplo: 0001 → 0002 → 0003, según la longitud de la máscara.
+     */
+    private function generarSiguienteCodigoSimple(?string $ultimo, int $longitud): string
+    {
+        // Si no hay empleados aún, inicia en 1
+        $ultimoNumerico = $ultimo ? intval(preg_replace('/\D/', '', $ultimo)) : 0;
+
+        $maxIntentos = 9999;
+        for ($i = 0; $i < $maxIntentos; $i++) {
+            $nuevo = $ultimoNumerico + $i + 1;
+            $codigoNumerico = str_pad($nuevo, $longitud, '0', STR_PAD_LEFT);
+
+            // Validar que no exista ya en la base dinámica
+            $existe = Empleado::where('codigoempleado', $codigoNumerico)
+                ->exists();
+
+            if (!$existe) {
+                return $codigoNumerico;
+            }
+        }
+
+        throw new \Exception('No se pudo generar un nuevo código único después de múltiples intentos.');
+    }
+
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreEmpleadoRequest $request)
+    public function storexxx(StoreEmpleadoRequest $request)
     {
         //
         try {
@@ -341,82 +624,76 @@ class EmpleadoController extends Controller
         }
     }
 
-    public function storeNoFiscal(Request $request)
+    public function storeNoFiscal(StoreNoFiscalRequest $request)
     {
         try {
-            // 1️⃣ Validar datos básicos (sin validar todavía la unicidad del código)
-            $validated = $request->validate([
-                'id_nomina_gape_cliente' => 'required|integer|exists:nomina_gape_cliente,id',
-                'id_nomina_gape_empresa' => 'required|integer|exists:nomina_gape_empresa,id',
-                'fiscal' => 'required|boolean',
-                'fechaalta' => 'required|date',
-                'apellidopaterno' => 'required|string|max:84',
-                'apellidomaterno' => 'required|string|max:83',
-                'nombre' => 'required|string|max:85',
-                'cuentacw' => 'required|string|max:31',
-                'fecha_alta_gape' => 'required|date',
-                'sueldo_real' => 'required|numeric|min:0',
-                'sueldo_imss_gape' => 'required|numeric|min:0',
-            ]);
+            // 🧩 1️⃣ Validar datos del request (ya manejado por tu FormRequest)
+            $validated = $request->validated();
 
             $idEmpresa = $validated['id_nomina_gape_empresa'];
             $idCliente = $validated['id_nomina_gape_cliente'];
 
-            // 2️⃣ Obtener la configuración de la empresa (máscara y códigos)
-            $empresa = NominaGapeEmpresa::select('mascara_codigo', 'codigo_inicial', 'codigo_actual')
-                ->where('id', $idEmpresa)
-                ->firstOrFail();
+            // 🧩 2️⃣ Ejecutar todo dentro de una transacción para mantener coherencia
+            $empleado = DB::transaction(function () use ($validated, $idEmpresa, $idCliente) {
 
-            // 3️⃣ Generar un código único automáticamente
-            $codigoGenerado = $this->generarCodigoUnico($idEmpresa, $idCliente, $empresa);
+                // 2.1️⃣ Bloquear la fila de la empresa (evita duplicidad de códigos concurrentes)
+                $empresa = NominaGapeEmpresa::lockForUpdate()
+                    ->select('id', 'mascara_codigo', 'codigo_inicial', 'codigo_actual')
+                    ->where('id', $idEmpresa)
+                    ->firstOrFail();
 
-            // 4️⃣ Unir los valores por defecto con los datos validados
-            $defaults = [
-                'calculado' => false,
-                'afectado' => false,
-                'calculadoextraordinario' => false,
-                'afectadoextraordinario' => false,
-                'interfazcheqpaqw' => false,
-                'modificacionneto' => false,
-                'calculoptu' => false,
-                'calculoaguinaldo' => false,
-                'modificacionsalarioimss' => false,
-                'altaimss' => false,
-                'bajaimss' => false,
-                'cambiocotizacionimss' => false,
-                'Subcontratacion' => false,
-                'ExtranjeroSinCURP' => false,
-                'TipoPrestacion' => 1,
-                'DiasVacTomadasAntesdeAlta' => 0,
-                'DiasPrimaVacTomadasAntesdeAlta' => 0,
-                'TipoSemanaReducida' => 0,
-                'Teletrabajador' => 0,
-                'EntidadFederativa' => 'MC', // Por defecto
-            ];
+                // 2.2️⃣ Generar un código único disponible
+                $codigoGenerado = $this->generarCodigoUnico($idEmpresa, $idCliente, $empresa);
 
-            $data = array_merge($defaults, $validated, [
-                'codigoempleado' => $codigoGenerado,
-            ]);
+                // 2.3️⃣ Valores por defecto
+                $defaults = [
+                    'calculado' => false,
+                    'afectado' => false,
+                    'calculadoextraordinario' => false,
+                    'afectadoextraordinario' => false,
+                    'interfazcheqpaqw' => false,
+                    'modificacionneto' => false,
+                    'calculoptu' => false,
+                    'calculoaguinaldo' => false,
+                    'modificacionsalarioimss' => false,
+                    'altaimss' => false,
+                    'bajaimss' => false,
+                    'cambiocotizacionimss' => false,
+                    'Subcontratacion' => false,
+                    'ExtranjeroSinCURP' => false,
+                    'TipoPrestacion' => 1,
+                    'DiasVacTomadasAntesdeAlta' => 0,
+                    'DiasPrimaVacTomadasAntesdeAlta' => 0,
+                    'TipoSemanaReducida' => 0,
+                    'Teletrabajador' => 0,
+                    'EntidadFederativa' => 'MC',
+                ];
 
-            // 5️⃣ Crear el empleado
-            $empleado = NominaGapeEmpleado::create($data);
+                // 2.4️⃣ Unir datos finales
+                $data = array_merge($defaults, $validated, [
+                    'codigoempleado' => $codigoGenerado,
+                ]);
 
-            // 6️⃣ Actualizar el código actual de la empresa
-            $empresa->update(['codigo_actual' => $codigoGenerado]);
+                // 2.5️⃣ Crear empleado
+                $empleado = NominaGapeEmpleado::create($data);
 
+                // 2.6️⃣ Actualizar empresa con el nuevo código actual
+                $empresa->update(['codigo_actual' => $codigoGenerado]);
+
+                // Retornar el empleado para usar fuera de la transacción
+                return $empleado;
+            });
+
+            // 🧩 3️⃣ Respuesta final al cliente
             return response()->json([
                 'code' => 200,
                 'message' => 'Empleado creado correctamente',
                 'id' => $empleado->id,
-                'codigoempleado' => $codigoGenerado,
+                'codigoempleado' => $empleado->codigoempleado,
             ], 200);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'code' => 422,
-                'message' => 'Error de validación',
-                'errors' => $e->errors(),
-            ], 422);
         } catch (\Exception $e) {
+            Log::error('Error en storeNoFiscal: ' . $e->getMessage());
+
             return response()->json([
                 'code' => 500,
                 'message' => 'Se generó un error al momento de guardar',
@@ -424,6 +701,7 @@ class EmpleadoController extends Controller
             ], 500);
         }
     }
+
 
     /**
      * Genera un nuevo código de empleado único basado en la máscara y los códigos existentes.
@@ -434,17 +712,14 @@ class EmpleadoController extends Controller
         $longitud = substr_count($mascara, 'X');
 
         if ($longitud < 1) {
-            $longitud = 4; // valor por defecto de seguridad
+            $longitud = 4; // valor por defecto
         }
 
-        // Obtener el código actual o inicial
+        // Obtener código base
         $codigoBase = $empresa->codigo_actual ?? $empresa->codigo_inicial ?? str_pad('1', $longitud, '0', STR_PAD_LEFT);
-
-        // Asegurar formato (solo dígitos)
         $codigoBase = preg_replace('/\D/', '', $codigoBase);
         $codigoBase = str_pad($codigoBase, $longitud, '0', STR_PAD_LEFT);
 
-        // Convertir a número para incrementar
         $numero = intval($codigoBase);
 
         $maxIntentos = 9999;
@@ -452,7 +727,6 @@ class EmpleadoController extends Controller
             $numero++;
             $nuevoCodigo = str_pad($numero, $longitud, '0', STR_PAD_LEFT);
 
-            // Verificar que no exista ya
             $existe = NominaGapeEmpleado::where('id_nomina_gape_empresa', $idEmpresa)
                 ->where('id_nomina_gape_cliente', $idCliente)
                 ->where('codigoempleado', $nuevoCodigo)
@@ -465,9 +739,6 @@ class EmpleadoController extends Controller
 
         throw new \Exception('No se pudo generar un nuevo código único después de múltiples intentos.');
     }
-
-
-
 
     /**
      * Display the specified resource.
@@ -782,6 +1053,8 @@ class EmpleadoController extends Controller
                 'fecha_alta_gape' => 'required|date',
                 'sueldo_real' => 'required|numeric|min:0',
                 'sueldo_imss_gape' => 'required|numeric|min:0',
+                'ClabeInterbancaria' => 'nullable|digits_between:10,30|numeric',
+                'codigopostal' => 'nullable|string|max:10',
             ]);
 
             // 2️⃣ Buscar empleado existente
