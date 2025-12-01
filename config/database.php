@@ -108,6 +108,10 @@ return [
             'charset' => env('DB_CHARSET', 'utf8'),
             'prefix' => '',
             'prefix_indexes' => true,
+            'timeout'  => 300,
+            'options' => [
+                PDO::SQLSRV_ATTR_QUERY_TIMEOUT => 0,  // 0 = sin límite
+            ],
             // 'encrypt' => env('DB_ENCRYPT', 'yes'),
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
@@ -120,6 +124,10 @@ return [
             'charset' => 'utf8',
             'prefix' => '',
             'prefix_indexes' => true,
+            'timeout'  => 300,
+            'options' => [
+                PDO::SQLSRV_ATTR_QUERY_TIMEOUT => 0,  // 0 = sin límite
+            ],
         ],
 
     ],

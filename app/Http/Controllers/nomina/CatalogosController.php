@@ -34,6 +34,8 @@ use App\Models\nomina\GAPE\NominaGapeParametrizacion;
 use App\Http\Controllers\core\HelperController;
 use App\Models\nomina\GAPE\NominaGapeEmpresa;
 
+use Illuminate\Support\Facades\DB;
+
 class CatalogosController extends Controller
 {
 
@@ -391,7 +393,211 @@ class CatalogosController extends Controller
         }
     }
 
+    public function tipoPeriodoPorClienteEmpresaDisponibles(Request $request)
+    {
+        try {
+            // 1️⃣ Validar parámetros de entrada
+            $validated = $request->validate([
+                'idEmpresa' => 'required|integer',          // id de la empresa
+                'idCliente' => 'required|integer',   // id del cliente
+            ]);
 
+            $idNominaGapeEmpresa = $validated['idEmpresa'];
+            $idNominaGapeCliente = $validated['idCliente'];
+
+            // 2️⃣ Obtener los tipos de periodo ya configurados para esa empresa
+            $tiposExistentes = NominaGapeParametrizacion::where('id_nomina_gape_cliente', $idNominaGapeCliente)
+                ->where('id_nomina_gape_empresa', $idNominaGapeEmpresa)
+                ->pluck('id_tipo_periodo')
+                ->filter()
+                ->toArray();
+
+            // 3️⃣ Conectarse a la base de datos de nómina (según empresa)
+            $conexion = $this->helperController->getConexionDatabaseNGE($idNominaGapeEmpresa, 'Nom');
+            $this->helperController->setDatabaseConnection($conexion, $conexion->nombre_base);
+
+            // 4️⃣ Obtener todos los tipos de periodo desde la base NGE
+            $tipoPeriodo = TipoPeriodo::select('idtipoperiodo', 'nombretipoperiodo')->get();
+
+            // Solo mostrar los que NO estén ya registrados
+            $tipoPeriodo = $tipoPeriodo->filter(function ($item) use ($tiposExistentes) {
+                return in_array($item->idtipoperiodo, $tiposExistentes);
+            })->values();
+
+            // Si es "update", no se filtra (se devuelven todos)
+
+            // 6️⃣ Estructurar respuesta
+            return response()->json([
+                'code' => 200,
+                'data' => $tipoPeriodo,
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'code' => 422,
+                'message' => 'Datos de entrada inválidos.',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'code' => 500,
+                'message' => 'Error al obtener datos del catálogo de periodos.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function ejerciciosPorTipoPeriodoPorClienteEmpresa(Request $request)
+    {
+        try {
+            // 1️⃣ Validar parámetros de entrada
+            $validated = $request->validate([
+                'idEmpresa' => 'required|integer',          // id de la empresa
+                'idCliente' => 'required|integer',   // id del cliente
+                'idTipoPeriodo' => 'required|integer',   // id del cliente
+            ]);
+
+            $idNominaGapeEmpresa = $validated['idEmpresa'];
+            $idNominaGapeCliente = $validated['idCliente'];
+            $idTipoPeriodo = $validated['idTipoPeriodo'];
+
+            // 3️⃣ Conectarse a la base de datos de nómina (según empresa)
+            $conexion = $this->helperController->getConexionDatabaseNGE($idNominaGapeEmpresa, 'Nom');
+            $this->helperController->setDatabaseConnection($conexion, $conexion->nombre_base);
+
+            // 4️⃣ Obtener todos los tipos de periodo desde la base NGE
+            $ejercicio = Periodo::select('ejercicio')
+                ->where('idtipoperiodo', $idTipoPeriodo)
+                ->groupBy('ejercicio')
+                ->get();
+
+            // Si es "update", no se filtra (se devuelven todos)
+
+            // 6️⃣ Estructurar respuesta
+            return response()->json([
+                'code' => 200,
+                'data' => $ejercicio,
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'code' => 422,
+                'message' => 'Datos de entrada inválidos.',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'code' => 500,
+                'message' => 'Error al obtener datos del catálogo de periodos.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function ejerciciosPorTipoPeriodoActivo(Request $request)
+    {
+        try {
+            // 1️⃣ Validar parámetros de entrada
+            $validated = $request->validate([
+                'idEmpresa' => 'required|integer',          // id de la empresa
+                'idCliente' => 'required|integer',   // id del cliente
+                'idTipoPeriodo' => 'required|integer',   // id del cliente
+            ]);
+
+            $idNominaGapeEmpresa = $validated['idEmpresa'];
+            $idNominaGapeCliente = $validated['idCliente'];
+            $idTipoPeriodo = $validated['idTipoPeriodo'];
+
+            // 3️⃣ Conectarse a la base de datos de nómina (según empresa)
+            $conexion = $this->helperController->getConexionDatabaseNGE($idNominaGapeEmpresa, 'Nom');
+            $this->helperController->setDatabaseConnection($conexion, $conexion->nombre_base);
+
+            $ejercicio = Periodo::select('ejercicio')
+                ->where('idtipoperiodo', $idTipoPeriodo)
+                ->where('afectado', 0)
+                ->orderBy('ejercicio')
+                ->orderBy('numeroperiodo')
+                ->limit(1)     // importante
+                ->get();
+
+            $ejercicioActivo = Periodo::select('idperiodo')
+                ->where('idtipoperiodo', $idTipoPeriodo)
+                ->where('afectado', 0)
+                ->orderBy('ejercicio')
+                ->orderBy('numeroperiodo')
+                ->first();
+
+            // 6️⃣ Estructurar respuesta
+            return response()->json([
+                'code' => 200,
+                'data' => $ejercicio,
+                'idPeriodo' => $ejercicioActivo->idperiodo,
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'code' => 422,
+                'message' => 'Datos de entrada inválidos.',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'code' => 500,
+                'message' => 'Error al obtener datos del catálogo de periodos.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function periodoPorEjercicioPorClienteEmpresa(Request $request)
+    {
+        try {
+            // 1️⃣ Validar parámetros de entrada
+            $validated = $request->validate([
+                'idEmpresa' => 'required|integer',          // id de la empresa
+                'idCliente' => 'required|integer',   // id del cliente
+                'idTipoPeriodo' => 'required|integer',   // id del tipo de periodo
+                'idEjercicio' => 'required|integer',   // ejercicio
+            ]);
+
+            $idNominaGapeEmpresa = $validated['idEmpresa'];
+            $idNominaGapeCliente = $validated['idCliente'];
+            $idTipoPeriodo = $validated['idTipoPeriodo'];
+            $idEjercicio = $validated['idEjercicio'];
+
+            // 3️⃣ Conectarse a la base de datos de nómina (según empresa)
+            $conexion = $this->helperController->getConexionDatabaseNGE($idNominaGapeEmpresa, 'Nom');
+            $this->helperController->setDatabaseConnection($conexion, $conexion->nombre_base);
+
+            // 4️⃣ Obtener todos los tipos de periodo desde la base NGE
+            $periodos = Periodo::select(
+                'idperiodo',
+                'numeroperiodo',
+                'ejercicio',
+                'mes',
+                DB::raw("CONVERT(VARCHAR(10), fechainicio, 23) AS fechainicio"),
+                DB::raw("CONVERT(VARCHAR(10), fechafin, 23) AS fechafin")
+            )
+                ->where('idtipoperiodo', $idTipoPeriodo)
+                ->where('ejercicio', $idEjercicio)
+                ->get();
+
+            // 6️⃣ Estructurar respuesta
+            return response()->json([
+                'code' => 200,
+                'data' => $periodos,
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'code' => 422,
+                'message' => 'Datos de entrada inválidos.',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'code' => 500,
+                'message' => 'Error al obtener datos del catálogo de periodos.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 
     public function tipoPeriodoNGE(Request $request)
     {

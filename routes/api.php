@@ -20,9 +20,11 @@ use App\Http\Controllers\nomina\EmpresaController as NominaEmpresaController;
 
 use App\Http\Controllers\nomina\BancosDispersionController;
 use App\Http\Controllers\nomina\ParametrizacionController;
+use App\Http\Controllers\nomina\PrenominaController;
 
 
 use App\Http\Controllers\comercial\KioscoController;
+use App\Http\Controllers\nomina\IncidenciaController;
 
 Route::get('/', function () {
     return 'API test becma-core';
@@ -151,7 +153,25 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 
 
+    // Prenomina
+    Route::prefix('prenomina')->group(function () {
+        // TipoPeriodo nomina_gape_cliente
+        Route::post('tipoPeriodo', [CatalogosController::class, 'tipoPeriodoPorClienteEmpresaDisponibles']);
 
+        Route::post('ejerciciosPorTipoPeriodo', [CatalogosController::class, 'ejerciciosPorTipoPeriodoPorClienteEmpresa']);
+
+        Route::post('periodoPorEjercicio', [CatalogosController::class, 'periodoPorEjercicioPorClienteEmpresa']);
+
+        //Route::post('ejecutar', [PrenominaController::class, 'ejecutar']);
+        Route::post('fiscal', [PrenominaController::class, 'prenominaFiscal']);
+        Route::post('noFiscal', [PrenominaController::class, 'prenominaNoFiscal']);
+    });
+
+    Route::prefix('incidencia')->group(function () {
+        Route::post('ejerciciosPorTipoPeriodoActivo', [CatalogosController::class, 'ejerciciosPorTipoPeriodoActivo']);
+
+        Route::post('descargaFormatoFiscal', [IncidenciaController::class, 'descargaFormatoFiscal']);
+    });
 
     // Parametrizacion
     Route::prefix('parametrizacion')->group(function () {
@@ -178,6 +198,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::put('updateNoFiscal', [EmpleadoController::class, 'updateNoFiscal']);
 
         Route::delete('/destroyEmpleado/{id}', [EmpleadoController::class, 'destroy']);
+
+
+        // Listar empleados no por empresa cliente
+        Route::post('noFiscalesEmpresaCliente', [EmpleadoController::class, 'noFiscalesEmpresaCliente']);
+
+        // Listar empleados por empresa cliente
+        Route::post('fiscalesEmpresaCliente', [EmpleadoController::class, 'fiscalesEmpresaCliente']);
     });
 
 
