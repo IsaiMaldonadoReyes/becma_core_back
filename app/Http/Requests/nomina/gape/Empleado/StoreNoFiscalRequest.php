@@ -30,11 +30,12 @@ class StoreNoFiscalRequest extends FormRequest
             'apellidomaterno' => 'nullable|string|max:60|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/u',
             'nombre' => 'nullable|string|max:60|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/u',
             'cuentacw' => 'required|string|max:31',
-            'fecha_alta_gape' => 'required|date',
-            'sueldo_real' => 'required|numeric|min:0',
-            'sueldo_imss_gape' => 'required|numeric|min:0',
             'ClabeInterbancaria' => 'nullable|digits_between:10,30|numeric',
             'codigopostal' => 'nullable|string|max:5',
+
+            'campoextra1' => 'required|string',
+            'ccampoextranumerico1' => 'required|numeric|min:0',
+            'ccampoextranumerico2' => 'required|numeric|min:0',
         ];
     }
 
@@ -52,8 +53,7 @@ class StoreNoFiscalRequest extends FormRequest
             // 📅 Fechas
             'fechaalta.required' => 'Debes ingresar la fecha de alta del empleado.',
             'fechaalta.date' => 'La fecha de alta no tiene un formato válido (usa YYYY-MM-DD).',
-            'fecha_alta_gape.required' => 'Debes ingresar la fecha de alta en el sistema GAPE.',
-            'fecha_alta_gape.date' => 'La fecha de alta GAPE no tiene un formato válido (usa YYYY-MM-DD).',
+            'campoextra1.required' => 'Debes ingresar la fecha de alta en el sistema GAPE.',
 
             // 👤 Datos personales
             'apellidopaterno.string' => 'El apellido paterno debe contener solo letras.',
@@ -74,13 +74,13 @@ class StoreNoFiscalRequest extends FormRequest
             'cuentacw.max' => 'El RFC no debe superar los 31 caracteres.',
 
             // 💵 Sueldos
-            'sueldo_real.required' => 'Debes ingresar el sueldo real del empleado.',
-            'sueldo_real.numeric' => 'El sueldo real debe ser un número válido.',
-            'sueldo_real.min' => 'El sueldo real no puede ser negativo.',
+            'ccampoextranumerico1.required' => 'Debes ingresar el sueldo real del empleado.',
+            'ccampoextranumerico1.numeric' => 'El sueldo real debe ser un número válido.',
+            'ccampoextranumerico1.min' => 'El sueldo real no puede ser negativo.',
 
-            'sueldo_imss_gape.required' => 'Debes ingresar el sueldo IMSS GAPE.',
-            'sueldo_imss_gape.numeric' => 'El sueldo IMSS GAPE debe ser un número válido.',
-            'sueldo_imss_gape.min' => 'El sueldo IMSS GAPE no puede ser negativo.',
+            'ccampoextranumerico2.required' => 'Debes ingresar el sueldo IMSS GAPE.',
+            'ccampoextranumerico2.numeric' => 'El sueldo IMSS GAPE debe ser un número válido.',
+            'ccampoextranumerico2.min' => 'El sueldo IMSS GAPE no puede ser negativo.',
 
             // 🏦 CLABE interbancaria
             'ClabeInterbancaria.numeric' => 'La CLABE interbancaria solo puede contener números.',

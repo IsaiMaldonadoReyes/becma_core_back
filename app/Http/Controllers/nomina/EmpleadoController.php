@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use App\Models\nomina\GAPE\NominaGapeEmpleado; // Asegúrate de que este modelo exista
 use App\Models\nomina\default\Empleado; // Asegúrate de que este modelo exista
 use App\Models\nomina\default\Periodo; // Asegúrate de que este modelo exista
+use App\Models\nomina\default\Departamento; // Asegúrate de que este modelo exista
 use App\Models\nomina\default\Empresa;
 use App\Models\nomina\default\EmpleadosPorPeriodo; // Asegúrate de que este modelo exista
 use App\Models\nomina\GAPE\NominaGapeEmpresa;
@@ -74,6 +75,107 @@ class EmpleadoController extends Controller
                     )
                     ->get();
             }
+
+            return response()->json([
+                'code' => 200,
+                'data' => $empleados,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'code' => 500,
+                'message' => 'Error al obtener la información de la parametrización',
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    public function noFiscalesEmpresaCliente(Request $request)
+    {
+        try {
+            // 1️⃣ Validar los campos obligatorios
+
+            $validated = $request->validate([
+                'idCliente' => 'required',
+                'idEmpresa' => 'required',
+                'fiscal' => 'required',
+            ]);
+
+            $idNominaGapeCliente = $validated['idCliente'];
+            $idNominaGapeEmpresa = $validated['idEmpresa'];
+            $fiscal = $validated['fiscal'];
+
+            $empleados = null;
+
+            $empleados = NominaGapeEmpleado::where('id_nomina_gape_cliente', $idNominaGapeCliente)
+                ->where('id_nomina_gape_empresa', $idNominaGapeEmpresa)
+                ->select(
+                    'id',
+                    'codigoempleado',
+                    DB::raw("LTRIM(RTRIM(nombre)) + ' ' + LTRIM(RTRIM(apellidopaterno)) + ' ' + LTRIM(RTRIM(apellidomaterno)) AS nombrelargo"),
+                    DB::raw("cuentacw AS rfc"),
+                    DB::raw("FORMAT(fechaalta, 'dd-MM-yyyy') as fechaalta"),
+                )
+                ->get();
+            return response()->json([
+                'code' => 200,
+                'data' => $empleados,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'code' => 500,
+                'message' => 'Error al obtener la información de la parametrización',
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    public function fiscalesEmpresaCliente(Request $request)
+    {
+        try {
+            // 1️⃣ Validar los campos obligatorios
+
+            $validated = $request->validate([
+                'idCliente' => 'required',
+                'idEmpresa' => 'required',
+                'idTipoPeriodo' => 'required',
+                //'departamentoInicial' => 'required',
+                //'departamentoFinal' => 'required',
+            ]);
+
+            $idNominaGapeEmpresa = $validated['idEmpresa'];
+            $idTipoPeriodo = $validated['idTipoPeriodo'];
+            //$departamentoInicial = $validated['departamentoInicial'];
+            //$departamentoFinal = $validated['departamentoFinal'];
+
+            $empleados = null;
+
+            $conexion = $this->helperController->getConexionDatabaseNGE($idNominaGapeEmpresa, 'Nom');
+            $this->helperController->setDatabaseConnection($conexion, $conexion->nombre_base);
+
+            /*
+            $departamentos = Departamento::whereBetween('iddepartamento', [
+                $departamentoInicial,
+                $departamentoFinal
+            ])
+                ->orderBy('iddepartamento') // o por nombre si quieres
+                ->pluck('iddepartamento');  // devuelve un array de IDs
+*/
+
+            $empleados = Empleado::select(
+                'idempleado',
+                'codigoempleado',
+                DB::raw("LTRIM(RTRIM(nombre)) + ' ' + LTRIM(RTRIM(apellidopaterno)) + ' ' + LTRIM(RTRIM(apellidomaterno)) AS nombrelargo"),
+                DB::raw("rfc + SUBSTRING(CONVERT(char(10),fechanacimiento , 126), 3,2)
+                      + SUBSTRING(CONVERT(char(10),fechanacimiento , 126), 6,2)
+                      + SUBSTRING(CONVERT(char(10),fechanacimiento, 126), 9,2)
+                      + homoclave AS rfc"),
+                DB::raw("FORMAT(fechaalta, 'dd-MM-yyyy') as fechaalta")
+            )
+                ->where('idtipoperiodo', $idTipoPeriodo)
+                //->whereIn('iddepartamento', $departamentos)  // 👈 AQUÍ USAS LOS IDs
+                ->get();
+
+
 
             return response()->json([
                 'code' => 200,
@@ -213,6 +315,9 @@ class EmpleadoController extends Controller
             'NumeroFonacot' => $empleado->NumeroFonacot,
             'ajustealneto' => 0,
             'sueldobaseliquidacion' => $empleado->sueldobaseliquidacion ?? 0,
+            'campoextra1' => $empleado->campoextra1 ?? 0,
+            'ccampoextranumerico1' => $empleado->ccampoextranumerico1 ?? 0,
+            'ccampoextranumerico2' => $empleado->ccampoextranumerico2 ?? 0,
         ];
     }
 
@@ -255,8 +360,6 @@ class EmpleadoController extends Controller
             // 🔹 3️⃣ Conectarse a base dinámica
             $conexion = $this->helperController->getConexionDatabaseNGE($empleado->id_nomina_gape_empresa, 'Nom');
             $this->helperController->setDatabaseConnection($conexion, $conexion->nombre_base);
-            $nombreConexion = $conexion->nombre_base;
-
 
             // 🔹 4️⃣ Transacción anidada sobre la conexión dinámica
             DB::transaction(function () use ($empleado) {
@@ -785,11 +888,18 @@ class EmpleadoController extends Controller
                     ->first();
 
                 // Si existe información complementaria en GAPE, fusionarla
-                if ($empleado && $empleadoGape) {
+                /*if ($empleado && $empleadoGape) {
                     $empleado->fecha_alta_gape = $empleadoGape->fecha_alta_gape;
                     $empleado->sueldo_real = $empleadoGape->sueldo_real;
                     $empleado->sueldo_imss_gape = $empleadoGape->sueldo_imss_gape;
-                }
+                }*/
+
+
+                $empleado->ccampoextranumerico1 = number_format((float)$empleado->ccampoextranumerico1, 2, '.', '');
+                $empleado->ccampoextranumerico2 = number_format((float)$empleado->ccampoextranumerico2, 2, '.', '');
+
+                $empleado->sueldodiario = number_format((float)$empleado->sueldodiario, 2, '.', '');
+                $empleado->sueldointegrado = number_format((float)$empleado->sueldointegrado, 2, '.', '');
             }
             // 3️⃣ Si no es fiscal → buscar en la tabla central
             else {
@@ -974,6 +1084,9 @@ class EmpleadoController extends Controller
                     'NumeroFonacot' => $empleado->NumeroFonacot,
                     'ajustealneto' => $empleado->ajustealneto,
                     'sueldobaseliquidacion' => $empleado->sueldobaseliquidacion ?? 0,
+                    'ccampoextranumerico1' => $empleado->ccampoextranumerico1  ?? 0,
+                    'ccampoextranumerico2' => $empleado->ccampoextranumerico2 ?? 0,
+                    'campoextra1' => $empleado->campoextra1 ?? 0,
                 ]);
 
                 $empleadoNomina->save();
@@ -1050,9 +1163,9 @@ class EmpleadoController extends Controller
                 'apellidomaterno' => 'required|string|max:83',
                 'nombre' => 'required|string|max:85',
                 'cuentacw' => 'required|string|max:31',
-                'fecha_alta_gape' => 'required|date',
-                'sueldo_real' => 'required|numeric|min:0',
-                'sueldo_imss_gape' => 'required|numeric|min:0',
+                'campoextra1' => 'required',
+                'ccampoextranumerico1' => 'required|numeric|min:0',
+                'ccampoextranumerico2' => 'required|numeric|min:0',
                 'ClabeInterbancaria' => 'nullable|digits_between:10,30|numeric',
                 'codigopostal' => 'nullable|string|max:10',
             ]);

@@ -120,7 +120,7 @@ class ParametrizacionController extends Controller
             $validated = $request->validate([
                 'idNominaGapeCliente' => 'required|integer',
                 'idNominaGapeEmpresa' => 'required|integer',
-                'idTipoPeriodo' => 'required|integer',
+                'idTipoPeriodo' => 'nullable|integer',
             ]);
 
             $idNominaGapeCliente = $validated['idNominaGapeCliente'];

@@ -38,7 +38,7 @@ class StoreEmpleadoRequest extends FormRequest
             'nombrelargo' => 'nullable|string|max:120',
 
             'fechanacimiento' => 'nullable|date',
-            'lugarnacimiento' => 'nullable|string|max:60|alpha',
+            'lugarnacimiento' => 'nullable|string|max:60',
             'estadocivil' => 'nullable|string|max:20',
             'sexo' => 'nullable|string|max:1',
 
@@ -141,6 +141,7 @@ class StoreEmpleadoRequest extends FormRequest
             'estado' => 'nullable|string|max:50',
             'fiscal' => 'nullable|boolean',
             'fecha_alta_gape' => 'nullable|date',
+            'campoextra1' => 'nullable|string',
         ];
     }
 
@@ -180,7 +181,6 @@ class StoreEmpleadoRequest extends FormRequest
             'nombrelargo.max' => 'El nombre completo no debe superar los 120 caracteres.',
 
             'fechanacimiento.date' => 'La fecha de nacimiento no tiene un formato válido.',
-            'lugarnacimiento.alpha' => 'El lugar de nacimiento solo puede contener letras.',
             'lugarnacimiento.max' => 'El lugar de nacimiento no debe superar los 60 caracteres.',
             'estadocivil.max' => 'El estado civil no debe superar los 20 caracteres.',
             'sexo.max' => 'El campo sexo debe tener solo un carácter.',

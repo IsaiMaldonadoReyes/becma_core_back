@@ -34,6 +34,7 @@ class Empleado extends Model
         'idtipoperiodo' => 'integer',
         'idturno' => 'integer',
         'cidregistropatronal' => 'integer',
+        'TipoPrestacion' => 'integer',
     ];
 
     protected $fillable = [
@@ -117,5 +118,8 @@ class Empleado extends Model
         'cfechasueldomixto',
         'NumeroFonacot',
         'sueldobaseliquidacion',
+        'campoextra1',
+        'ccampoextranumerico1',
+        'ccampoextranumerico2',
     ];
 }
