@@ -171,6 +171,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('ejerciciosPorTipoPeriodoActivo', [CatalogosController::class, 'ejerciciosPorTipoPeriodoActivo']);
 
         Route::post('descargaFormatoFiscal', [IncidenciaController::class, 'descargaFormatoFiscal']);
+
+        Route::post('uploadIncidenciasFiscales', [IncidenciaController::class, 'uploadIncidenciasFiscales']);
     });
 
     // Parametrizacion

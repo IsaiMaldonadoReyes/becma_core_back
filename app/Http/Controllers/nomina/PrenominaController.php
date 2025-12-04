@@ -72,7 +72,7 @@ class PrenominaController extends Controller
                     FROM Nom10007 AS his
 					INNER JOIN nom10004 con
                         ON his.idconcepto = con.idconcepto
-                    WHERE importetotal > 0
+                    WHERE valor > 0
                         AND idperiodo = @idPeriodo
 						AND con.tipoconcepto IN ('P')
                     UNION ALL
@@ -80,7 +80,7 @@ class PrenominaController extends Controller
                     FROM Nom10008 AS actual
 					INNER JOIN nom10004 con
                         ON actual.idconcepto = con.idconcepto
-                    WHERE importetotal > 0
+                    WHERE valor > 0
                         AND idperiodo = @idPeriodo
 						AND con.tipoconcepto IN ('P')
                 )
@@ -114,6 +114,7 @@ class PrenominaController extends Controller
                         ON emp.idpuesto = puesto.idpuesto
                 WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
                     AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
+                    AND empPeriodo.estadoempleado IN ('A', 'R')
                 GROUP BY
                     codigoempleado
                     , nombrelargo
@@ -135,6 +136,8 @@ class PrenominaController extends Controller
                 ORDER BY
                         emp.codigoempleado
         ";
+
+            //return $sql;
             $result = DB::connection('sqlsrv_dynamic')->select($sql);
 
 
@@ -210,19 +213,20 @@ class PrenominaController extends Controller
                             AND emp.idempleado = pdo.idempleado
                     WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
 						AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
+                        AND empPeriodo.estadoempleado IN ('A', 'R')
                     GROUP BY pdo.descripcion, pdo.tipoconcepto
                 ),
                 Incidencias AS (
 					SELECT * FROM (VALUES
-						('Comisiones', 'P', 1000, 1),
-						('Bono', 'P', 1000, 1),
-						('Horas Extra Doble cantidad', 'P', 1000, 1),
-						('Horas Extra Doble monto', 'P', 1000, 1),
-						('Horas Extra Triple cantidad', 'P', 1000, 1),
-						('Horas Extra Triple monto', 'P', 1000, 1),
-						('Pago adicional', 'P', 1000, 1),
-						('Premio puntualidad', 'P', 1000, 1),
-                        ('Pension Alimenticia', 'D', 2000, 2)
+						('Comisiones', 'P', 500, 1),
+						('Bono', 'P', 500, 1),
+						('Horas Extra Doble cantidad', 'P', 500, 1),
+						('Horas Extra Doble monto', 'P', 500, 1),
+						('Horas Extra Triple cantidad', 'P', 500, 1),
+						('Horas Extra Triple monto', 'P', 500, 1),
+						('Pago adicional', 'P', 500, 1),
+						('Premio puntualidad', 'P', 500, 1),
+                        ('Pension Alimenticia', 'D', 500, 2)
 					) AS X(descripcion, tipoconcepto, numeroconcepto, orden)
 				),
                 Encabezados AS (
@@ -233,19 +237,19 @@ class PrenominaController extends Controller
                     ) AS X(descripcion, tipoconcepto, numeroconcepto, orden)
                 ),
                 titulos AS (
-					SELECT descripcion AS descripcion, orden FROM Incidencias
+					SELECT descripcion AS descripcion, orden, numeroconcepto FROM Incidencias
 					UNION ALL
-                    SELECT descripcion + ' cantidad' AS descripcion, orden FROM MovimientosFiltrados
+                    SELECT descripcion + ' cantidad' AS descripcion, orden, numeroconcepto FROM MovimientosFiltrados
                     UNION ALL
-                    SELECT descripcion + ' monto', orden FROM MovimientosFiltrados
+                    SELECT descripcion + ' monto', orden, numeroconcepto FROM MovimientosFiltrados
                     UNION ALL
-                    SELECT descripcion, orden FROM Encabezados
+                    SELECT descripcion, orden, numeroconcepto FROM Encabezados
                 )
 
                 SELECT @cols = STUFF((
                     SELECT ', ' + QUOTENAME(descripcion)
                     FROM titulos
-                    ORDER BY orden, descripcion
+                    ORDER BY orden, numeroconcepto, descripcion
                     FOR XML PATH(''), TYPE
                 ).value('.', 'NVARCHAR(MAX)'), 1, 2, '');
 
@@ -303,6 +307,7 @@ class PrenominaController extends Controller
 							AND emp.idempleado = pdo.idempleado
                     WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
                         AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
+                        AND empPeriodo.estadoempleado IN (''A'', ''R'')
                     GROUP BY
                         emp.codigoempleado, emp.ccampoextranumerico2, empPeriodo.cdiaspagados, pdo.descripcion, pdo.tipoconcepto, emp.ccampoextranumerico3
                 ), ' + '
@@ -321,6 +326,7 @@ class PrenominaController extends Controller
 						AND empP.cidperiodo = @idPeriodo
 						AND empP.idtipoperiodo = @idTipoPeriodo
 						AND empP.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
+                        AND empP.estadoempleado IN (''A'', ''R'')
 					INNER JOIN nom10001 AS emp
 						ON empP.idempleado = emp.idempleado
 					CROSS APPLY (VALUES
@@ -448,8 +454,10 @@ class PrenominaController extends Controller
 
                 EXEC(@query);
              ";
+
             $result = DB::connection('sqlsrv_dynamic')->select($sql);
 
+            //return $sql;
             return $result;
         } catch (\Exception $e) {
             return [];
@@ -525,6 +533,7 @@ class PrenominaController extends Controller
                             AND emp.idempleado = pdo.idempleado
                     WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
 						AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
+                        AND empPeriodo.estadoempleado IN ('A', 'R')
                     GROUP BY
                         pdo.descripcion, pdo.tipoconcepto
                 ),
@@ -537,15 +546,15 @@ class PrenominaController extends Controller
                     ) AS X(descripcion, tipoconcepto, numeroconcepto, orden)
                 ),
                 titulos AS (
-                    SELECT descripcion AS descripcion, orden FROM MovimientosFiltrados
+                    SELECT descripcion AS descripcion, orden, numeroconcepto FROM MovimientosFiltrados
                     UNION ALL
-                    SELECT descripcion, orden FROM Encabezados
+                    SELECT descripcion, orden, numeroconcepto FROM Encabezados
                 )
 
                 SELECT @cols = STUFF((
                     SELECT ', ' + QUOTENAME(descripcion)
                     FROM titulos
-                    ORDER BY orden, descripcion
+                    ORDER BY orden, numeroconcepto, descripcion
                     FOR XML PATH(''), TYPE
                 ).value('.', 'NVARCHAR(MAX)'), 1, 2, '');
 
@@ -598,6 +607,8 @@ class PrenominaController extends Controller
                             ON empPeriodo.cidperiodo = pdo.idperiodo
                         AND emp.idempleado = pdo.idempleado
                         WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
+							AND pdo.descripcion NOT IN (''Pensión Alimenticia'', ''Pension Alimenticia'')
+                            AND empPeriodo.estadoempleado IN (''A'', ''R'')
 							AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
                         GROUP BY
 							emp.codigoempleado, empPeriodo.sueldodiario, empPeriodo.sueldointegrado, pdo.descripcion, pdo.tipoconcepto, emp.ccampoextranumerico3
@@ -774,6 +785,7 @@ class PrenominaController extends Controller
                             AND emp.idempleado = pdo.idempleado
                     WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
 						AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
+						AND pdo.tipoconcepto = 'P'
                     GROUP BY pdo.descripcion, pdo.tipoconcepto
                 ),
                 Encabezados AS (
@@ -841,7 +853,7 @@ class PrenominaController extends Controller
 						AND idperiodo = @idPeriodo
 						AND con.tipoconcepto IN (''P'',''D'')
 				), ' + '
-				MovimientosSumaGeneral AS (
+				MovimientosSumaQ2 AS (
                     SELECT
                         emp.codigoempleado,
                         (emp.ccampoextranumerico2 * empPeriodo.cdiaspagados) AS sueldo,
@@ -858,12 +870,13 @@ class PrenominaController extends Controller
                         ON empPeriodo.cidperiodo = pdo.idperiodo
 						AND emp.idempleado = pdo.idempleado
                     WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
-                        AND pdo.descripcion NOT IN(''Sueldo'')
+                        AND pdo.descripcion NOT IN(''Sueldo'',''Pensión Alimenticia'', ''Pension Alimenticia'')
+						AND empPeriodo.estadoempleado IN (''A'', ''R'')
                         AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
                     GROUP BY
                         emp.codigoempleado, emp.ccampoextranumerico2, empPeriodo.cdiaspagados, pdo.descripcion, pdo.tipoconcepto, emp.ccampoextranumerico3
                 ), ' + '
-				IncidenciasNormalizadas AS (
+				IncidenciasNormalizadasQ2 AS (
 					SELECT
 						emp.codigoempleado as codigoempleado,
 						x.descripcion AS descripcion,
@@ -878,6 +891,7 @@ class PrenominaController extends Controller
 						AND empP.cidperiodo = @idPeriodo
 						AND empP.idtipoperiodo = @idTipoPeriodo
 						AND empP.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
+						AND empP.estadoempleado IN (''A'', ''R'')
 					INNER JOIN nom10001 AS emp
 						ON empP.idempleado = emp.idempleado
 					CROSS APPLY (VALUES
@@ -894,25 +908,14 @@ class PrenominaController extends Controller
 					  AND ngi.id_nomina_gape_empresa = @idNominaGapeEmpresa
 					  AND ngid.id_empleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
 				), ' + '
-                TotalesPorEmpleadoGeneral AS (
+                TotalesPorEmpleadoGeneralQ2 AS (
 					SELECT
 						codigoempleado,
 						MAX(sueldo) AS sueldo,
-						SUM(CASE
-								WHEN tipoConcepto = ''P'' THEN monto
-								ELSE 0
-							END)
+						SUM(CASE WHEN tipoConcepto = ''P'' THEN monto ELSE 0 END)
 						+
-						SUM(CASE
-								WHEN tipoConcepto = ''P'' THEN valor
-								ELSE 0
-							END)
-						AS total_percepciones_sin_sueldo,
-						SUM(CASE
-								WHEN tipoConcepto = ''D'' THEN monto
-								ELSE 0
-							END)
-						AS total_deducciones,
+						SUM(CASE WHEN tipoConcepto = ''P'' THEN valor ELSE 0 END) AS total_percepciones_sin_sueldo,
+						SUM(CASE WHEN tipoConcepto = ''D'' THEN monto ELSE 0 END) AS total_deducciones,
 						pension AS porcentajePension
 
 					FROM (
@@ -923,7 +926,7 @@ class PrenominaController extends Controller
 							monto AS monto,
 							0 AS valor,
 							pension
-						FROM MovimientosSumaGeneral
+						FROM MovimientosSumaQ2
 						UNION ALL
 						SELECT
 							codigoempleado,
@@ -932,11 +935,11 @@ class PrenominaController extends Controller
 							0 AS monto,
 							valor AS valor,
 							pension
-						FROM IncidenciasNormalizadas
+						FROM IncidenciasNormalizadasQ2
 					) AS x
 					GROUP BY codigoempleado, pension
 				),
-				MovimientosSumaFiscal AS (
+				MovimientosSumaQ3 AS (
                         SELECT
                             emp.codigoempleado,
                             empPeriodo.sueldodiario AS sd,
@@ -954,11 +957,12 @@ class PrenominaController extends Controller
 							AND emp.idempleado = pdo.idempleado
                         WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
 							AND pdo.descripcion NOT IN (''Pensión Alimenticia'', ''Pension Alimenticia'')
+							AND empPeriodo.estadoempleado IN (''A'', ''R'')
 							AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
                         GROUP BY
 							emp.codigoempleado, empPeriodo.sueldodiario, empPeriodo.sueldointegrado, pdo.descripcion, pdo.tipoconcepto, emp.ccampoextranumerico3
                 ), ' + '
-				TotalesPorEmpleadoFiscal AS (
+				TotalesPorEmpleadoQ3 AS (
 						SELECT
 							codigoempleado,
 							sd,
@@ -966,10 +970,10 @@ class PrenominaController extends Controller
 							SUM(CASE WHEN tipoConcepto = ''P'' THEN monto ELSE 0 END) AS total_percepciones,
 							SUM(CASE WHEN tipoConcepto = ''D'' THEN monto ELSE 0 END) AS total_deducciones,
 							pension AS porcentajePension
-						FROM MovimientosSumaFiscal
+						FROM MovimientosSumaQ3
 						GROUP BY codigoempleado, pension, sdi, sd
-				), ' + '
-                MovimientosSuma AS (
+				), ' + ' -------- se omite esto por el momento porque no se sabe cuales son las deducciones excedentes
+                MovimientosSumaExcedente AS (
                     SELECT
                         emp.codigoempleado,
                         pdo.descripcion,
@@ -982,13 +986,14 @@ class PrenominaController extends Controller
 						ON empPeriodo.cidperiodo = pdo.idperiodo
 						AND emp.idempleado = pdo.idempleado
                     WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
-						AND pdo.tipoconcepto IN (''D'')
+						AND pdo.tipoconcepto IN (''P'')
 						AND pdo.descripcion NOT IN (''Pensión Alimenticia'', ''Pension Alimenticia'')
+						AND empPeriodo.estadoempleado IN (''A'', ''R'')
 						AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
                     GROUP BY
 						emp.codigoempleado, empPeriodo.sueldodiario, empPeriodo.sueldointegrado, pdo.descripcion
-                ), ' + '
-                TotalesPorEmpleadoDeduExc AS (
+                ), ' + ' -------- se omite esto por el momento porque no se sabe cuales son las deducciones excedentes
+                TotalesPorEmpleadoDeduccionesExcedentes AS (
                     SELECT
                         emp.codigoempleado,
                         (emp.ccampoextranumerico2 * empPeriodo.cdiaspagados) AS sueldo,
@@ -1001,13 +1006,14 @@ class PrenominaController extends Controller
 						ON empPeriodo.cidperiodo = pdo.idperiodo
 						AND emp.idempleado = pdo.idempleado
                     WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
-						AND pdo.tipoconcepto IN (''D'')
+						AND pdo.tipoconcepto IN (''P'')
 						AND pdo.descripcion NOT IN (''Pensión Alimenticia'', ''Pension Alimenticia'')
+						AND empPeriodo.estadoempleado IN (''A'', ''R'')
 						AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
                     GROUP BY
 						emp.codigoempleado, emp.ccampoextranumerico2, empPeriodo.cdiaspagados
                 ), ' + '
-                TotalesPorEmpleado AS (
+                TotalesPorEmpleado AS ( -- totales generales Query1
                     SELECT
                         emp.codigoempleado,
                         (emp.ccampoextranumerico2 * empPeriodo.cdiaspagados) AS sueldo,
@@ -1027,7 +1033,7 @@ class PrenominaController extends Controller
                     GROUP BY
 						emp.codigoempleado, emp.ccampoextranumerico2, empPeriodo.cdiaspagados
                 ), ' + '
-                TotalesPorEmpleadoFis AS (
+                TotalesPorEmpleadoFis AS ( -- totales P D sin pension Query3
                     SELECT
                         emp.codigoempleado,
                         empPeriodo.sueldodiario AS sd,
@@ -1046,20 +1052,22 @@ class PrenominaController extends Controller
                     GROUP BY
 						emp.codigoempleado, empPeriodo.sueldodiario, empPeriodo.sueldointegrado
                 ), ' + '
-                preNetoTotalAPagar AS (
+                preNetoTotalAPagar AS ( -- totales P - D Sin pension Query3
                     SELECT
                         tpf.codigoempleado,
                         (tpf.total_percepciones - tpf.total_deducciones) AS netoTotalAPagar
                     FROM TotalesPorEmpleadoFis tpf
                 ), ' + '
-                preTotales AS (
+                preTotalesProrrateo AS (
                     SELECT
-                        tpe.codigoempleado,
-                        (tpe.sueldo + (tpe.total_percepciones_sin_sueldo - tpe.total_deducciones))
-                        - (tpf.total_percepciones - tpf.total_deducciones) AS netoAPagar
-                    FROM TotalesPorEmpleado tpe
-                    INNER JOIN TotalesPorEmpleadoFis tpf
-                        ON tpe.codigoempleado = tpf.codigoempleado
+                        q2.codigoempleado,
+						((q2.sueldo + q2.total_percepciones_sin_sueldo) - (q2.total_deducciones + CASE WHEN q2.porcentajePension > 0 THEN (q2.sueldo + q2.total_percepciones_sin_sueldo) * (q2.porcentajePension / 100) ELSE 0 END))
+						-
+						((q3.total_percepciones) - (q3.total_deducciones + CASE WHEN q3.porcentajePension > 0 THEN (q3.total_percepciones) * (q3.porcentajePension / 100) ELSE 0 END))
+						AS netoAPagar
+                    FROM TotalesPorEmpleadoGeneralQ2 q2
+                    INNER JOIN TotalesPorEmpleadoQ3 q3
+                        ON q2.codigoempleado = q3.codigoempleado
                 ), ' + '
                 ParamConfig AS (
                     SELECT
@@ -1094,7 +1102,7 @@ class PrenominaController extends Controller
                         c.tope,
                         c.orden,
                         ROW_NUMBER() OVER (PARTITION BY p.codigoempleado ORDER BY c.orden) AS rn
-                    FROM preTotales p
+                    FROM preTotalesProrrateo p
                     CROSS JOIN ConceptosActivos c
                 ), ' + '
                 ProrrateoRecursivo AS (
@@ -1167,7 +1175,7 @@ class PrenominaController extends Controller
                         pe.total_percepciones_excedente,
                         ISNULL(td.total_deducciones_exc, 0) AS total_deducciones_exc
                     FROM PercepcionesExcedentes pe
-                    LEFT JOIN TotalesPorEmpleadoDeduExc td
+                    LEFT JOIN TotalesPorEmpleadoDeduccionesExcedentes td
                         ON pe.codigoempleado = td.codigoempleado
                 ), ' + '
                 NetoExcedentes AS (
@@ -1194,8 +1202,8 @@ class PrenominaController extends Controller
                         gen.codigoempleado AS codigoempleado,
                         ''Pension Excedente'' AS concepto,
                         CASE WHEN gen.porcentajePension > 0 THEN ((gen.sueldo + gen.total_percepciones_sin_sueldo) * (gen.porcentajePension / 100)) - ((fis.total_percepciones) * (fis.porcentajePension / 100)) ELSE 0 END AS monto
-                    FROM TotalesPorEmpleadoGeneral AS gen
-					INNER JOIN TotalesPorEmpleadoFiscal fis ON gen.codigoempleado = fis.codigoempleado
+                    FROM TotalesPorEmpleadoGeneralQ2 AS gen
+					INNER JOIN TotalesPorEmpleadoQ3 fis ON gen.codigoempleado = fis.codigoempleado
                 ) , ' + '
                 ProrrateoFinal AS (
                     -- conceptos del prorrateo (columnas dinámicas)
@@ -1210,7 +1218,7 @@ class PrenominaController extends Controller
                         ms.codigoempleado,
                         ms.descripcion AS columna,
                         ms.monto AS valor
-                    FROM MovimientosSuma ms
+                    FROM MovimientosSumaExcedente ms
 
                     UNION ALL
 
@@ -1259,7 +1267,7 @@ class PrenominaController extends Controller
                         (nta.neto_total_pagar - pe.monto) - ((fis.total_percepciones) * (fis.porcentajePension / 100)) AS monto_asignado
                     FROM NetoTotalAPagar AS nta
                      INNER JOIN pensionExcedente AS pe ON nta.codigoempleado = pe.codigoempleado
-                     INNER JOIN TotalesPorEmpleadoFiscal AS fis ON nta.codigoempleado = fis.codigoempleado
+                     INNER JOIN TotalesPorEmpleadoQ3 AS fis ON nta.codigoempleado = fis.codigoempleado
                 ) ' + '
                 SELECT codigoempleado, ' + @cols + '
                 FROM ProrrateoFinal
@@ -1272,6 +1280,7 @@ class PrenominaController extends Controller
 
                 EXEC(@sql);
             ";
+
             $result = DB::connection('sqlsrv_dynamic')->select($sql);
 
             return $result;
@@ -1295,18 +1304,6 @@ class PrenominaController extends Controller
             $this->helperController->setDatabaseConnection($conexion, $conexion->nombre_base);
 
             $sql = "
-                DECLARE @idPeriodo INT;
-                DECLARE @idTipoPeriodo INT;
-
-                DECLARE @idEmpleadoInicial INT;
-                DECLARE @idEmpleadoFinal INT;
-
-                SET @idPeriodo = $idPeriodo;
-                SET @idTipoPeriodo = $idTipoPeriodo;
-
-                SET @idEmpleadoInicial = $idEmpleadoInicial;
-                SET @idEmpleadoFinal = $idEmpleadoFinal;
-
                 DECLARE @cols NVARCHAR(MAX),
                         @sql  NVARCHAR(MAX);
                 ;WITH
@@ -1361,7 +1358,7 @@ class PrenominaController extends Controller
                             AND idperiodo = @idPeriodo
                             AND con.tipoconcepto IN (''P'',''D'')
                     ), ' + '
-                    MovimientosSumaGeneral AS (
+                    MovimientosSumaQ2 AS (
                         SELECT
                             emp.codigoempleado,
                             (emp.ccampoextranumerico2 * empPeriodo.cdiaspagados) AS sueldo,
@@ -1378,12 +1375,13 @@ class PrenominaController extends Controller
                             ON empPeriodo.cidperiodo = pdo.idperiodo
                             AND emp.idempleado = pdo.idempleado
                         WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
-                            AND pdo.descripcion NOT IN(''Sueldo'')
+                            AND pdo.descripcion NOT IN(''Sueldo'',''Pensión Alimenticia'', ''Pension Alimenticia'')
+                            AND empPeriodo.estadoempleado IN (''A'', ''R'')
                             AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
                         GROUP BY
                             emp.codigoempleado, emp.ccampoextranumerico2, empPeriodo.cdiaspagados, pdo.descripcion, pdo.tipoconcepto, emp.ccampoextranumerico3
                     ), ' + '
-                    IncidenciasNormalizadas AS (
+                    IncidenciasNormalizadasQ2 AS (
                         SELECT
                             emp.codigoempleado as codigoempleado,
                             x.descripcion AS descripcion,
@@ -1398,6 +1396,7 @@ class PrenominaController extends Controller
                             AND empP.cidperiodo = @idPeriodo
                             AND empP.idtipoperiodo = @idTipoPeriodo
                             AND empP.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
+                            AND empP.estadoempleado IN (''A'', ''R'')
                         INNER JOIN nom10001 AS emp
                             ON empP.idempleado = emp.idempleado
                         CROSS APPLY (VALUES
@@ -1411,28 +1410,17 @@ class PrenominaController extends Controller
                             (''Premio puntualidad'',     ngid.premio_puntualidad)
                         ) AS x(descripcion, valor)
                         WHERE ngi.id_tipo_periodo = @idTipoPeriodo
-                        AND ngi.id_nomina_gape_empresa = @idNominaGapeEmpresa
-                        AND ngid.id_empleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
+                            AND ngi.id_nomina_gape_empresa = @idNominaGapeEmpresa
+                            AND ngid.id_empleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
                     ), ' + '
-                    TotalesPorEmpleadoGeneral AS (
+                    TotalesPorEmpleadoGeneralQ2 AS (
                         SELECT
                             codigoempleado,
                             MAX(sueldo) AS sueldo,
-                            SUM(CASE
-                                    WHEN tipoConcepto = ''P'' THEN monto
-                                    ELSE 0
-                                END)
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN monto ELSE 0 END)
                             +
-                            SUM(CASE
-                                    WHEN tipoConcepto = ''P'' THEN valor
-                                    ELSE 0
-                                END)
-                            AS total_percepciones_sin_sueldo,
-                            SUM(CASE
-                                    WHEN tipoConcepto = ''D'' THEN monto
-                                    ELSE 0
-                                END)
-                            AS total_deducciones,
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN valor ELSE 0 END) AS total_percepciones_sin_sueldo,
+                            SUM(CASE WHEN tipoConcepto = ''D'' THEN monto ELSE 0 END) AS total_deducciones,
                             pension AS porcentajePension
 
                         FROM (
@@ -1443,7 +1431,7 @@ class PrenominaController extends Controller
                                 monto AS monto,
                                 0 AS valor,
                                 pension
-                            FROM MovimientosSumaGeneral
+                            FROM MovimientosSumaQ2
                             UNION ALL
                             SELECT
                                 codigoempleado,
@@ -1452,11 +1440,11 @@ class PrenominaController extends Controller
                                 0 AS monto,
                                 valor AS valor,
                                 pension
-                            FROM IncidenciasNormalizadas
+                            FROM IncidenciasNormalizadasQ2
                         ) AS x
                         GROUP BY codigoempleado, pension
                     ),
-                    MovimientosSumaFiscal AS (
+                    MovimientosSumaQ3 AS (
                             SELECT
                                 emp.codigoempleado,
                                 empPeriodo.sueldodiario AS sd,
@@ -1474,11 +1462,12 @@ class PrenominaController extends Controller
                                 AND emp.idempleado = pdo.idempleado
                             WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
                                 AND pdo.descripcion NOT IN (''Pensión Alimenticia'', ''Pension Alimenticia'')
+                                AND empPeriodo.estadoempleado IN (''A'', ''R'')
                                 AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
                             GROUP BY
                                 emp.codigoempleado, empPeriodo.sueldodiario, empPeriodo.sueldointegrado, pdo.descripcion, pdo.tipoconcepto, emp.ccampoextranumerico3
                     ), ' + '
-                    TotalesPorEmpleadoFiscal AS (
+                    TotalesPorEmpleadoQ3 AS (
                             SELECT
                                 codigoempleado,
                                 sd,
@@ -1486,10 +1475,10 @@ class PrenominaController extends Controller
                                 SUM(CASE WHEN tipoConcepto = ''P'' THEN monto ELSE 0 END) AS total_percepciones,
                                 SUM(CASE WHEN tipoConcepto = ''D'' THEN monto ELSE 0 END) AS total_deducciones,
                                 pension AS porcentajePension
-                            FROM MovimientosSumaFiscal
+                            FROM MovimientosSumaQ3
                             GROUP BY codigoempleado, pension, sdi, sd
-                    ), ' + '
-                    MovimientosSuma AS (
+                    ), ' + ' -------- se omite esto por el momento porque no se sabe cuales son las deducciones excedentes
+                    MovimientosSumaExcedente AS (
                         SELECT
                             emp.codigoempleado,
                             pdo.descripcion,
@@ -1502,13 +1491,14 @@ class PrenominaController extends Controller
                             ON empPeriodo.cidperiodo = pdo.idperiodo
                             AND emp.idempleado = pdo.idempleado
                         WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
-                            AND pdo.tipoconcepto IN (''D'')
+                            AND pdo.tipoconcepto IN (''P'')
                             AND pdo.descripcion NOT IN (''Pensión Alimenticia'', ''Pension Alimenticia'')
+                            AND empPeriodo.estadoempleado IN (''A'', ''R'')
                             AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
                         GROUP BY
                             emp.codigoempleado, empPeriodo.sueldodiario, empPeriodo.sueldointegrado, pdo.descripcion
-                    ), ' + '
-                    TotalesPorEmpleadoDeduExc AS (
+                    ), ' + ' -------- se omite esto por el momento porque no se sabe cuales son las deducciones excedentes
+                    TotalesPorEmpleadoDeduccionesExcedentes AS (
                         SELECT
                             emp.codigoempleado,
                             (emp.ccampoextranumerico2 * empPeriodo.cdiaspagados) AS sueldo,
@@ -1521,13 +1511,14 @@ class PrenominaController extends Controller
                             ON empPeriodo.cidperiodo = pdo.idperiodo
                             AND emp.idempleado = pdo.idempleado
                         WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
-                            AND pdo.tipoconcepto IN (''D'')
+                            AND pdo.tipoconcepto IN (''P'')
                             AND pdo.descripcion NOT IN (''Pensión Alimenticia'', ''Pension Alimenticia'')
+                            AND empPeriodo.estadoempleado IN (''A'', ''R'')
                             AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
                         GROUP BY
                             emp.codigoempleado, emp.ccampoextranumerico2, empPeriodo.cdiaspagados
                     ), ' + '
-                    TotalesPorEmpleado AS (
+                    TotalesPorEmpleado AS ( -- totales generales Query1
                         SELECT
                             emp.codigoempleado,
                             (emp.ccampoextranumerico2 * empPeriodo.cdiaspagados) AS sueldo,
@@ -1547,7 +1538,7 @@ class PrenominaController extends Controller
                         GROUP BY
                             emp.codigoempleado, emp.ccampoextranumerico2, empPeriodo.cdiaspagados
                     ), ' + '
-                    TotalesPorEmpleadoFis AS (
+                    TotalesPorEmpleadoFis AS ( -- totales P D sin pension Query3
                         SELECT
                             emp.codigoempleado,
                             empPeriodo.sueldodiario AS sd,
@@ -1566,20 +1557,22 @@ class PrenominaController extends Controller
                         GROUP BY
                             emp.codigoempleado, empPeriodo.sueldodiario, empPeriodo.sueldointegrado
                     ), ' + '
-                    preNetoTotalAPagar AS (
+                    preNetoTotalAPagar AS ( -- totales P - D Sin pension Query3
                         SELECT
                             tpf.codigoempleado,
                             (tpf.total_percepciones - tpf.total_deducciones) AS netoTotalAPagar
                         FROM TotalesPorEmpleadoFis tpf
                     ), ' + '
-                    preTotales AS (
+                    preTotalesProrrateo AS (
                         SELECT
-                            tpe.codigoempleado,
-                            (tpe.sueldo + (tpe.total_percepciones_sin_sueldo - tpe.total_deducciones))
-                            - (tpf.total_percepciones - tpf.total_deducciones) AS netoAPagar
-                        FROM TotalesPorEmpleado tpe
-                        INNER JOIN TotalesPorEmpleadoFis tpf
-                            ON tpe.codigoempleado = tpf.codigoempleado
+                            q2.codigoempleado,
+                            ((q2.sueldo + q2.total_percepciones_sin_sueldo) - (q2.total_deducciones + CASE WHEN q2.porcentajePension > 0 THEN (q2.sueldo + q2.total_percepciones_sin_sueldo) * (q2.porcentajePension / 100) ELSE 0 END))
+                            -
+                            ((q3.total_percepciones) - (q3.total_deducciones + CASE WHEN q3.porcentajePension > 0 THEN (q3.total_percepciones) * (q3.porcentajePension / 100) ELSE 0 END))
+                            AS netoAPagar
+                        FROM TotalesPorEmpleadoGeneralQ2 q2
+                        INNER JOIN TotalesPorEmpleadoQ3 q3
+                            ON q2.codigoempleado = q3.codigoempleado
                     ), ' + '
                     ParamConfig AS (
                         SELECT
@@ -1614,7 +1607,7 @@ class PrenominaController extends Controller
                             c.tope,
                             c.orden,
                             ROW_NUMBER() OVER (PARTITION BY p.codigoempleado ORDER BY c.orden) AS rn
-                        FROM preTotales p
+                        FROM preTotalesProrrateo p
                         CROSS JOIN ConceptosActivos c
                     ), ' + '
                     ProrrateoRecursivo AS (
@@ -1687,7 +1680,7 @@ class PrenominaController extends Controller
                             pe.total_percepciones_excedente,
                             ISNULL(td.total_deducciones_exc, 0) AS total_deducciones_exc
                         FROM PercepcionesExcedentes pe
-                        LEFT JOIN TotalesPorEmpleadoDeduExc td
+                        LEFT JOIN TotalesPorEmpleadoDeduccionesExcedentes td
                             ON pe.codigoempleado = td.codigoempleado
                     ), ' + '
                     NetoExcedentes AS (
@@ -1714,10 +1707,9 @@ class PrenominaController extends Controller
                             gen.codigoempleado AS codigoempleado,
                             ''Pension Excedente'' AS concepto,
                             CASE WHEN gen.porcentajePension > 0 THEN ((gen.sueldo + gen.total_percepciones_sin_sueldo) * (gen.porcentajePension / 100)) - ((fis.total_percepciones) * (fis.porcentajePension / 100)) ELSE 0 END AS monto
-                        FROM TotalesPorEmpleadoGeneral AS gen
-                        INNER JOIN TotalesPorEmpleadoFiscal fis ON gen.codigoempleado = fis.codigoempleado
+                        FROM TotalesPorEmpleadoGeneralQ2 AS gen
+                        INNER JOIN TotalesPorEmpleadoQ3 fis ON gen.codigoempleado = fis.codigoempleado
                     ) , ' + '
-
                     provisiones AS (
                         SELECT
                             emp.codigoempleado AS codigoempleado,
@@ -1744,7 +1736,7 @@ class PrenominaController extends Controller
                             ORDER BY antig.fechainicioVigencia DESC
                         ) AS antig
                         WHERE empPeriodo.cidperiodo = @idPeriodo
-
+                        AND empPeriodo.estadoempleado IN (''A'', ''R'')
                         AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
                     ), ' + '
 
@@ -1778,32 +1770,31 @@ class PrenominaController extends Controller
 
                         UNION ALL
 
-                            SELECT
-                            nta.codigoempleado,
-                            ''COMPENSACION'' AS concepto,
-                            (nta.total_deducciones_exc + pe.monto )
-                                +
-                            (t.total_deducciones +
-                                CASE WHEN porcentajePension > 0 THEN (total_percepciones) * (porcentajePension / 100)
-                                ELSE
-                                    0
-                            END) +
-
-                            CASE
-                                WHEN nge.provisiones = ''si''
-                                THEN (
-                                    SELECT
-                                    (prov.provisionPrimaVacacional + prov.provisionAguinaldo)
-                                    FROM provisiones AS prov
-                                    WHERE nta.codigoempleado = prov.codigoempleado
-                                )
-                                ELSE 0
-                            END
-
-                            AS monto_asignado
+                        SELECT
+                        nta.codigoempleado,
+                        ''COMPENSACION'' AS concepto,
+                        ((nta.neto_total_pagar - pe.monto) - ((q3.total_percepciones) * (q3.porcentajePension / 100))
+                        +
+                        (q3.total_deducciones + CASE WHEN porcentajePension > 0 THEN (total_percepciones) * (porcentajePension / 100) ELSE 0 END)
+                        +
+                        (nta.total_deducciones_exc + pe.monto ))
+                        +
+                        CASE
+                            WHEN nge.provisiones = ''si''
+                            THEN (
+                                SELECT
+                                (prov.provisionPrimaVacacional + prov.provisionAguinaldo)
+                                FROM provisiones AS prov
+                                WHERE nta.codigoempleado = prov.codigoempleado
+                            )
+                            ELSE 0
+                        END
+                        AS monto_asignado
                         FROM NetoTotalAPagar AS nta
-                        INNER JOIN pensionExcedente AS pe ON nta.codigoempleado = pe.codigoempleado
-                        INNER JOIN TotalesPorEmpleadoFiscal t ON pe.codigoempleado = t.codigoempleado
+                        INNER JOIN pensionExcedente AS pe
+                            ON nta.codigoempleado = pe.codigoempleado
+                        INNER JOIN TotalesPorEmpleadoQ3 AS q3
+                            ON nta.codigoempleado = q3.codigoempleado
                         CROSS JOIN nomGapeEmpresa nge
                     )
                     SELECT codigoempleado, ' + @cols + '
@@ -1839,21 +1830,6 @@ class PrenominaController extends Controller
             $this->helperController->setDatabaseConnection($conexion, $conexion->nombre_base);
 
             $sql = "
-                DECLARE @idPeriodo INT;
-                DECLARE @idTipoPeriodo INT;
-
-                DECLARE @idEmpleadoInicial INT;
-                DECLARE @idEmpleadoFinal INT;
-
-                DECLARE @idNominaGapeEmpresa INT;
-
-                SET @idPeriodo = $idPeriodo;
-                SET @idTipoPeriodo = $idTipoPeriodo;
-
-                SET @idEmpleadoInicial = $idEmpleadoInicial;
-                SET @idEmpleadoFinal = $idEmpleadoFinal;
-                SET @idNominaGapeEmpresa = $idNominaGapeEmpresa;
-
                 DECLARE @cols NVARCHAR(MAX),
                         @sql  NVARCHAR(MAX);
                 ;WITH
@@ -1889,409 +1865,404 @@ class PrenominaController extends Controller
                 SET @idNominaGapeEmpresa = $idNominaGapeEmpresa;
 
                 ;WITH
-                    Movimientos AS (
-                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto
-                        FROM Nom10007 AS his
-                        INNER JOIN nom10004 con
-                            ON his.idconcepto = con.idconcepto
-                        WHERE importetotal > 0
-                            AND idperiodo = @idPeriodo
-                            AND con.tipoconcepto IN (''P'',''D'')
-                        UNION ALL
-                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto
-                        FROM Nom10008 AS actual
-                        INNER JOIN nom10004 con
-                            ON actual.idconcepto = con.idconcepto
-                        WHERE importetotal > 0
-                            AND idperiodo = @idPeriodo
-                            AND con.tipoconcepto IN (''P'',''D'')
-                    ), ' + '
-                    MovimientosSumaGeneral AS (
-                        SELECT
-                            emp.codigoempleado,
-                            (emp.ccampoextranumerico2 * empPeriodo.cdiaspagados) AS sueldo,
-                            pdo.descripcion,
-                            pdo.tipoconcepto AS tipoConcepto,
-                            SUM(pdo.valor) AS cantidad,
-                            SUM(pdo.importetotal) AS monto,
-                            emp.ccampoextranumerico3 AS pension
-                        FROM nom10001 emp
-                        INNER JOIN nom10034 empPeriodo
-                            ON emp.idempleado = empPeriodo.idempleado
-                                AND empPeriodo.cidperiodo = @idPeriodo
-                        INNER JOIN Movimientos pdo
-                            ON empPeriodo.cidperiodo = pdo.idperiodo
-                            AND emp.idempleado = pdo.idempleado
-                        WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
-                            AND pdo.descripcion NOT IN(''Sueldo'')
-                            AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
-                        GROUP BY
-                            emp.codigoempleado, emp.ccampoextranumerico2, empPeriodo.cdiaspagados, pdo.descripcion, pdo.tipoconcepto, emp.ccampoextranumerico3
-                    ), ' + '
-                    IncidenciasNormalizadas AS (
-                        SELECT
-                            emp.codigoempleado as codigoempleado,
-                            x.descripcion AS descripcion,
-                            ''P'' AS tipoConcepto,
-                            x.valor AS valor,
-                            emp.ccampoextranumerico3 AS pension
-                        FROM [becma-core2].dbo.nomina_gape_incidencia AS ngi
-                        INNER JOIN [becma-core2].dbo.nomina_gape_incidencia_detalle AS ngid
-                            ON ngi.id = ngid.id_nomina_gape_incidencia
-                        INNER JOIN nom10034 AS empP
-                            ON ngid.id_empleado = empP.idempleado
-                            AND empP.cidperiodo = @idPeriodo
-                            AND empP.idtipoperiodo = @idTipoPeriodo
-                            AND empP.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
-                        INNER JOIN nom10001 AS emp
-                            ON empP.idempleado = emp.idempleado
-                        CROSS APPLY (VALUES
-                            (''Comisiones'',               ngid.comision),
-                            (''Bono'',                   ngid.bono),
-                            (''Horas Extra Doble cantidad'',   ngid.horas_extra_doble_cantidad),
-                            (''Horas Extra Doble monto'',      ngid.horas_extra_doble),
-                            (''Horas Extra Triple cantidad'',  ngid.horas_extra_triple_cantidad),
-                            (''Horas Extra Triple monto'',     ngid.horas_extra_triple),
-                            (''Pago adicional'',         ngid.pago_adicional),
-                            (''Premio puntualidad'',     ngid.premio_puntualidad)
-                        ) AS x(descripcion, valor)
-                        WHERE ngi.id_tipo_periodo = @idTipoPeriodo
-                        AND ngi.id_nomina_gape_empresa = @idNominaGapeEmpresa
-                        AND ngid.id_empleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
-                    ), ' + '
-                    TotalesPorEmpleadoGeneral AS (
-                        SELECT
-                            codigoempleado,
-                            MAX(sueldo) AS sueldo,
-                            SUM(CASE
-                                    WHEN tipoConcepto = ''P'' THEN monto
-                                    ELSE 0
-                                END)
-                            +
-                            SUM(CASE
-                                    WHEN tipoConcepto = ''P'' THEN valor
-                                    ELSE 0
-                                END)
-                            AS total_percepciones_sin_sueldo,
-                            SUM(CASE
-                                    WHEN tipoConcepto = ''D'' THEN monto
-                                    ELSE 0
-                                END)
-                            AS total_deducciones,
-                            pension AS porcentajePension
+					Movimientos AS (
+						SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto
+						FROM Nom10007 AS his
+						INNER JOIN nom10004 con
+							ON his.idconcepto = con.idconcepto
+						WHERE importetotal > 0
+							AND idperiodo = @idPeriodo
+							AND con.tipoconcepto IN (''P'',''D'')
+						UNION ALL
+						SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto
+						FROM Nom10008 AS actual
+						INNER JOIN nom10004 con
+							ON actual.idconcepto = con.idconcepto
+						WHERE importetotal > 0
+							AND idperiodo = @idPeriodo
+							AND con.tipoconcepto IN (''P'',''D'')
+					), ' + '
+					MovimientosSumaQ2 AS (
+						SELECT
+							emp.codigoempleado,
+							(emp.ccampoextranumerico2 * empPeriodo.cdiaspagados) AS sueldo,
+							pdo.descripcion,
+							pdo.tipoconcepto AS tipoConcepto,
+							SUM(pdo.valor) AS cantidad,
+							SUM(pdo.importetotal) AS monto,
+							emp.ccampoextranumerico3 AS pension
+						FROM nom10001 emp
+						INNER JOIN nom10034 empPeriodo
+							ON emp.idempleado = empPeriodo.idempleado
+								AND empPeriodo.cidperiodo = @idPeriodo
+						INNER JOIN Movimientos pdo
+							ON empPeriodo.cidperiodo = pdo.idperiodo
+							AND emp.idempleado = pdo.idempleado
+						WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
+							AND pdo.descripcion NOT IN(''Sueldo'',''Pensión Alimenticia'', ''Pension Alimenticia'')
+							AND empPeriodo.estadoempleado IN (''A'', ''R'')
+							AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
+						GROUP BY
+							emp.codigoempleado, emp.ccampoextranumerico2, empPeriodo.cdiaspagados, pdo.descripcion, pdo.tipoconcepto, emp.ccampoextranumerico3
+					), ' + '
+					IncidenciasNormalizadasQ2 AS (
+						SELECT
+							emp.codigoempleado as codigoempleado,
+							x.descripcion AS descripcion,
+							''P'' AS tipoConcepto,
+							x.valor AS valor,
+							emp.ccampoextranumerico3 AS pension
+						FROM [becma-core2].dbo.nomina_gape_incidencia AS ngi
+						INNER JOIN [becma-core2].dbo.nomina_gape_incidencia_detalle AS ngid
+							ON ngi.id = ngid.id_nomina_gape_incidencia
+						INNER JOIN nom10034 AS empP
+							ON ngid.id_empleado = empP.idempleado
+							AND empP.cidperiodo = @idPeriodo
+							AND empP.idtipoperiodo = @idTipoPeriodo
+							AND empP.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
+							AND empP.estadoempleado IN (''A'', ''R'')
+						INNER JOIN nom10001 AS emp
+							ON empP.idempleado = emp.idempleado
+						CROSS APPLY (VALUES
+							(''Comisiones'',               ngid.comision),
+							(''Bono'',                   ngid.bono),
+							(''Horas Extra Doble cantidad'',   ngid.horas_extra_doble_cantidad),
+							(''Horas Extra Doble monto'',      ngid.horas_extra_doble),
+							(''Horas Extra Triple cantidad'',  ngid.horas_extra_triple_cantidad),
+							(''Horas Extra Triple monto'',     ngid.horas_extra_triple),
+							(''Pago adicional'',         ngid.pago_adicional),
+							(''Premio puntualidad'',     ngid.premio_puntualidad)
+						) AS x(descripcion, valor)
+						WHERE ngi.id_tipo_periodo = @idTipoPeriodo
+							AND ngi.id_nomina_gape_empresa = @idNominaGapeEmpresa
+							AND ngid.id_empleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
+					), ' + '
+					TotalesPorEmpleadoGeneralQ2 AS (
+						SELECT
+							codigoempleado,
+							MAX(sueldo) AS sueldo,
+							SUM(CASE WHEN tipoConcepto = ''P'' THEN monto ELSE 0 END)
+							+
+							SUM(CASE WHEN tipoConcepto = ''P'' THEN valor ELSE 0 END) AS total_percepciones_sin_sueldo,
+							SUM(CASE WHEN tipoConcepto = ''D'' THEN monto ELSE 0 END) AS total_deducciones,
+							pension AS porcentajePension
 
-                        FROM (
-                            SELECT
-                                codigoempleado,
-                                sueldo,
-                                tipoConcepto,
-                                monto AS monto,
-                                0 AS valor,
-                                pension
-                            FROM MovimientosSumaGeneral
-                            UNION ALL
-                            SELECT
-                                codigoempleado,
-                                0 AS sueldo,
-                                ''P'' AS tipoConcepto,
-                                0 AS monto,
-                                valor AS valor,
-                                pension
-                            FROM IncidenciasNormalizadas
-                        ) AS x
-                        GROUP BY codigoempleado, pension
-                    ),
-                    MovimientosSumaFiscal AS (
-                            SELECT
-                                emp.codigoempleado,
-                                empPeriodo.sueldodiario AS sd,
-                                empPeriodo.sueldointegrado AS sdi,
-                                pdo.descripcion,
-                                pdo.tipoconcepto AS tipoConcepto,
-                                SUM(pdo.importetotal) AS monto,
-                                emp.ccampoextranumerico3 AS pension
-                            FROM nom10001 emp
-                            INNER JOIN nom10034 empPeriodo
-                                ON emp.idempleado = empPeriodo.idempleado
-                                AND empPeriodo.cidperiodo = @idPeriodo
-                            INNER JOIN Movimientos pdo
-                                ON empPeriodo.cidperiodo = pdo.idperiodo
-                                AND emp.idempleado = pdo.idempleado
-                            WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
-                                AND pdo.descripcion NOT IN (''Pensión Alimenticia'', ''Pension Alimenticia'')
-                                AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
-                            GROUP BY
-                                emp.codigoempleado, empPeriodo.sueldodiario, empPeriodo.sueldointegrado, pdo.descripcion, pdo.tipoconcepto, emp.ccampoextranumerico3
-                    ), ' + '
-                    TotalesPorEmpleadoFiscal AS (
-                            SELECT
-                                codigoempleado,
-                                sd,
-                                sdi,
-                                SUM(CASE WHEN tipoConcepto = ''P'' THEN monto ELSE 0 END) AS total_percepciones,
-                                SUM(CASE WHEN tipoConcepto = ''D'' THEN monto ELSE 0 END) AS total_deducciones,
-                                pension AS porcentajePension
-                            FROM MovimientosSumaFiscal
-                            GROUP BY codigoempleado, pension, sdi, sd
-                    ), ' + '
-                    MovimientosSuma AS (
-                        SELECT
-                            emp.codigoempleado,
-                            pdo.descripcion,
-                            SUM(pdo.importeTotal) AS monto
-                        FROM nom10001 emp
-                        INNER JOIN nom10034 empPeriodo
-                            ON emp.idempleado = empPeriodo.idempleado
-                            AND empPeriodo.cidperiodo = @idPeriodo
-                        INNER JOIN Movimientos pdo
-                            ON empPeriodo.cidperiodo = pdo.idperiodo
-                            AND emp.idempleado = pdo.idempleado
-                        WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
-                            AND pdo.tipoconcepto IN (''D'')
-                            AND pdo.descripcion NOT IN (''Pensión Alimenticia'', ''Pension Alimenticia'')
-                            AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
-                        GROUP BY
-                            emp.codigoempleado, empPeriodo.sueldodiario, empPeriodo.sueldointegrado, pdo.descripcion
-                    ), ' + '
-                    TotalesPorEmpleadoDeduExc AS (
-                        SELECT
-                            emp.codigoempleado,
-                            (emp.ccampoextranumerico2 * empPeriodo.cdiaspagados) AS sueldo,
-                            SUM(CASE WHEN pdo.tipoconcepto = ''D'' THEN pdo.importetotal ELSE 0 END) AS total_deducciones_exc
-                        FROM nom10001 emp
-                        INNER JOIN nom10034 empPeriodo
-                            ON emp.idempleado = empPeriodo.idempleado
-                            AND empPeriodo.cidperiodo = @idPeriodo
-                        INNER JOIN Movimientos pdo
-                            ON empPeriodo.cidperiodo = pdo.idperiodo
-                            AND emp.idempleado = pdo.idempleado
-                        WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
-                            AND pdo.tipoconcepto IN (''D'')
-                            AND pdo.descripcion NOT IN (''Pensión Alimenticia'', ''Pension Alimenticia'')
-                            AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
-                        GROUP BY
-                            emp.codigoempleado, emp.ccampoextranumerico2, empPeriodo.cdiaspagados
-                    ), ' + '
-                    TotalesPorEmpleado AS (
-                        SELECT
-                            emp.codigoempleado,
-                            (emp.ccampoextranumerico2 * empPeriodo.cdiaspagados) AS sueldo,
-                            SUM(CASE WHEN pdo.tipoconcepto = ''P'' THEN pdo.importetotal ELSE 0 END) AS total_percepciones_sin_sueldo,
-                            SUM(CASE WHEN pdo.tipoconcepto = ''D'' THEN pdo.importetotal ELSE 0 END) AS total_deducciones
-                        FROM nom10001 emp
-                        INNER JOIN nom10034 empPeriodo
-                            ON emp.idempleado = empPeriodo.idempleado
-                            AND empPeriodo.cidperiodo = @idPeriodo
-                        INNER JOIN Movimientos pdo
-                            ON empPeriodo.cidperiodo = pdo.idperiodo
-                            AND emp.idempleado = pdo.idempleado
-                        WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
-                            AND pdo.tipoconcepto IN (''P'',''D'')
-                            AND pdo.descripcion NOT IN (''Sueldo'')
-                            AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
-                        GROUP BY
-                            emp.codigoempleado, emp.ccampoextranumerico2, empPeriodo.cdiaspagados
-                    ), ' + '
-                    TotalesPorEmpleadoFis AS (
-                        SELECT
-                            emp.codigoempleado,
-                            empPeriodo.sueldodiario AS sd,
-                            empPeriodo.sueldointegrado AS sdi,
-                            SUM(CASE WHEN pdo.tipoconcepto = ''P'' THEN pdo.importetotal ELSE 0 END) AS total_percepciones,
-                            SUM(CASE WHEN pdo.tipoconcepto = ''D'' THEN pdo.importetotal ELSE 0 END) AS total_deducciones
-                        FROM nom10001 emp
-                        INNER JOIN nom10034 empPeriodo
-                            ON emp.idempleado = empPeriodo.idempleado
-                            AND empPeriodo.cidperiodo = @idPeriodo
-                        INNER JOIN Movimientos pdo
-                            ON empPeriodo.cidperiodo = pdo.idperiodo
-                            AND emp.idempleado = pdo.idempleado
-                        WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
-                            AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
-                        GROUP BY
-                            emp.codigoempleado, empPeriodo.sueldodiario, empPeriodo.sueldointegrado
-                    ), ' + '
-                    preNetoTotalAPagar AS (
-                        SELECT
-                            tpf.codigoempleado,
-                            (tpf.total_percepciones - tpf.total_deducciones) AS netoTotalAPagar
-                        FROM TotalesPorEmpleadoFis tpf
-                    ), ' + '
-                    preTotales AS (
-                        SELECT
-                            tpe.codigoempleado,
-                            (tpe.sueldo + (tpe.total_percepciones_sin_sueldo - tpe.total_deducciones))
-                            - (tpf.total_percepciones - tpf.total_deducciones) AS netoAPagar
-                        FROM TotalesPorEmpleado tpe
-                        INNER JOIN TotalesPorEmpleadoFis tpf
-                            ON tpe.codigoempleado = tpf.codigoempleado
-                    ), ' + '
-                    ParamConfig AS (
-                        SELECT
-                            sueldo_imss, sueldo_imss_tope, sueldo_imss_orden
-                            , prev_social, prev_social_tope, prev_social_orden
-                            , fondos_sind, fondos_sind_tope, fondos_sind_orden
-                            , tarjeta_facil, tarjeta_facil_tope, tarjeta_facil_orden
-                            , hon_asimilados, hon_asimilados_tope, hon_asimilados_orden
-                            , gastos_compro, gastos_compro_tope, gastos_compro_orden
-                        FROM [becma-core2].[dbo].[nomina_gape_concepto_pago_parametrizacion]
-                        WHERE id_tipo_periodo = @idTipoPeriodo
-                        AND id_nomina_gape_empresa =   @idNominaGapeEmpresa
-                    ), ' + '
-                    ConceptosParametrizados AS (
-                        SELECT ''sueldo_imss'' AS concepto, sueldo_imss AS activo, sueldo_imss_tope AS tope, sueldo_imss_orden AS orden FROM ParamConfig
-                        UNION ALL SELECT ''prev_social'',   prev_social,   prev_social_tope,   prev_social_orden   FROM ParamConfig
-                        UNION ALL SELECT ''fondos_sind'',   fondos_sind,   fondos_sind_tope,   fondos_sind_orden   FROM ParamConfig
-                        UNION ALL SELECT ''tarjeta_facil'', tarjeta_facil, tarjeta_facil_tope, tarjeta_facil_orden FROM ParamConfig
-                        UNION ALL SELECT ''hon_asimilados'',hon_asimilados, hon_asimilados_tope, hon_asimilados_orden FROM ParamConfig
-                        UNION ALL SELECT ''gastos_compro'', gastos_compro, gastos_compro_tope, gastos_compro_orden FROM ParamConfig
-                    ), ' + '
-                    ConceptosActivos AS (
-                        SELECT concepto, CAST(tope AS DECIMAL(18,2)) AS tope, orden
-                        FROM ConceptosParametrizados
-                        WHERE activo = 1
-                    ), ' + '
-                    BaseProrrateo AS (
-                        SELECT
-                            p.codigoempleado,
-                            CAST(p.netoAPagar AS DECIMAL(18,2)) AS netoAPagar,
-                            c.concepto,
-                            c.tope,
-                            c.orden,
-                            ROW_NUMBER() OVER (PARTITION BY p.codigoempleado ORDER BY c.orden) AS rn
-                        FROM preTotales p
-                        CROSS JOIN ConceptosActivos c
-                    ), ' + '
-                    ProrrateoRecursivo AS (
-                        -- ANCLA
-                        SELECT
-                            b.codigoempleado,
-                            b.concepto,
-                            b.orden,
-                            b.tope,
-                            b.rn,
-                            CAST(b.netoAPagar AS DECIMAL(18,2)) AS saldo_antes,
-                            CAST(
-                                CASE
-                                    WHEN b.netoAPagar <= 0 THEN 0
-                                    WHEN b.tope IS NULL OR b.netoAPagar >= b.tope THEN ISNULL(b.tope, b.netoAPagar)
-                                    ELSE b.netoAPagar
-                                END
-                            AS DECIMAL(18,2)) AS monto_asignado,
-                            CAST(
-                                b.netoAPagar -
-                                CASE
-                                    WHEN b.netoAPagar <= 0 THEN 0
-                                    WHEN b.tope IS NULL OR b.netoAPagar >= b.tope THEN ISNULL(b.tope, b.netoAPagar)
-                                    ELSE b.netoAPagar
-                                END
-                            AS DECIMAL(18,2)) AS saldo_despues
-                        FROM BaseProrrateo b
-                        WHERE b.rn = 1
+						FROM (
+							SELECT
+								codigoempleado,
+								sueldo,
+								tipoConcepto,
+								monto AS monto,
+								0 AS valor,
+								pension
+							FROM MovimientosSumaQ2
+							UNION ALL
+							SELECT
+								codigoempleado,
+								0 AS sueldo,
+								''P'' AS tipoConcepto,
+								0 AS monto,
+								valor AS valor,
+								pension
+							FROM IncidenciasNormalizadasQ2
+						) AS x
+						GROUP BY codigoempleado, pension
+					),
+					MovimientosSumaQ3 AS (
+							SELECT
+								emp.codigoempleado,
+								empPeriodo.sueldodiario AS sd,
+								empPeriodo.sueldointegrado AS sdi,
+								pdo.descripcion,
+								pdo.tipoconcepto AS tipoConcepto,
+								SUM(pdo.importetotal) AS monto,
+								emp.ccampoextranumerico3 AS pension
+							FROM nom10001 emp
+							INNER JOIN nom10034 empPeriodo
+								ON emp.idempleado = empPeriodo.idempleado
+								AND empPeriodo.cidperiodo = @idPeriodo
+							INNER JOIN Movimientos pdo
+								ON empPeriodo.cidperiodo = pdo.idperiodo
+								AND emp.idempleado = pdo.idempleado
+							WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
+								AND pdo.descripcion NOT IN (''Pensión Alimenticia'', ''Pension Alimenticia'')
+								AND empPeriodo.estadoempleado IN (''A'', ''R'')
+								AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
+							GROUP BY
+								emp.codigoempleado, empPeriodo.sueldodiario, empPeriodo.sueldointegrado, pdo.descripcion, pdo.tipoconcepto, emp.ccampoextranumerico3
+					), ' + '
+					TotalesPorEmpleadoQ3 AS (
+							SELECT
+								codigoempleado,
+								sd,
+								sdi,
+								SUM(CASE WHEN tipoConcepto = ''P'' THEN monto ELSE 0 END) AS total_percepciones,
+								SUM(CASE WHEN tipoConcepto = ''D'' THEN monto ELSE 0 END) AS total_deducciones,
+								pension AS porcentajePension
+							FROM MovimientosSumaQ3
+							GROUP BY codigoempleado, pension, sdi, sd
+					), ' + ' -------- se omite esto por el momento porque no se sabe cuales son las deducciones excedentes
+					MovimientosSumaExcedente AS (
+						SELECT
+							emp.codigoempleado,
+							pdo.descripcion,
+							SUM(pdo.importeTotal) AS monto
+						FROM nom10001 emp
+						INNER JOIN nom10034 empPeriodo
+							ON emp.idempleado = empPeriodo.idempleado
+							AND empPeriodo.cidperiodo = @idPeriodo
+						INNER JOIN Movimientos pdo
+							ON empPeriodo.cidperiodo = pdo.idperiodo
+							AND emp.idempleado = pdo.idempleado
+						WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
+							AND pdo.tipoconcepto IN (''P'')
+							AND pdo.descripcion NOT IN (''Pensión Alimenticia'', ''Pension Alimenticia'')
+							AND empPeriodo.estadoempleado IN (''A'', ''R'')
+							AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
+						GROUP BY
+							emp.codigoempleado, empPeriodo.sueldodiario, empPeriodo.sueldointegrado, pdo.descripcion
+					), ' + ' -------- se omite esto por el momento porque no se sabe cuales son las deducciones excedentes
+					TotalesPorEmpleadoDeduccionesExcedentes AS (
+						SELECT
+							emp.codigoempleado,
+							(emp.ccampoextranumerico2 * empPeriodo.cdiaspagados) AS sueldo,
+							SUM(CASE WHEN pdo.tipoconcepto = ''D'' THEN pdo.importetotal ELSE 0 END) AS total_deducciones_exc
+						FROM nom10001 emp
+						INNER JOIN nom10034 empPeriodo
+							ON emp.idempleado = empPeriodo.idempleado
+							AND empPeriodo.cidperiodo = @idPeriodo
+						INNER JOIN Movimientos pdo
+							ON empPeriodo.cidperiodo = pdo.idperiodo
+							AND emp.idempleado = pdo.idempleado
+						WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
+							AND pdo.tipoconcepto IN (''P'')
+							AND pdo.descripcion NOT IN (''Pensión Alimenticia'', ''Pension Alimenticia'')
+							AND empPeriodo.estadoempleado IN (''A'', ''R'')
+							AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
+						GROUP BY
+							emp.codigoempleado, emp.ccampoextranumerico2, empPeriodo.cdiaspagados
+					), ' + '
+					TotalesPorEmpleado AS ( -- totales generales Query1
+						SELECT
+							emp.codigoempleado,
+							(emp.ccampoextranumerico2 * empPeriodo.cdiaspagados) AS sueldo,
+							SUM(CASE WHEN pdo.tipoconcepto = ''P'' THEN pdo.importetotal ELSE 0 END) AS total_percepciones_sin_sueldo,
+							SUM(CASE WHEN pdo.tipoconcepto = ''D'' THEN pdo.importetotal ELSE 0 END) AS total_deducciones
+						FROM nom10001 emp
+						INNER JOIN nom10034 empPeriodo
+							ON emp.idempleado = empPeriodo.idempleado
+							AND empPeriodo.cidperiodo = @idPeriodo
+						INNER JOIN Movimientos pdo
+							ON empPeriodo.cidperiodo = pdo.idperiodo
+							AND emp.idempleado = pdo.idempleado
+						WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
+							AND pdo.tipoconcepto IN (''P'',''D'')
+							AND pdo.descripcion NOT IN (''Sueldo'')
+							AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
+						GROUP BY
+							emp.codigoempleado, emp.ccampoextranumerico2, empPeriodo.cdiaspagados
+					), ' + '
+					TotalesPorEmpleadoFis AS ( -- totales P D sin pension Query3
+						SELECT
+							emp.codigoempleado,
+							empPeriodo.sueldodiario AS sd,
+							empPeriodo.sueldointegrado AS sdi,
+							SUM(CASE WHEN pdo.tipoconcepto = ''P'' THEN pdo.importetotal ELSE 0 END) AS total_percepciones,
+							SUM(CASE WHEN pdo.tipoconcepto = ''D'' THEN pdo.importetotal ELSE 0 END) AS total_deducciones
+						FROM nom10001 emp
+						INNER JOIN nom10034 empPeriodo
+							ON emp.idempleado = empPeriodo.idempleado
+							AND empPeriodo.cidperiodo = @idPeriodo
+						INNER JOIN Movimientos pdo
+							ON empPeriodo.cidperiodo = pdo.idperiodo
+							AND emp.idempleado = pdo.idempleado
+						WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
+							AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
+						GROUP BY
+							emp.codigoempleado, empPeriodo.sueldodiario, empPeriodo.sueldointegrado
+					), ' + '
+					preNetoTotalAPagar AS ( -- totales P - D Sin pension Query3
+						SELECT
+							tpf.codigoempleado,
+							(tpf.total_percepciones - tpf.total_deducciones) AS netoTotalAPagar
+						FROM TotalesPorEmpleadoFis tpf
+					), ' + '
+					preTotalesProrrateo AS (
+						SELECT
+							q2.codigoempleado,
+							((q2.sueldo + q2.total_percepciones_sin_sueldo) - (q2.total_deducciones + CASE WHEN q2.porcentajePension > 0 THEN (q2.sueldo + q2.total_percepciones_sin_sueldo) * (q2.porcentajePension / 100) ELSE 0 END))
+							-
+							((q3.total_percepciones) - (q3.total_deducciones + CASE WHEN q3.porcentajePension > 0 THEN (q3.total_percepciones) * (q3.porcentajePension / 100) ELSE 0 END))
+							AS netoAPagar
+						FROM TotalesPorEmpleadoGeneralQ2 q2
+						INNER JOIN TotalesPorEmpleadoQ3 q3
+							ON q2.codigoempleado = q3.codigoempleado
+					), ' + '
+					ParamConfig AS (
+						SELECT
+							sueldo_imss, sueldo_imss_tope, sueldo_imss_orden
+							, prev_social, prev_social_tope, prev_social_orden
+							, fondos_sind, fondos_sind_tope, fondos_sind_orden
+							, tarjeta_facil, tarjeta_facil_tope, tarjeta_facil_orden
+							, hon_asimilados, hon_asimilados_tope, hon_asimilados_orden
+							, gastos_compro, gastos_compro_tope, gastos_compro_orden
+						FROM [becma-core2].[dbo].[nomina_gape_concepto_pago_parametrizacion]
+						WHERE id_tipo_periodo = @idTipoPeriodo
+						AND id_nomina_gape_empresa =   @idNominaGapeEmpresa
+					), ' + '
+					ConceptosParametrizados AS (
+						SELECT ''sueldo_imss'' AS concepto, sueldo_imss AS activo, sueldo_imss_tope AS tope, sueldo_imss_orden AS orden FROM ParamConfig
+						UNION ALL SELECT ''prev_social'',   prev_social,   prev_social_tope,   prev_social_orden   FROM ParamConfig
+						UNION ALL SELECT ''fondos_sind'',   fondos_sind,   fondos_sind_tope,   fondos_sind_orden   FROM ParamConfig
+						UNION ALL SELECT ''tarjeta_facil'', tarjeta_facil, tarjeta_facil_tope, tarjeta_facil_orden FROM ParamConfig
+						UNION ALL SELECT ''hon_asimilados'',hon_asimilados, hon_asimilados_tope, hon_asimilados_orden FROM ParamConfig
+						UNION ALL SELECT ''gastos_compro'', gastos_compro, gastos_compro_tope, gastos_compro_orden FROM ParamConfig
+					), ' + '
+					ConceptosActivos AS (
+						SELECT concepto, CAST(tope AS DECIMAL(18,2)) AS tope, orden
+						FROM ConceptosParametrizados
+						WHERE activo = 1
+					), ' + '
+					BaseProrrateo AS (
+						SELECT
+							p.codigoempleado,
+							CAST(p.netoAPagar AS DECIMAL(18,2)) AS netoAPagar,
+							c.concepto,
+							c.tope,
+							c.orden,
+							ROW_NUMBER() OVER (PARTITION BY p.codigoempleado ORDER BY c.orden) AS rn
+						FROM preTotalesProrrateo p
+						CROSS JOIN ConceptosActivos c
+					), ' + '
+					ProrrateoRecursivo AS (
+						-- ANCLA
+						SELECT
+							b.codigoempleado,
+							b.concepto,
+							b.orden,
+							b.tope,
+							b.rn,
+							CAST(b.netoAPagar AS DECIMAL(18,2)) AS saldo_antes,
+							CAST(
+								CASE
+									WHEN b.netoAPagar <= 0 THEN 0
+									WHEN b.tope IS NULL OR b.netoAPagar >= b.tope THEN ISNULL(b.tope, b.netoAPagar)
+									ELSE b.netoAPagar
+								END
+							AS DECIMAL(18,2)) AS monto_asignado,
+							CAST(
+								b.netoAPagar -
+								CASE
+									WHEN b.netoAPagar <= 0 THEN 0
+									WHEN b.tope IS NULL OR b.netoAPagar >= b.tope THEN ISNULL(b.tope, b.netoAPagar)
+									ELSE b.netoAPagar
+								END
+							AS DECIMAL(18,2)) AS saldo_despues
+						FROM BaseProrrateo b
+						WHERE b.rn = 1
 
-                        UNION ALL
+						UNION ALL
 
-                        -- RECURSIVO
-                        SELECT
-                            b.codigoempleado,
-                            b.concepto,
-                            b.orden,
-                            b.tope,
-                            b.rn,
-                            CAST(r.saldo_despues AS DECIMAL(18,2)) AS saldo_antes,
-                            CAST(
-                                CASE
-                                    WHEN r.saldo_despues <= 0 THEN 0
-                                    WHEN b.tope IS NULL OR r.saldo_despues >= b.tope THEN ISNULL(b.tope, r.saldo_despues)
-                                    ELSE r.saldo_despues
-                                END
-                            AS DECIMAL(18,2)) AS monto_asignado,
-                            CAST(
-                                r.saldo_despues -
-                                CASE
-                                    WHEN r.saldo_despues <= 0 THEN 0
-                                    WHEN b.tope IS NULL OR r.saldo_despues >= b.tope THEN ISNULL(b.tope, r.saldo_despues)
-                                    ELSE r.saldo_despues
-                                END
-                            AS DECIMAL(18,2)) AS saldo_despues
-                        FROM ProrrateoRecursivo r
-                        JOIN BaseProrrateo b
-                        ON r.codigoempleado = b.codigoempleado
-                        AND r.rn + 1 = b.rn
-                    ), ' + '
-                    PercepcionesExcedentes AS (
-                        SELECT
-                            codigoempleado,
-                            SUM(monto_asignado) AS total_percepciones_excedente
-                        FROM ProrrateoRecursivo
-                        GROUP BY codigoempleado
-                    ), ' + '
-                    TotalesExcedentes AS (
-                        SELECT
-                            pe.codigoempleado,
-                            pe.total_percepciones_excedente,
-                            ISNULL(td.total_deducciones_exc, 0) AS total_deducciones_exc
-                        FROM PercepcionesExcedentes pe
-                        LEFT JOIN TotalesPorEmpleadoDeduExc td
-                            ON pe.codigoempleado = td.codigoempleado
-                    ), ' + '
-                    NetoExcedentes AS (
-                        SELECT
-                            te.codigoempleado,
-                            te.total_percepciones_excedente,
-                            te.total_deducciones_exc,
-                            te.total_percepciones_excedente - te.total_deducciones_exc AS neto_excedente
-                        FROM TotalesExcedentes te
-                    ),' + '
-                    NetoTotalAPagar AS (
-                        SELECT
-                            ne.codigoempleado,
-                            ne.total_percepciones_excedente,
-                            ne.total_deducciones_exc,
-                            ne.neto_excedente,
-                            (ISNULL(pn.netoTotalAPagar,0) + ne.neto_excedente) AS neto_total_pagar
-                        FROM NetoExcedentes ne
-                        LEFT JOIN preNetoTotalAPagar pn
-                            ON ne.codigoempleado = pn.codigoempleado
-                    ), ' + '
-                    pensionExcedente AS (
-                        SELECT
-                            gen.codigoempleado AS codigoempleado,
-                            ''Pension Excedente'' AS concepto,
-                            CASE WHEN gen.porcentajePension > 0 THEN ((gen.sueldo + gen.total_percepciones_sin_sueldo) * (gen.porcentajePension / 100)) - ((fis.total_percepciones) * (fis.porcentajePension / 100)) ELSE 0 END AS monto
-                        FROM TotalesPorEmpleadoGeneral AS gen
-                        INNER JOIN TotalesPorEmpleadoFiscal fis ON gen.codigoempleado = fis.codigoempleado
-                    ) , ' + '
+						-- RECURSIVO
+						SELECT
+							b.codigoempleado,
+							b.concepto,
+							b.orden,
+							b.tope,
+							b.rn,
+							CAST(r.saldo_despues AS DECIMAL(18,2)) AS saldo_antes,
+							CAST(
+								CASE
+									WHEN r.saldo_despues <= 0 THEN 0
+									WHEN b.tope IS NULL OR r.saldo_despues >= b.tope THEN ISNULL(b.tope, r.saldo_despues)
+									ELSE r.saldo_despues
+								END
+							AS DECIMAL(18,2)) AS monto_asignado,
+							CAST(
+								r.saldo_despues -
+								CASE
+									WHEN r.saldo_despues <= 0 THEN 0
+									WHEN b.tope IS NULL OR r.saldo_despues >= b.tope THEN ISNULL(b.tope, r.saldo_despues)
+									ELSE r.saldo_despues
+								END
+							AS DECIMAL(18,2)) AS saldo_despues
+						FROM ProrrateoRecursivo r
+						JOIN BaseProrrateo b
+						ON r.codigoempleado = b.codigoempleado
+						AND r.rn + 1 = b.rn
+					), ' + '
+					PercepcionesExcedentes AS (
+						SELECT
+							codigoempleado,
+							SUM(monto_asignado) AS total_percepciones_excedente
+						FROM ProrrateoRecursivo
+						GROUP BY codigoempleado
+					), ' + '
+					TotalesExcedentes AS (
+						SELECT
+							pe.codigoempleado,
+							pe.total_percepciones_excedente,
+							ISNULL(td.total_deducciones_exc, 0) AS total_deducciones_exc
+						FROM PercepcionesExcedentes pe
+						LEFT JOIN TotalesPorEmpleadoDeduccionesExcedentes td
+							ON pe.codigoempleado = td.codigoempleado
+					), ' + '
+					NetoExcedentes AS (
+						SELECT
+							te.codigoempleado,
+							te.total_percepciones_excedente,
+							te.total_deducciones_exc,
+							te.total_percepciones_excedente - te.total_deducciones_exc AS neto_excedente
+						FROM TotalesExcedentes te
+					),' + '
+					NetoTotalAPagar AS (
+						SELECT
+							ne.codigoempleado,
+							ne.total_percepciones_excedente,
+							ne.total_deducciones_exc,
+							ne.neto_excedente,
+							(ISNULL(pn.netoTotalAPagar,0) + ne.neto_excedente) AS neto_total_pagar
+						FROM NetoExcedentes ne
+						LEFT JOIN preNetoTotalAPagar pn
+							ON ne.codigoempleado = pn.codigoempleado
+					), ' + '
+					pensionExcedente AS (
+						SELECT
+							gen.codigoempleado AS codigoempleado,
+							''Pension Excedente'' AS concepto,
+							CASE WHEN gen.porcentajePension > 0 THEN ((gen.sueldo + gen.total_percepciones_sin_sueldo) * (gen.porcentajePension / 100)) - ((fis.total_percepciones) * (fis.porcentajePension / 100)) ELSE 0 END AS monto
+						FROM TotalesPorEmpleadoGeneralQ2 AS gen
+						INNER JOIN TotalesPorEmpleadoQ3 fis ON gen.codigoempleado = fis.codigoempleado
+					) , ' + '
+					provisiones AS (
+						SELECT
+							emp.codigoempleado AS codigoempleado,
+							(empPeriodo.sueldodiario * antig.DiasAguinaldo) / 365 * periodo.diasdepago AS provisionAguinaldo,
+							(empPeriodo.sueldodiario * antig.DiasVacaciones * (PorcentajePrima / 100.0)) / 365.0 * periodo.diasdepago AS provisionPrimaVacacional
 
-                    provisiones AS (
-                        SELECT
-                            emp.codigoempleado AS codigoempleado,
-                            (empPeriodo.sueldodiario * antig.DiasAguinaldo) / 365 * periodo.diasdepago AS provisionAguinaldo,
-                            (empPeriodo.sueldodiario * antig.DiasVacaciones * (PorcentajePrima / 100.0)) / 365.0 * periodo.diasdepago AS provisionPrimaVacacional
-
-                        FROM nom10001 emp
-                        INNER JOIN nom10034 empPeriodo
-                            ON emp.idempleado = empPeriodo.idempleado AND empPeriodo.cidperiodo = @idPeriodo
-                        INNER JOIN nom10002 AS periodo
-                            ON empPeriodo.cidperiodo = periodo.idperiodo AND periodo.idperiodo = @idPeriodo
-                        INNER JOIN nom10050 AS tipoPres
-                            ON empPeriodo.TipoPrestacion = tipoPres.IDTabla
-                        CROSS APPLY (
-                            SELECT TOP 1 *
-                            FROM nom10051 antig
-                            WHERE antig.IDTablaPrestacion = tipoPres.IDTabla
-                                AND antig.Antiguedad =
-                                    CASE
-                                        WHEN FLOOR(DATEDIFF(day, empPeriodo.fechaalta, GETDATE()) / 365.25) = 0
-                                            THEN 1
-                                        ELSE FLOOR(DATEDIFF(day, empPeriodo.fechaalta, GETDATE()) / 365.25)
-                                    END
-                            ORDER BY antig.fechainicioVigencia DESC
-                        ) AS antig
-                        WHERE empPeriodo.cidperiodo = @idPeriodo
-
-                        AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
-                    ), ' + '
+						FROM nom10001 emp
+						INNER JOIN nom10034 empPeriodo
+							ON emp.idempleado = empPeriodo.idempleado AND empPeriodo.cidperiodo = @idPeriodo
+						INNER JOIN nom10002 AS periodo
+							ON empPeriodo.cidperiodo = periodo.idperiodo AND periodo.idperiodo = @idPeriodo
+						INNER JOIN nom10050 AS tipoPres
+							ON empPeriodo.TipoPrestacion = tipoPres.IDTabla
+						CROSS APPLY (
+							SELECT TOP 1 *
+							FROM nom10051 antig
+							WHERE antig.IDTablaPrestacion = tipoPres.IDTabla
+								AND antig.Antiguedad =
+									CASE
+										WHEN FLOOR(DATEDIFF(day, empPeriodo.fechaalta, GETDATE()) / 365.25) = 0
+											THEN 1
+										ELSE FLOOR(DATEDIFF(day, empPeriodo.fechaalta, GETDATE()) / 365.25)
+									END
+							ORDER BY antig.fechainicioVigencia DESC
+						) AS antig
+						WHERE empPeriodo.cidperiodo = @idPeriodo
+						AND empPeriodo.estadoempleado IN (''A'', ''R'')
+						AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
+					), ' + '
 
                     nomGapeEmpresa AS (
                         SELECT
@@ -2305,30 +2276,29 @@ class PrenominaController extends Controller
                         SELECT
                             nta.codigoempleado,
                             nge.fee AS  fee,
-                            (nta.total_deducciones_exc + pe.monto )
-                                +
-                            (t.total_deducciones +
-                                CASE WHEN porcentajePension > 0 THEN (total_percepciones) * (porcentajePension / 100)
-                                ELSE
-                                    0
-                            END) +
-
-                            CASE
-                                WHEN nge.provisiones = ''si''
-                                THEN (
-                                    SELECT
-                                    (prov.provisionPrimaVacacional + prov.provisionAguinaldo)
-                                    FROM provisiones AS prov
-                                    WHERE nta.codigoempleado = prov.codigoempleado
-                                )
-                                ELSE 0
-                            END
-
-                            AS monto_asignado
-                        FROM NetoTotalAPagar AS nta
-                        INNER JOIN pensionExcedente AS pe ON nta.codigoempleado = pe.codigoempleado
-                        INNER JOIN TotalesPorEmpleadoFiscal t ON pe.codigoempleado = t.codigoempleado
-                        CROSS JOIN nomGapeEmpresa nge
+                            ((nta.neto_total_pagar - pe.monto) - ((q3.total_percepciones) * (q3.porcentajePension / 100))
+							+
+							(q3.total_deducciones + CASE WHEN porcentajePension > 0 THEN (total_percepciones) * (porcentajePension / 100) ELSE 0 END)
+							+
+							(nta.total_deducciones_exc + pe.monto ))
+							+
+							CASE
+								WHEN nge.provisiones = ''si''
+								THEN (
+									SELECT
+									(prov.provisionPrimaVacacional + prov.provisionAguinaldo)
+									FROM provisiones AS prov
+									WHERE nta.codigoempleado = prov.codigoempleado
+								)
+								ELSE 0
+							END
+							AS monto_asignado
+							FROM NetoTotalAPagar AS nta
+							INNER JOIN pensionExcedente AS pe
+								ON nta.codigoempleado = pe.codigoempleado
+							INNER JOIN TotalesPorEmpleadoQ3 AS q3
+								ON nta.codigoempleado = q3.codigoempleado
+							CROSS JOIN nomGapeEmpresa nge
                     ), ' + '
                     MovimientosO AS (
                         SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
@@ -2458,408 +2428,405 @@ class PrenominaController extends Controller
                 SET @idNominaGapeEmpresa = $idNominaGapeEmpresa;
 
                 ;WITH
-                    Movimientos AS (
-                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto
-                        FROM Nom10007 AS his
-                        INNER JOIN nom10004 con
-                            ON his.idconcepto = con.idconcepto
-                        WHERE importetotal > 0
-                            AND idperiodo = @idPeriodo
-                            AND con.tipoconcepto IN (''P'',''D'')
-                        UNION ALL
-                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto
-                        FROM Nom10008 AS actual
-                        INNER JOIN nom10004 con
-                            ON actual.idconcepto = con.idconcepto
-                        WHERE importetotal > 0
-                            AND idperiodo = @idPeriodo
-                            AND con.tipoconcepto IN (''P'',''D'')
-                    ), ' + '
-                    MovimientosSumaGeneral AS (
-                        SELECT
-                            emp.codigoempleado,
-                            (emp.ccampoextranumerico2 * empPeriodo.cdiaspagados) AS sueldo,
-                            pdo.descripcion,
-                            pdo.tipoconcepto AS tipoConcepto,
-                            SUM(pdo.valor) AS cantidad,
-                            SUM(pdo.importetotal) AS monto,
-                            emp.ccampoextranumerico3 AS pension
-                        FROM nom10001 emp
-                        INNER JOIN nom10034 empPeriodo
-                            ON emp.idempleado = empPeriodo.idempleado
-                                AND empPeriodo.cidperiodo = @idPeriodo
-                        INNER JOIN Movimientos pdo
-                            ON empPeriodo.cidperiodo = pdo.idperiodo
-                            AND emp.idempleado = pdo.idempleado
-                        WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
-                            AND pdo.descripcion NOT IN(''Sueldo'')
-                            AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
-                        GROUP BY
-                            emp.codigoempleado, emp.ccampoextranumerico2, empPeriodo.cdiaspagados, pdo.descripcion, pdo.tipoconcepto, emp.ccampoextranumerico3
-                    ), ' + '
-                    IncidenciasNormalizadas AS (
-                        SELECT
-                            emp.codigoempleado as codigoempleado,
-                            x.descripcion AS descripcion,
-                            ''P'' AS tipoConcepto,
-                            x.valor AS valor,
-                            emp.ccampoextranumerico3 AS pension
-                        FROM [becma-core2].dbo.nomina_gape_incidencia AS ngi
-                        INNER JOIN [becma-core2].dbo.nomina_gape_incidencia_detalle AS ngid
-                            ON ngi.id = ngid.id_nomina_gape_incidencia
-                        INNER JOIN nom10034 AS empP
-                            ON ngid.id_empleado = empP.idempleado
-                            AND empP.cidperiodo = @idPeriodo
-                            AND empP.idtipoperiodo = @idTipoPeriodo
-                            AND empP.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
-                        INNER JOIN nom10001 AS emp
-                            ON empP.idempleado = emp.idempleado
-                        CROSS APPLY (VALUES
-                            (''Comisiones'',               ngid.comision),
-                            (''Bono'',                   ngid.bono),
-                            (''Horas Extra Doble cantidad'',   ngid.horas_extra_doble_cantidad),
-                            (''Horas Extra Doble monto'',      ngid.horas_extra_doble),
-                            (''Horas Extra Triple cantidad'',  ngid.horas_extra_triple_cantidad),
-                            (''Horas Extra Triple monto'',     ngid.horas_extra_triple),
-                            (''Pago adicional'',         ngid.pago_adicional),
-                            (''Premio puntualidad'',     ngid.premio_puntualidad)
-                        ) AS x(descripcion, valor)
-                        WHERE ngi.id_tipo_periodo = @idTipoPeriodo
-                        AND ngi.id_nomina_gape_empresa = @idNominaGapeEmpresa
-                        AND ngid.id_empleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
-                    ), ' + '
-                    TotalesPorEmpleadoGeneral AS (
-                        SELECT
-                            codigoempleado,
-                            MAX(sueldo) AS sueldo,
-                            SUM(CASE
-                                    WHEN tipoConcepto = ''P'' THEN monto
-                                    ELSE 0
-                                END)
-                            +
-                            SUM(CASE
-                                    WHEN tipoConcepto = ''P'' THEN valor
-                                    ELSE 0
-                                END)
-                            AS total_percepciones_sin_sueldo,
-                            SUM(CASE
-                                    WHEN tipoConcepto = ''D'' THEN monto
-                                    ELSE 0
-                                END)
-                            AS total_deducciones,
-                            pension AS porcentajePension
+					Movimientos AS (
+						SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto
+						FROM Nom10007 AS his
+						INNER JOIN nom10004 con
+							ON his.idconcepto = con.idconcepto
+						WHERE importetotal > 0
+							AND idperiodo = @idPeriodo
+							AND con.tipoconcepto IN (''P'',''D'')
+						UNION ALL
+						SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto
+						FROM Nom10008 AS actual
+						INNER JOIN nom10004 con
+							ON actual.idconcepto = con.idconcepto
+						WHERE importetotal > 0
+							AND idperiodo = @idPeriodo
+							AND con.tipoconcepto IN (''P'',''D'')
+					), ' + '
+					MovimientosSumaQ2 AS (
+						SELECT
+							emp.codigoempleado,
+							(emp.ccampoextranumerico2 * empPeriodo.cdiaspagados) AS sueldo,
+							pdo.descripcion,
+							pdo.tipoconcepto AS tipoConcepto,
+							SUM(pdo.valor) AS cantidad,
+							SUM(pdo.importetotal) AS monto,
+							emp.ccampoextranumerico3 AS pension
+						FROM nom10001 emp
+						INNER JOIN nom10034 empPeriodo
+							ON emp.idempleado = empPeriodo.idempleado
+								AND empPeriodo.cidperiodo = @idPeriodo
+						INNER JOIN Movimientos pdo
+							ON empPeriodo.cidperiodo = pdo.idperiodo
+							AND emp.idempleado = pdo.idempleado
+						WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
+							AND pdo.descripcion NOT IN(''Sueldo'',''Pensión Alimenticia'', ''Pension Alimenticia'')
+							AND empPeriodo.estadoempleado IN (''A'', ''R'')
+							AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
+						GROUP BY
+							emp.codigoempleado, emp.ccampoextranumerico2, empPeriodo.cdiaspagados, pdo.descripcion, pdo.tipoconcepto, emp.ccampoextranumerico3
+					), ' + '
+					IncidenciasNormalizadasQ2 AS (
+						SELECT
+							emp.codigoempleado as codigoempleado,
+							x.descripcion AS descripcion,
+							''P'' AS tipoConcepto,
+							x.valor AS valor,
+							emp.ccampoextranumerico3 AS pension
+						FROM [becma-core2].dbo.nomina_gape_incidencia AS ngi
+						INNER JOIN [becma-core2].dbo.nomina_gape_incidencia_detalle AS ngid
+							ON ngi.id = ngid.id_nomina_gape_incidencia
+						INNER JOIN nom10034 AS empP
+							ON ngid.id_empleado = empP.idempleado
+							AND empP.cidperiodo = @idPeriodo
+							AND empP.idtipoperiodo = @idTipoPeriodo
+							AND empP.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
+							AND empP.estadoempleado IN (''A'', ''R'')
+						INNER JOIN nom10001 AS emp
+							ON empP.idempleado = emp.idempleado
+						CROSS APPLY (VALUES
+							(''Comisiones'',               ngid.comision),
+							(''Bono'',                   ngid.bono),
+							(''Horas Extra Doble cantidad'',   ngid.horas_extra_doble_cantidad),
+							(''Horas Extra Doble monto'',      ngid.horas_extra_doble),
+							(''Horas Extra Triple cantidad'',  ngid.horas_extra_triple_cantidad),
+							(''Horas Extra Triple monto'',     ngid.horas_extra_triple),
+							(''Pago adicional'',         ngid.pago_adicional),
+							(''Premio puntualidad'',     ngid.premio_puntualidad)
+						) AS x(descripcion, valor)
+						WHERE ngi.id_tipo_periodo = @idTipoPeriodo
+							AND ngi.id_nomina_gape_empresa = @idNominaGapeEmpresa
+							AND ngid.id_empleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
+					), ' + '
+					TotalesPorEmpleadoGeneralQ2 AS (
+						SELECT
+							codigoempleado,
+							MAX(sueldo) AS sueldo,
+							SUM(CASE WHEN tipoConcepto = ''P'' THEN monto ELSE 0 END)
+							+
+							SUM(CASE WHEN tipoConcepto = ''P'' THEN valor ELSE 0 END) AS total_percepciones_sin_sueldo,
+							SUM(CASE WHEN tipoConcepto = ''D'' THEN monto ELSE 0 END) AS total_deducciones,
+							pension AS porcentajePension
 
-                        FROM (
-                            SELECT
-                                codigoempleado,
-                                sueldo,
-                                tipoConcepto,
-                                monto AS monto,
-                                0 AS valor,
-                                pension
-                            FROM MovimientosSumaGeneral
-                            UNION ALL
-                            SELECT
-                                codigoempleado,
-                                0 AS sueldo,
-                                ''P'' AS tipoConcepto,
-                                0 AS monto,
-                                valor AS valor,
-                                pension
-                            FROM IncidenciasNormalizadas
-                        ) AS x
-                        GROUP BY codigoempleado, pension
-                    ),
-                    MovimientosSumaFiscal AS (
-                            SELECT
-                                emp.codigoempleado,
-                                empPeriodo.sueldodiario AS sd,
-                                empPeriodo.sueldointegrado AS sdi,
-                                pdo.descripcion,
-                                pdo.tipoconcepto AS tipoConcepto,
-                                SUM(pdo.importetotal) AS monto,
-                                emp.ccampoextranumerico3 AS pension
-                            FROM nom10001 emp
-                            INNER JOIN nom10034 empPeriodo
-                                ON emp.idempleado = empPeriodo.idempleado
-                                AND empPeriodo.cidperiodo = @idPeriodo
-                            INNER JOIN Movimientos pdo
-                                ON empPeriodo.cidperiodo = pdo.idperiodo
-                                AND emp.idempleado = pdo.idempleado
-                            WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
-                                AND pdo.descripcion NOT IN (''Pensión Alimenticia'', ''Pension Alimenticia'')
-                                AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
-                            GROUP BY
-                                emp.codigoempleado, empPeriodo.sueldodiario, empPeriodo.sueldointegrado, pdo.descripcion, pdo.tipoconcepto, emp.ccampoextranumerico3
-                    ), ' + '
-                    TotalesPorEmpleadoFiscal AS (
-                            SELECT
-                                codigoempleado,
-                                sd,
-                                sdi,
-                                SUM(CASE WHEN tipoConcepto = ''P'' THEN monto ELSE 0 END) AS total_percepciones,
-                                SUM(CASE WHEN tipoConcepto = ''D'' THEN monto ELSE 0 END) AS total_deducciones,
-                                pension AS porcentajePension
-                            FROM MovimientosSumaFiscal
-                            GROUP BY codigoempleado, pension, sdi, sd
-                    ), ' + '
-                    MovimientosSuma AS (
-                        SELECT
-                            emp.codigoempleado,
-                            pdo.descripcion,
-                            SUM(pdo.importeTotal) AS monto
-                        FROM nom10001 emp
-                        INNER JOIN nom10034 empPeriodo
-                            ON emp.idempleado = empPeriodo.idempleado
-                            AND empPeriodo.cidperiodo = @idPeriodo
-                        INNER JOIN Movimientos pdo
-                            ON empPeriodo.cidperiodo = pdo.idperiodo
-                            AND emp.idempleado = pdo.idempleado
-                        WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
-                            AND pdo.tipoconcepto IN (''D'')
-                            AND pdo.descripcion NOT IN (''Pensión Alimenticia'', ''Pension Alimenticia'')
-                            AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
-                        GROUP BY
-                            emp.codigoempleado, empPeriodo.sueldodiario, empPeriodo.sueldointegrado, pdo.descripcion
-                    ), ' + '
-                    TotalesPorEmpleadoDeduExc AS (
-                        SELECT
-                            emp.codigoempleado,
-                            (emp.ccampoextranumerico2 * empPeriodo.cdiaspagados) AS sueldo,
-                            SUM(CASE WHEN pdo.tipoconcepto = ''D'' THEN pdo.importetotal ELSE 0 END) AS total_deducciones_exc
-                        FROM nom10001 emp
-                        INNER JOIN nom10034 empPeriodo
-                            ON emp.idempleado = empPeriodo.idempleado
-                            AND empPeriodo.cidperiodo = @idPeriodo
-                        INNER JOIN Movimientos pdo
-                            ON empPeriodo.cidperiodo = pdo.idperiodo
-                            AND emp.idempleado = pdo.idempleado
-                        WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
-                            AND pdo.tipoconcepto IN (''D'')
-                            AND pdo.descripcion NOT IN (''Pensión Alimenticia'', ''Pension Alimenticia'')
-                            AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
-                        GROUP BY
-                            emp.codigoempleado, emp.ccampoextranumerico2, empPeriodo.cdiaspagados
-                    ), ' + '
-                    TotalesPorEmpleado AS (
-                        SELECT
-                            emp.codigoempleado,
-                            (emp.ccampoextranumerico2 * empPeriodo.cdiaspagados) AS sueldo,
-                            SUM(CASE WHEN pdo.tipoconcepto = ''P'' THEN pdo.importetotal ELSE 0 END) AS total_percepciones_sin_sueldo,
-                            SUM(CASE WHEN pdo.tipoconcepto = ''D'' THEN pdo.importetotal ELSE 0 END) AS total_deducciones
-                        FROM nom10001 emp
-                        INNER JOIN nom10034 empPeriodo
-                            ON emp.idempleado = empPeriodo.idempleado
-                            AND empPeriodo.cidperiodo = @idPeriodo
-                        INNER JOIN Movimientos pdo
-                            ON empPeriodo.cidperiodo = pdo.idperiodo
-                            AND emp.idempleado = pdo.idempleado
-                        WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
-                            AND pdo.tipoconcepto IN (''P'',''D'')
-                            AND pdo.descripcion NOT IN (''Sueldo'')
-                            AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
-                        GROUP BY
-                            emp.codigoempleado, emp.ccampoextranumerico2, empPeriodo.cdiaspagados
-                    ), ' + '
-                    TotalesPorEmpleadoFis AS (
-                        SELECT
-                            emp.codigoempleado,
-                            empPeriodo.sueldodiario AS sd,
-                            empPeriodo.sueldointegrado AS sdi,
-                            SUM(CASE WHEN pdo.tipoconcepto = ''P'' THEN pdo.importetotal ELSE 0 END) AS total_percepciones,
-                            SUM(CASE WHEN pdo.tipoconcepto = ''D'' THEN pdo.importetotal ELSE 0 END) AS total_deducciones
-                        FROM nom10001 emp
-                        INNER JOIN nom10034 empPeriodo
-                            ON emp.idempleado = empPeriodo.idempleado
-                            AND empPeriodo.cidperiodo = @idPeriodo
-                        INNER JOIN Movimientos pdo
-                            ON empPeriodo.cidperiodo = pdo.idperiodo
-                            AND emp.idempleado = pdo.idempleado
-                        WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
-                            AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
-                        GROUP BY
-                            emp.codigoempleado, empPeriodo.sueldodiario, empPeriodo.sueldointegrado
-                    ), ' + '
-                    preNetoTotalAPagar AS (
-                        SELECT
-                            tpf.codigoempleado,
-                            (tpf.total_percepciones - tpf.total_deducciones) AS netoTotalAPagar
-                        FROM TotalesPorEmpleadoFis tpf
-                    ), ' + '
-                    preTotales AS (
-                        SELECT
-                            tpe.codigoempleado,
-                            (tpe.sueldo + (tpe.total_percepciones_sin_sueldo - tpe.total_deducciones))
-                            - (tpf.total_percepciones - tpf.total_deducciones) AS netoAPagar
-                        FROM TotalesPorEmpleado tpe
-                        INNER JOIN TotalesPorEmpleadoFis tpf
-                            ON tpe.codigoempleado = tpf.codigoempleado
-                    ), ' + '
-                    ParamConfig AS (
-                        SELECT
-                            sueldo_imss, sueldo_imss_tope, sueldo_imss_orden
-                            , prev_social, prev_social_tope, prev_social_orden
-                            , fondos_sind, fondos_sind_tope, fondos_sind_orden
-                            , tarjeta_facil, tarjeta_facil_tope, tarjeta_facil_orden
-                            , hon_asimilados, hon_asimilados_tope, hon_asimilados_orden
-                            , gastos_compro, gastos_compro_tope, gastos_compro_orden
-                        FROM [becma-core2].[dbo].[nomina_gape_concepto_pago_parametrizacion]
-                        WHERE id_tipo_periodo = @idTipoPeriodo
-                        AND id_nomina_gape_empresa =   @idNominaGapeEmpresa
-                    ), ' + '
-                    ConceptosParametrizados AS (
-                        SELECT ''sueldo_imss'' AS concepto, sueldo_imss AS activo, sueldo_imss_tope AS tope, sueldo_imss_orden AS orden FROM ParamConfig
-                        UNION ALL SELECT ''prev_social'',   prev_social,   prev_social_tope,   prev_social_orden   FROM ParamConfig
-                        UNION ALL SELECT ''fondos_sind'',   fondos_sind,   fondos_sind_tope,   fondos_sind_orden   FROM ParamConfig
-                        UNION ALL SELECT ''tarjeta_facil'', tarjeta_facil, tarjeta_facil_tope, tarjeta_facil_orden FROM ParamConfig
-                        UNION ALL SELECT ''hon_asimilados'',hon_asimilados, hon_asimilados_tope, hon_asimilados_orden FROM ParamConfig
-                        UNION ALL SELECT ''gastos_compro'', gastos_compro, gastos_compro_tope, gastos_compro_orden FROM ParamConfig
-                    ), ' + '
-                    ConceptosActivos AS (
-                        SELECT concepto, CAST(tope AS DECIMAL(18,2)) AS tope, orden
-                        FROM ConceptosParametrizados
-                        WHERE activo = 1
-                    ), ' + '
-                    BaseProrrateo AS (
-                        SELECT
-                            p.codigoempleado,
-                            CAST(p.netoAPagar AS DECIMAL(18,2)) AS netoAPagar,
-                            c.concepto,
-                            c.tope,
-                            c.orden,
-                            ROW_NUMBER() OVER (PARTITION BY p.codigoempleado ORDER BY c.orden) AS rn
-                        FROM preTotales p
-                        CROSS JOIN ConceptosActivos c
-                    ), ' + '
-                    ProrrateoRecursivo AS (
-                        -- ANCLA
-                        SELECT
-                            b.codigoempleado,
-                            b.concepto,
-                            b.orden,
-                            b.tope,
-                            b.rn,
-                            CAST(b.netoAPagar AS DECIMAL(18,2)) AS saldo_antes,
-                            CAST(
-                                CASE
-                                    WHEN b.netoAPagar <= 0 THEN 0
-                                    WHEN b.tope IS NULL OR b.netoAPagar >= b.tope THEN ISNULL(b.tope, b.netoAPagar)
-                                    ELSE b.netoAPagar
-                                END
-                            AS DECIMAL(18,2)) AS monto_asignado,
-                            CAST(
-                                b.netoAPagar -
-                                CASE
-                                    WHEN b.netoAPagar <= 0 THEN 0
-                                    WHEN b.tope IS NULL OR b.netoAPagar >= b.tope THEN ISNULL(b.tope, b.netoAPagar)
-                                    ELSE b.netoAPagar
-                                END
-                            AS DECIMAL(18,2)) AS saldo_despues
-                        FROM BaseProrrateo b
-                        WHERE b.rn = 1
+						FROM (
+							SELECT
+								codigoempleado,
+								sueldo,
+								tipoConcepto,
+								monto AS monto,
+								0 AS valor,
+								pension
+							FROM MovimientosSumaQ2
+							UNION ALL
+							SELECT
+								codigoempleado,
+								0 AS sueldo,
+								''P'' AS tipoConcepto,
+								0 AS monto,
+								valor AS valor,
+								pension
+							FROM IncidenciasNormalizadasQ2
+						) AS x
+						GROUP BY codigoempleado, pension
+					),
+					MovimientosSumaQ3 AS (
+							SELECT
+								emp.codigoempleado,
+								empPeriodo.sueldodiario AS sd,
+								empPeriodo.sueldointegrado AS sdi,
+								pdo.descripcion,
+								pdo.tipoconcepto AS tipoConcepto,
+								SUM(pdo.importetotal) AS monto,
+								emp.ccampoextranumerico3 AS pension
+							FROM nom10001 emp
+							INNER JOIN nom10034 empPeriodo
+								ON emp.idempleado = empPeriodo.idempleado
+								AND empPeriodo.cidperiodo = @idPeriodo
+							INNER JOIN Movimientos pdo
+								ON empPeriodo.cidperiodo = pdo.idperiodo
+								AND emp.idempleado = pdo.idempleado
+							WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
+								AND pdo.descripcion NOT IN (''Pensión Alimenticia'', ''Pension Alimenticia'')
+								AND empPeriodo.estadoempleado IN (''A'', ''R'')
+								AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
+							GROUP BY
+								emp.codigoempleado, empPeriodo.sueldodiario, empPeriodo.sueldointegrado, pdo.descripcion, pdo.tipoconcepto, emp.ccampoextranumerico3
+					), ' + '
+					TotalesPorEmpleadoQ3 AS (
+							SELECT
+								codigoempleado,
+								sd,
+								sdi,
+								SUM(CASE WHEN tipoConcepto = ''P'' THEN monto ELSE 0 END) AS total_percepciones,
+								SUM(CASE WHEN tipoConcepto = ''D'' THEN monto ELSE 0 END) AS total_deducciones,
+								pension AS porcentajePension
+							FROM MovimientosSumaQ3
+							GROUP BY codigoempleado, pension, sdi, sd
+					), ' + ' -------- se omite esto por el momento porque no se sabe cuales son las deducciones excedentes
+					MovimientosSumaExcedente AS (
+						SELECT
+							emp.codigoempleado,
+							pdo.descripcion,
+							SUM(pdo.importeTotal) AS monto
+						FROM nom10001 emp
+						INNER JOIN nom10034 empPeriodo
+							ON emp.idempleado = empPeriodo.idempleado
+							AND empPeriodo.cidperiodo = @idPeriodo
+						INNER JOIN Movimientos pdo
+							ON empPeriodo.cidperiodo = pdo.idperiodo
+							AND emp.idempleado = pdo.idempleado
+						WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
+							AND pdo.tipoconcepto IN (''P'')
+							AND pdo.descripcion NOT IN (''Pensión Alimenticia'', ''Pension Alimenticia'')
+							AND empPeriodo.estadoempleado IN (''A'', ''R'')
+							AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
+						GROUP BY
+							emp.codigoempleado, empPeriodo.sueldodiario, empPeriodo.sueldointegrado, pdo.descripcion
+					), ' + ' -------- se omite esto por el momento porque no se sabe cuales son las deducciones excedentes
+					TotalesPorEmpleadoDeduccionesExcedentes AS (
+						SELECT
+							emp.codigoempleado,
+							(emp.ccampoextranumerico2 * empPeriodo.cdiaspagados) AS sueldo,
+							SUM(CASE WHEN pdo.tipoconcepto = ''D'' THEN pdo.importetotal ELSE 0 END) AS total_deducciones_exc
+						FROM nom10001 emp
+						INNER JOIN nom10034 empPeriodo
+							ON emp.idempleado = empPeriodo.idempleado
+							AND empPeriodo.cidperiodo = @idPeriodo
+						INNER JOIN Movimientos pdo
+							ON empPeriodo.cidperiodo = pdo.idperiodo
+							AND emp.idempleado = pdo.idempleado
+						WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
+							AND pdo.tipoconcepto IN (''P'')
+							AND pdo.descripcion NOT IN (''Pensión Alimenticia'', ''Pension Alimenticia'')
+							AND empPeriodo.estadoempleado IN (''A'', ''R'')
+							AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
+						GROUP BY
+							emp.codigoempleado, emp.ccampoextranumerico2, empPeriodo.cdiaspagados
+					), ' + '
+					TotalesPorEmpleado AS ( -- totales generales Query1
+						SELECT
+							emp.codigoempleado,
+							(emp.ccampoextranumerico2 * empPeriodo.cdiaspagados) AS sueldo,
+							SUM(CASE WHEN pdo.tipoconcepto = ''P'' THEN pdo.importetotal ELSE 0 END) AS total_percepciones_sin_sueldo,
+							SUM(CASE WHEN pdo.tipoconcepto = ''D'' THEN pdo.importetotal ELSE 0 END) AS total_deducciones
+						FROM nom10001 emp
+						INNER JOIN nom10034 empPeriodo
+							ON emp.idempleado = empPeriodo.idempleado
+							AND empPeriodo.cidperiodo = @idPeriodo
+						INNER JOIN Movimientos pdo
+							ON empPeriodo.cidperiodo = pdo.idperiodo
+							AND emp.idempleado = pdo.idempleado
+						WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
+							AND pdo.tipoconcepto IN (''P'',''D'')
+							AND pdo.descripcion NOT IN (''Sueldo'')
+							AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
+						GROUP BY
+							emp.codigoempleado, emp.ccampoextranumerico2, empPeriodo.cdiaspagados
+					), ' + '
+					TotalesPorEmpleadoFis AS ( -- totales P D sin pension Query3
+						SELECT
+							emp.codigoempleado,
+							empPeriodo.sueldodiario AS sd,
+							empPeriodo.sueldointegrado AS sdi,
+							SUM(CASE WHEN pdo.tipoconcepto = ''P'' THEN pdo.importetotal ELSE 0 END) AS total_percepciones,
+							SUM(CASE WHEN pdo.tipoconcepto = ''D'' THEN pdo.importetotal ELSE 0 END) AS total_deducciones
+						FROM nom10001 emp
+						INNER JOIN nom10034 empPeriodo
+							ON emp.idempleado = empPeriodo.idempleado
+							AND empPeriodo.cidperiodo = @idPeriodo
+						INNER JOIN Movimientos pdo
+							ON empPeriodo.cidperiodo = pdo.idperiodo
+							AND emp.idempleado = pdo.idempleado
+						WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
+							AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
+						GROUP BY
+							emp.codigoempleado, empPeriodo.sueldodiario, empPeriodo.sueldointegrado
+					), ' + '
+					preNetoTotalAPagar AS ( -- totales P - D Sin pension Query3
+						SELECT
+							tpf.codigoempleado,
+							(tpf.total_percepciones - tpf.total_deducciones) AS netoTotalAPagar
+						FROM TotalesPorEmpleadoFis tpf
+					), ' + '
+					preTotalesProrrateo AS (
+						SELECT
+							q2.codigoempleado,
+							((q2.sueldo + q2.total_percepciones_sin_sueldo) - (q2.total_deducciones + CASE WHEN q2.porcentajePension > 0 THEN (q2.sueldo + q2.total_percepciones_sin_sueldo) * (q2.porcentajePension / 100) ELSE 0 END))
+							-
+							((q3.total_percepciones) - (q3.total_deducciones + CASE WHEN q3.porcentajePension > 0 THEN (q3.total_percepciones) * (q3.porcentajePension / 100) ELSE 0 END))
+							AS netoAPagar
+						FROM TotalesPorEmpleadoGeneralQ2 q2
+						INNER JOIN TotalesPorEmpleadoQ3 q3
+							ON q2.codigoempleado = q3.codigoempleado
+					), ' + '
+					ParamConfig AS (
+						SELECT
+							sueldo_imss, sueldo_imss_tope, sueldo_imss_orden
+							, prev_social, prev_social_tope, prev_social_orden
+							, fondos_sind, fondos_sind_tope, fondos_sind_orden
+							, tarjeta_facil, tarjeta_facil_tope, tarjeta_facil_orden
+							, hon_asimilados, hon_asimilados_tope, hon_asimilados_orden
+							, gastos_compro, gastos_compro_tope, gastos_compro_orden
+						FROM [becma-core2].[dbo].[nomina_gape_concepto_pago_parametrizacion]
+						WHERE id_tipo_periodo = @idTipoPeriodo
+						AND id_nomina_gape_empresa =   @idNominaGapeEmpresa
+					), ' + '
+					ConceptosParametrizados AS (
+						SELECT ''sueldo_imss'' AS concepto, sueldo_imss AS activo, sueldo_imss_tope AS tope, sueldo_imss_orden AS orden FROM ParamConfig
+						UNION ALL SELECT ''prev_social'',   prev_social,   prev_social_tope,   prev_social_orden   FROM ParamConfig
+						UNION ALL SELECT ''fondos_sind'',   fondos_sind,   fondos_sind_tope,   fondos_sind_orden   FROM ParamConfig
+						UNION ALL SELECT ''tarjeta_facil'', tarjeta_facil, tarjeta_facil_tope, tarjeta_facil_orden FROM ParamConfig
+						UNION ALL SELECT ''hon_asimilados'',hon_asimilados, hon_asimilados_tope, hon_asimilados_orden FROM ParamConfig
+						UNION ALL SELECT ''gastos_compro'', gastos_compro, gastos_compro_tope, gastos_compro_orden FROM ParamConfig
+					), ' + '
+					ConceptosActivos AS (
+						SELECT concepto, CAST(tope AS DECIMAL(18,2)) AS tope, orden
+						FROM ConceptosParametrizados
+						WHERE activo = 1
+					), ' + '
+					BaseProrrateo AS (
+						SELECT
+							p.codigoempleado,
+							CAST(p.netoAPagar AS DECIMAL(18,2)) AS netoAPagar,
+							c.concepto,
+							c.tope,
+							c.orden,
+							ROW_NUMBER() OVER (PARTITION BY p.codigoempleado ORDER BY c.orden) AS rn
+						FROM preTotalesProrrateo p
+						CROSS JOIN ConceptosActivos c
+					), ' + '
+					ProrrateoRecursivo AS (
+						-- ANCLA
+						SELECT
+							b.codigoempleado,
+							b.concepto,
+							b.orden,
+							b.tope,
+							b.rn,
+							CAST(b.netoAPagar AS DECIMAL(18,2)) AS saldo_antes,
+							CAST(
+								CASE
+									WHEN b.netoAPagar <= 0 THEN 0
+									WHEN b.tope IS NULL OR b.netoAPagar >= b.tope THEN ISNULL(b.tope, b.netoAPagar)
+									ELSE b.netoAPagar
+								END
+							AS DECIMAL(18,2)) AS monto_asignado,
+							CAST(
+								b.netoAPagar -
+								CASE
+									WHEN b.netoAPagar <= 0 THEN 0
+									WHEN b.tope IS NULL OR b.netoAPagar >= b.tope THEN ISNULL(b.tope, b.netoAPagar)
+									ELSE b.netoAPagar
+								END
+							AS DECIMAL(18,2)) AS saldo_despues
+						FROM BaseProrrateo b
+						WHERE b.rn = 1
 
-                        UNION ALL
+						UNION ALL
 
-                        -- RECURSIVO
-                        SELECT
-                            b.codigoempleado,
-                            b.concepto,
-                            b.orden,
-                            b.tope,
-                            b.rn,
-                            CAST(r.saldo_despues AS DECIMAL(18,2)) AS saldo_antes,
-                            CAST(
-                                CASE
-                                    WHEN r.saldo_despues <= 0 THEN 0
-                                    WHEN b.tope IS NULL OR r.saldo_despues >= b.tope THEN ISNULL(b.tope, r.saldo_despues)
-                                    ELSE r.saldo_despues
-                                END
-                            AS DECIMAL(18,2)) AS monto_asignado,
-                            CAST(
-                                r.saldo_despues -
-                                CASE
-                                    WHEN r.saldo_despues <= 0 THEN 0
-                                    WHEN b.tope IS NULL OR r.saldo_despues >= b.tope THEN ISNULL(b.tope, r.saldo_despues)
-                                    ELSE r.saldo_despues
-                                END
-                            AS DECIMAL(18,2)) AS saldo_despues
-                        FROM ProrrateoRecursivo r
-                        JOIN BaseProrrateo b
-                        ON r.codigoempleado = b.codigoempleado
-                        AND r.rn + 1 = b.rn
-                    ), ' + '
-                    PercepcionesExcedentes AS (
-                        SELECT
-                            codigoempleado,
-                            SUM(monto_asignado) AS total_percepciones_excedente
-                        FROM ProrrateoRecursivo
-                        GROUP BY codigoempleado
-                    ), ' + '
-                    TotalesExcedentes AS (
-                        SELECT
-                            pe.codigoempleado,
-                            pe.total_percepciones_excedente,
-                            ISNULL(td.total_deducciones_exc, 0) AS total_deducciones_exc
-                        FROM PercepcionesExcedentes pe
-                        LEFT JOIN TotalesPorEmpleadoDeduExc td
-                            ON pe.codigoempleado = td.codigoempleado
-                    ), ' + '
-                    NetoExcedentes AS (
-                        SELECT
-                            te.codigoempleado,
-                            te.total_percepciones_excedente,
-                            te.total_deducciones_exc,
-                            te.total_percepciones_excedente - te.total_deducciones_exc AS neto_excedente
-                        FROM TotalesExcedentes te
-                    ),' + '
-                    NetoTotalAPagar AS (
-                        SELECT
-                            ne.codigoempleado,
-                            ne.total_percepciones_excedente,
-                            ne.total_deducciones_exc,
-                            ne.neto_excedente,
-                            (ISNULL(pn.netoTotalAPagar,0) + ne.neto_excedente) AS neto_total_pagar
-                        FROM NetoExcedentes ne
-                        LEFT JOIN preNetoTotalAPagar pn
-                            ON ne.codigoempleado = pn.codigoempleado
-                    ), ' + '
-                    pensionExcedente AS (
-                        SELECT
-                            gen.codigoempleado AS codigoempleado,
-                            ''Pension Excedente'' AS concepto,
-                            CASE WHEN gen.porcentajePension > 0 THEN ((gen.sueldo + gen.total_percepciones_sin_sueldo) * (gen.porcentajePension / 100)) - ((fis.total_percepciones) * (fis.porcentajePension / 100)) ELSE 0 END AS monto
-                        FROM TotalesPorEmpleadoGeneral AS gen
-                        INNER JOIN TotalesPorEmpleadoFiscal fis ON gen.codigoempleado = fis.codigoempleado
-                    ) , ' + '
-                    provisiones AS (
-                        SELECT
-                            emp.codigoempleado AS codigoempleado,
-                            (empPeriodo.sueldodiario * antig.DiasAguinaldo) / 365 * periodo.diasdepago AS provisionAguinaldo,
-                            (empPeriodo.sueldodiario * antig.DiasVacaciones * (PorcentajePrima / 100.0)) / 365.0 * periodo.diasdepago AS provisionPrimaVacacional
+						-- RECURSIVO
+						SELECT
+							b.codigoempleado,
+							b.concepto,
+							b.orden,
+							b.tope,
+							b.rn,
+							CAST(r.saldo_despues AS DECIMAL(18,2)) AS saldo_antes,
+							CAST(
+								CASE
+									WHEN r.saldo_despues <= 0 THEN 0
+									WHEN b.tope IS NULL OR r.saldo_despues >= b.tope THEN ISNULL(b.tope, r.saldo_despues)
+									ELSE r.saldo_despues
+								END
+							AS DECIMAL(18,2)) AS monto_asignado,
+							CAST(
+								r.saldo_despues -
+								CASE
+									WHEN r.saldo_despues <= 0 THEN 0
+									WHEN b.tope IS NULL OR r.saldo_despues >= b.tope THEN ISNULL(b.tope, r.saldo_despues)
+									ELSE r.saldo_despues
+								END
+							AS DECIMAL(18,2)) AS saldo_despues
+						FROM ProrrateoRecursivo r
+						JOIN BaseProrrateo b
+						ON r.codigoempleado = b.codigoempleado
+						AND r.rn + 1 = b.rn
+					), ' + '
+					PercepcionesExcedentes AS (
+						SELECT
+							codigoempleado,
+							SUM(monto_asignado) AS total_percepciones_excedente
+						FROM ProrrateoRecursivo
+						GROUP BY codigoempleado
+					), ' + '
+					TotalesExcedentes AS (
+						SELECT
+							pe.codigoempleado,
+							pe.total_percepciones_excedente,
+							ISNULL(td.total_deducciones_exc, 0) AS total_deducciones_exc
+						FROM PercepcionesExcedentes pe
+						LEFT JOIN TotalesPorEmpleadoDeduccionesExcedentes td
+							ON pe.codigoempleado = td.codigoempleado
+					), ' + '
+					NetoExcedentes AS (
+						SELECT
+							te.codigoempleado,
+							te.total_percepciones_excedente,
+							te.total_deducciones_exc,
+							te.total_percepciones_excedente - te.total_deducciones_exc AS neto_excedente
+						FROM TotalesExcedentes te
+					),' + '
+					NetoTotalAPagar AS (
+						SELECT
+							ne.codigoempleado,
+							ne.total_percepciones_excedente,
+							ne.total_deducciones_exc,
+							ne.neto_excedente,
+							(ISNULL(pn.netoTotalAPagar,0) + ne.neto_excedente) AS neto_total_pagar
+						FROM NetoExcedentes ne
+						LEFT JOIN preNetoTotalAPagar pn
+							ON ne.codigoempleado = pn.codigoempleado
+					), ' + '
+					pensionExcedente AS (
+						SELECT
+							gen.codigoempleado AS codigoempleado,
+							''Pension Excedente'' AS concepto,
+							CASE WHEN gen.porcentajePension > 0 THEN ((gen.sueldo + gen.total_percepciones_sin_sueldo) * (gen.porcentajePension / 100)) - ((fis.total_percepciones) * (fis.porcentajePension / 100)) ELSE 0 END AS monto
+						FROM TotalesPorEmpleadoGeneralQ2 AS gen
+						INNER JOIN TotalesPorEmpleadoQ3 fis ON gen.codigoempleado = fis.codigoempleado
+					) , ' + '
+					provisiones AS (
+						SELECT
+							emp.codigoempleado AS codigoempleado,
+							(empPeriodo.sueldodiario * antig.DiasAguinaldo) / 365 * periodo.diasdepago AS provisionAguinaldo,
+							(empPeriodo.sueldodiario * antig.DiasVacaciones * (PorcentajePrima / 100.0)) / 365.0 * periodo.diasdepago AS provisionPrimaVacacional
 
-                        FROM nom10001 emp
-                        INNER JOIN nom10034 empPeriodo
-                            ON emp.idempleado = empPeriodo.idempleado AND empPeriodo.cidperiodo = @idPeriodo
-                        INNER JOIN nom10002 AS periodo
-                            ON empPeriodo.cidperiodo = periodo.idperiodo AND periodo.idperiodo = @idPeriodo
-                        INNER JOIN nom10050 AS tipoPres
-                            ON empPeriodo.TipoPrestacion = tipoPres.IDTabla
-                        CROSS APPLY (
-                            SELECT TOP 1 *
-                            FROM nom10051 antig
-                            WHERE antig.IDTablaPrestacion = tipoPres.IDTabla
-                                AND antig.Antiguedad =
-                                    CASE
-                                        WHEN FLOOR(DATEDIFF(day, empPeriodo.fechaalta, GETDATE()) / 365.25) = 0
-                                            THEN 1
-                                        ELSE FLOOR(DATEDIFF(day, empPeriodo.fechaalta, GETDATE()) / 365.25)
-                                    END
-                            ORDER BY antig.fechainicioVigencia DESC
-                        ) AS antig
-                        WHERE empPeriodo.cidperiodo = @idPeriodo
+						FROM nom10001 emp
+						INNER JOIN nom10034 empPeriodo
+							ON emp.idempleado = empPeriodo.idempleado AND empPeriodo.cidperiodo = @idPeriodo
+						INNER JOIN nom10002 AS periodo
+							ON empPeriodo.cidperiodo = periodo.idperiodo AND periodo.idperiodo = @idPeriodo
+						INNER JOIN nom10050 AS tipoPres
+							ON empPeriodo.TipoPrestacion = tipoPres.IDTabla
+						CROSS APPLY (
+							SELECT TOP 1 *
+							FROM nom10051 antig
+							WHERE antig.IDTablaPrestacion = tipoPres.IDTabla
+								AND antig.Antiguedad =
+									CASE
+										WHEN FLOOR(DATEDIFF(day, empPeriodo.fechaalta, GETDATE()) / 365.25) = 0
+											THEN 1
+										ELSE FLOOR(DATEDIFF(day, empPeriodo.fechaalta, GETDATE()) / 365.25)
+									END
+							ORDER BY antig.fechainicioVigencia DESC
+						) AS antig
+						WHERE empPeriodo.cidperiodo = @idPeriodo
+						AND empPeriodo.estadoempleado IN (''A'', ''R'')
+						AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
+					), ' + '
 
-                        AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
-                    ), ' + '
                     nomGapeEmpresa AS (
                         SELECT
                             provisiones,
@@ -2867,35 +2834,34 @@ class PrenominaController extends Controller
                         FROM [becma-core2].dbo.nomina_gape_parametrizacion
                         WHERE id_nomina_gape_empresa = @idNominaGapeEmpresa
                             AND id_tipo_periodo = @idTipoPeriodo
-                    ), ' + '
+                    ),
                     totalCompensacion AS (
                         SELECT
                             nta.codigoempleado,
                             nge.fee AS  fee,
-                            (nta.total_deducciones_exc + pe.monto )
-                                +
-                            (t.total_deducciones +
-                                CASE WHEN porcentajePension > 0 THEN (total_percepciones) * (porcentajePension / 100)
-                                ELSE
-                                    0
-                            END) +
-
-                            CASE
-                                WHEN nge.provisiones = ''si''
-                                THEN (
-                                    SELECT
-                                    (prov.provisionPrimaVacacional + prov.provisionAguinaldo)
-                                    FROM provisiones AS prov
-                                    WHERE nta.codigoempleado = prov.codigoempleado
-                                )
-                                ELSE 0
-                            END
-
-                            AS monto_asignado
-                        FROM NetoTotalAPagar AS nta
-                        INNER JOIN pensionExcedente AS pe ON nta.codigoempleado = pe.codigoempleado
-                        INNER JOIN TotalesPorEmpleadoFiscal t ON pe.codigoempleado = t.codigoempleado
-                        CROSS JOIN nomGapeEmpresa nge
+                            ((nta.neto_total_pagar - pe.monto) - ((q3.total_percepciones) * (q3.porcentajePension / 100))
+							+
+							(q3.total_deducciones + CASE WHEN porcentajePension > 0 THEN (total_percepciones) * (porcentajePension / 100) ELSE 0 END)
+							+
+							(nta.total_deducciones_exc + pe.monto ))
+							+
+							CASE
+								WHEN nge.provisiones = ''si''
+								THEN (
+									SELECT
+									(prov.provisionPrimaVacacional + prov.provisionAguinaldo)
+									FROM provisiones AS prov
+									WHERE nta.codigoempleado = prov.codigoempleado
+								)
+								ELSE 0
+							END
+							AS monto_asignado
+							FROM NetoTotalAPagar AS nta
+							INNER JOIN pensionExcedente AS pe
+								ON nta.codigoempleado = pe.codigoempleado
+							INNER JOIN TotalesPorEmpleadoQ3 AS q3
+								ON nta.codigoempleado = q3.codigoempleado
+							CROSS JOIN nomGapeEmpresa nge
                     ), ' + '
                     MovimientosO AS (
                         SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
@@ -2929,26 +2895,29 @@ class PrenominaController extends Controller
                         INNER JOIN nom10034 empPeriodo
                             ON emp.idempleado = empPeriodo.idempleado AND empPeriodo.cidperiodo = @idPeriodo
                         INNER JOIN MovimientosO pdo
-                            ON empPeriodo.cidperiodo = pdo.idperiodo AND emp.idempleado = pdo.idempleado
+                            ON empPeriodo.cidperiodo = pdo.idperiodo
+								AND emp.idempleado = pdo.idempleado
+								AND pdo.idempleado IN (SELECT DISTINCT idempleado FROM Movimientos pd)
                         WHERE empPeriodo.idtipoperiodo = @idTipoPeriodo
                             AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
+                            AND empPeriodo.estadoempleado IN (''A'', ''R'')
                         GROUP BY
                             emp.codigoempleado, pdo.descripcion, pdo.numeroconcepto, pdo.tipoconcepto
-                    ), ' + '
+                    ),
                     TotalesPorEmpleadoObligacion AS (
                         SELECT
                             codigoempleado AS codigoempleado,
                             SUM(monto) AS monto
                         FROM MovimientosObligaciones
                         GROUP BY codigoempleado
-                    ), ' + '
+                    ),
                     Comision AS (
                         SELECT
                             t.codigoempleado AS codigoempleado,
                             (com.monto_asignado + t.monto) * (com.fee / 100) AS total_comision
                         FROM TotalesPorEmpleadoObligacion AS t
                         INNER JOIN totalCompensacion com ON t.codigoempleado = com.codigoempleado
-                    ), ' + '
+                    ),
                     pivotFinal AS (
                         SELECT
                             codigoempleado,
@@ -3008,7 +2977,7 @@ class PrenominaController extends Controller
 
                     EXEC(@sql);
             ";
-
+            //return $sql;
             $result = collect(DB::connection('sqlsrv_dynamic')->select($sql))->first();
 
             return $result;
@@ -3270,6 +3239,8 @@ class PrenominaController extends Controller
         $jsonPathProvisiones  = storage_path('app/public/plantillas/data/05provisiones.json');
         $jsonPathCargaSocial = storage_path('app/public/plantillas/data/06cargaSocial.json');
         */
+
+        //return $this->datosQuery3($request);
 
         // Obtener data
         $dataDetalleEmpleado = collect($this->datosQuery1($request))
