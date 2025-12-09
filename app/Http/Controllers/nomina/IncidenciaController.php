@@ -10,8 +10,6 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
-use App\Http\Controllers\core\HelperController;
-
 use App\Models\nomina\GAPE\NominaGapeIncidencia;
 use App\Models\nomina\GAPE\NominaGapeIncidenciaDetalle;
 
@@ -26,68 +24,20 @@ use App\Models\nomina\default\Conceptos;
 
 use Illuminate\Support\Facades\DB;
 
+use App\Http\Services\Nomina\ConfigFormatoIncidenciasService;
+use App\Http\Services\Nomina\IncidenciasQueryService;
+use App\Http\Services\Nomina\ExportIncidenciasService;
+
+use App\Http\Services\Nomina\Import\Incidencias\IncidenciasImporter;
+
 class IncidenciaController extends Controller
 {
 
-    protected $helperController;
-
-    public function __construct(helperController $helperController)
-    {
-        $this->helperController = $helperController;
-    }
-
-    public function datosQuery1($request = null)
-    {
-        try {
-            $idNominaGapeEmpresa = $request->id_nomina_gape_empresa;
-            $idTipoPeriodo = $request->id_tipo_periodo;
-            $idPeriodo = $request->periodo_inicial;
-
-            $conexion = $this->helperController->getConexionDatabaseNGE($idNominaGapeEmpresa, 'Nom');
-
-            $this->helperController->setDatabaseConnection($conexion, $conexion->nombre_base);
-
-            $sql = "
-                DECLARE @idPeriodo INT;
-                DECLARE @idTipoPeriodo INT;
-
-                SET @idPeriodo = $idPeriodo;
-                SET @idTipoPeriodo = $idTipoPeriodo;
-
-                SELECT
-                    emp.codigoempleado
-                    , emp.nombrelargo AS nombre
-                    , ISNULL(puesto.descripcion, '') AS puesto
-                    , FORMAT(emp.fechaalta, 'dd-MM-yyyy') AS fechaAlta
-                    , ISNULL(emp.campoextra1, '') AS fechaAltaGape
-                    , emp.numerosegurosocial AS nss
-                    , emp.rfc + SUBSTRING(CONVERT(char(10),emp.fechanacimiento , 126), 3,2) + SUBSTRING(CONVERT(char(10),emp.fechanacimiento , 126), 6,2) + SUBSTRING(CONVERT(char(10),emp.fechanacimiento, 126), 9,2) + homoclave AS rfc
-                    , emp.curpi + SUBSTRING(CONVERT(char(10),emp.fechanacimiento , 126), 3,2) + SUBSTRING(CONVERT(char(10),emp.fechanacimiento , 126), 6,2) + SUBSTRING(CONVERT(char(10),emp.fechanacimiento, 126), 9,2) + emp.curpf AS curp
-                FROM nom10001 emp
-                    INNER JOIN nom10034 AS empPeriodo
-                        ON emp.idempleado = empPeriodo.idempleado
-                        AND empPeriodo.cidperiodo = @idPeriodo
-                    INNER JOIN nom10002 AS periodo
-                        ON empPeriodo.cidperiodo = periodo.idperiodo
-                    LEFT JOIN nom10006 AS puesto
-                        ON emp.idpuesto = puesto.idpuesto
-                WHERE emp.idtipoperiodo = @idTipoPeriodo
-                    AND empPeriodo.estadoempleado IN ('A', 'R')
-                ORDER BY
-                    emp.codigoempleado
-        ";
-
-            $result = DB::connection('sqlsrv_dynamic')->select($sql);
-
-
-            return $result;
-        } catch (\Exception $e) {
-            return [];
-        }
-    }
-
-    public function descargaFormatoFiscal(Request $request)
-    {
+    public function descargaFormatoFiscal(
+        Request $request,
+        IncidenciasQueryService $queryService,
+        ExportIncidenciasService $exporter
+    ) {
         $validated = $request->validate([
             'fiscal' => 'required|boolean',
             'id_nomina_gape_empresa' => 'required',
@@ -95,60 +45,23 @@ class IncidenciaController extends Controller
             'periodo_inicial' => 'required_if:fiscal,true',
         ]);
 
-        // Formato excel
-        $path = storage_path('app/public/plantillas/formato_carga_incidencias.xlsx');
-        $spreadsheet = IOFactory::load($path);
-        $sheet = $spreadsheet->getSheetByName('incidencias');
+        $fiscal = $validated['fiscal'];
 
+        // 1. CONFIG
+        $config = ConfigFormatoIncidenciasService::getConfig($fiscal);
 
-        // Obtener data
-        $dataDetalleEmpleado = collect($this->datosQuery1($request))
+        // 2. DATOS
+        $dataRaw = $queryService->getData($config['query'], $request);
+
+        $data = collect($dataRaw)
             ->map(fn($r) => (array)$r)
             ->toArray();
 
+        // 3. EXCEL
+        $spreadsheet = $exporter->generarExcel($config, $data);
 
-        // Obtener índices de las columnas
-        $indicesDetalleEmpleado = array_keys($dataDetalleEmpleado[0]);
+        // 4. DESCARGA
 
-        // Construir matriz con todas las secciones
-        $xlMatriz = [];
-        foreach ($dataDetalleEmpleado as $objDetalleEmpleado) {
-            $fila = [];
-
-            // DetalleEmpleado
-            foreach ($indicesDetalleEmpleado as $k) {
-                $fila[] = $objDetalleEmpleado[$k] ?? null;
-            }
-            $fila[] = null;
-
-            $xlMatriz[] = $fila;
-        }
-
-        $sheet->insertNewRowBefore(11, count($xlMatriz));
-
-        // Insertar datos masivamente
-        $sheet->fromArray($xlMatriz, null, "A10");
-
-        // Agrupar filas de detalle de filtros
-        $this->rowRangeGroup($sheet, 1, 7);
-
-        // Es importante activar el resumen a la derecha
-        $sheet->setShowSummaryRight(true);
-
-        // Ajustar AutoSize columnas A:H
-        foreach (range('A', 'V') as $col) {
-            $sheet->getColumnDimension($col)->setAutoSize(true);
-            $sheet->calculateColumnWidths();
-        }
-
-        $sheet->getRowDimension(11)->setRowHeight(-1);
-
-        // Estillos de las columnas de totales y netos
-        $this->colorearColumnasPorEncabezado($sheet, 11);
-
-
-        // Congeral la fila 11 y columna B++
-        $sheet->freezePane('C10');
         $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
 
 
@@ -173,7 +86,16 @@ class IncidenciaController extends Controller
         return $response;
     }
 
-    public function uploadIncidenciasFiscales(Request $request)
+    public function uploadIncidenciasFiscales(
+        Request $request,
+        IncidenciasImporter $importer
+    ) {
+        $resultado = $importer->procesar($request);
+
+        return response()->json($resultado);
+    }
+
+    public function uploadIncidenciasFiscales2(Request $request)
     {
         // ------------------------------
         // VALIDACIÓN INICIAL
@@ -455,48 +377,6 @@ class IncidenciaController extends Controller
                     $filaCorrecta = false;
                 }
             }
-
-            // ---------------------------------
-            // Validación: I+J+K <= díasdepago
-            // ---------------------------------
-
-            /*
-            if ($filaCorrecta && $sumaDiasExcel > $diasDePago) {
-                $errores[] = [
-                    'fila' => $row,
-                    'columna' => 'I-K',
-                    'valor' => $sumaDiasExcel,
-                    'mensaje' => "La suma I+J+K ({$sumaDiasExcel}) excede los {$diasDePago} días del periodo."
-                ];
-                $filaCorrecta = false;
-            }
-                */
-
-            // ---------------------------------
-            // Validación contra nom10010
-            // ---------------------------------
-            /*
-            if ($filaCorrecta && $empleado) {
-
-                $totalIncidenciasReal = MovimientosDiasHorasVigente::from('nom10010 AS mhv')
-                    ->join('nom10001 AS emp', 'mhv.idempleado', '=', 'emp.idempleado')
-                    ->where('emp.codigoempleado', $codigoEmpleado)
-                    ->where('mhv.idperiodo', $idPeriodo)
-                    ->sum('mhv.valor');
-
-                $diasValidos = $diasDePago -  $totalIncidenciasReal;
-
-                if ($sumaDiasExcel > $diasValidos) {
-                    $errores[] = [
-                        'fila' => $row,
-                        'columna' => 'I-K',
-                        'valor' => $sumaDiasExcel,
-                        'mensaje' => "La suma I+J+K ({$sumaDiasExcel}) excede los dias disponibles ({$diasValidos})."
-                    ];
-                    $filaCorrecta = false;
-                }
-            }
-                */
 
             if ($filaCorrecta) {
                 $filasValidas[] = $row;
@@ -817,202 +697,10 @@ class IncidenciaController extends Controller
         $insertarDias($vacaciones,  $idVAC, true, false);
     }
 
-    public function uploadIncidenciasFiscales2(Request $request)
-    {
-        // -------------------- VALIDACIONES --------------------
-        $validated = $request->validate([
-            'file' => 'required|file|mimes:xlsx,xls',
-            'idCliente' => 'required',
-            'idEmpresa' => 'required',
-            'idTipoPeriodo' => 'nullable',
-            'idPeriodo' => 'nullable',
-        ]);
-
-        $idNominaGapeEmpresa = $validated['idEmpresa'];
-        $idPeriodo = $validated['idPeriodo'];
-
-        $conexion = $this->helperController->getConexionDatabaseNGE($idNominaGapeEmpresa, 'Nom');
-        $this->helperController->setDatabaseConnection($conexion, $conexion->nombre_base);
-
-        $periodoSeleccionado = Periodo::where('idperiodo', $idPeriodo)
-            ->first();
-
-        $diasDePago = $periodoSeleccionado->diasdepago ?? 0;
-
-        // -------------------- LEER EXCEL --------------------
-        $path = $request->file('file')->getRealPath();
-        $spreadsheet = IOFactory::load($path);
-        $sheet = $spreadsheet->getActiveSheet();
-
-        $highestRow = $sheet->getHighestRow();
-        $errores = [];
-        $filasValidas = [];
-
-        // Columna donde viene el código del empleado
-        $colCodigoEmpleado = 'A';
-
-        // Rangos de validación
-        $colInicioEnteros     = Coordinate::columnIndexFromString('I');
-        $colFinEnteros        = Coordinate::columnIndexFromString('N');
-        $colInicioDecimales   = Coordinate::columnIndexFromString('O');
-        $colFinDecimales      = Coordinate::columnIndexFromString('V');
-
-        // -------------------- VALIDAR FILA POR FILA --------------------
-        for ($row = 10; $row <= $highestRow; $row++) {
-
-            $filaCorrecta = true;
-            $sumaEnteros = 0;
-
-            for ($col = $colInicioEnteros; $col <= $colFinDecimales; $col++) {
-
-                $colLetter = Coordinate::stringFromColumnIndex($col);
-                $cellValue = trim((string)$sheet->getCell($colLetter . $row)->getValue());
-
-                if ($cellValue === "" || $cellValue === null) continue;
-
-                // Validar enteros
-                if ($col >= $colInicioEnteros && $col <= $colFinEnteros) {
-                    if (!preg_match('/^[1-9]+$/', $cellValue)) {
-                        $errores[] = [
-                            'fila' => $row,
-                            'columna' => $colLetter,
-                            'valor' => $cellValue,
-                            'mensaje' => "El valor '{$cellValue}' en {$colLetter}{$row} debe ser un número entero mayor a 0."
-                        ];
-                        $filaCorrecta = false;
-                    } else {
-                        // 🔥 SOLO sumar si es I, J, K (incapacidad, faltas, vacaciones)
-                        if (in_array($colLetter, ['I', 'J', 'K'])) {
-                            $sumaEnteros += intval($cellValue);
-                        }
-                    }
-                    continue;
-                }
-
-                // Validar decimales
-                if ($col >= $colInicioDecimales && $col <= $colFinDecimales) {
-                    if (!preg_match('/^\s*-?(?:\d+|\d*\.\d+)\s*$/', $cellValue)) {
-                        $errores[] = [
-                            'fila' => $row,
-                            'columna' => $colLetter,
-                            'valor' => $cellValue,
-                            'mensaje' => "El valor '{$cellValue}' en {$colLetter}{$row} debe ser decimal (entero o con punto)."
-                        ];
-                        $filaCorrecta = false;
-                    }
-                    continue;
-                }
-            }
-            // 🔥 VALIDAR SUMA I–N <= diasdepago
-            if ($filaCorrecta && $sumaEnteros > $diasDePago) {
-                $errores[] = [
-                    'fila' => $row,
-                    'columna' => 'I:N',
-                    'valor' => $sumaEnteros,
-                    'mensaje' => "La suma de días ({$sumaEnteros}) en la fila {$row} excede los ({$diasDePago}) días del periodo."
-                ];
-                $filaCorrecta = false;
-            }
-
-            if ($filaCorrecta) {
-                $filasValidas[] = $row;
-            }
-        }
-
-        // -------------------- SI HAY ERRORES → SALIR --------------------
-        if (!empty($errores)) {
-            return response()->json([
-                'code' => 422,
-                'errors' => $errores,
-            ], 422);
-        }
-
-        // -------------------- CREAR MAESTRO --------------------
-        $incidencia = NominaGapeIncidencia::create([
-            'estado' => 1,
-            'id_nomina_gape_cliente' => $request->idCliente,
-            'id_nomina_gape_empresa' => $request->idEmpresa,
-            'id_tipo_periodo' => $request->idTipoPeriodo,
-            'id_periodo' => $request->idPeriodo,
-        ]);
-
-        // Helper: convierte vacío a null
-        $valueOrNull = fn($v) => (trim((string)$v) === "" || $v === null) ? null : floatval($v);
-
-        // -------------------- FUNCION PARA SABER SI LA FILA TIENE DATOS --------------------
-        $filaTieneDatos = function ($sheet, $row) {
-            $colInicio = Coordinate::columnIndexFromString('I');
-            $colFin    = Coordinate::columnIndexFromString('V');
-
-            for ($col = $colInicio; $col <= $colFin; $col++) {
-                $colLetter = Coordinate::stringFromColumnIndex($col);
-                $value = trim((string)$sheet->getCell($colLetter . $row)->getValue());
-                if ($value !== "" && $value !== null) return true;
-            }
-            return false;
-        };
-
-        // -------------------- INSERTAR DETALLES --------------------
-        foreach ($filasValidas as $row) {
-
-            $codigoEmpleado = trim((string)$sheet->getCell("A{$row}")->getValue());
-
-            // Si no hay código de empleado → saltar fila
-            if (!$codigoEmpleado) continue;
-
-            // Si no tiene ninguna incidencia → no guardar
-            if (!$filaTieneDatos($sheet, $row)) continue;
-
-            NominaGapeIncidenciaDetalle::create([
-                'estado' => 1,
-                'id_nomina_gape_incidencia' => $incidencia->id,
-                'id_empleado' => $codigoEmpleado,
-                'codigo_empleado' => $codigoEmpleado,
-
-                'cantidad_incapacidad'        => $valueOrNull($sheet->getCell("I{$row}")->getValue()),
-                'cantidad_faltas'             => $valueOrNull($sheet->getCell("J{$row}")->getValue()),
-                'cantidad_vacaciones'         => $valueOrNull($sheet->getCell("K{$row}")->getValue()),
-                'cantidad_dias_retroactivos'  => $valueOrNull($sheet->getCell("L{$row}")->getValue()),
-                'cantidad_prima_dominical'    => $valueOrNull($sheet->getCell("M{$row}")->getValue()),
-                'cantidad_dias_festivos'      => $valueOrNull($sheet->getCell("N{$row}")->getValue()),
-                'comision'                    => $valueOrNull($sheet->getCell("O{$row}")->getValue()),
-                'bono'                        => $valueOrNull($sheet->getCell("P{$row}")->getValue()),
-                'horas_extra_doble_cantidad'  => $valueOrNull($sheet->getCell("Q{$row}")->getValue()),
-                'horas_extra_doble'           => $valueOrNull($sheet->getCell("R{$row}")->getValue()),
-                'horas_extra_triple_cantidad' => $valueOrNull($sheet->getCell("S{$row}")->getValue()),
-                'horas_extra_triple'          => $valueOrNull($sheet->getCell("T{$row}")->getValue()),
-                'pago_adicional'              => $valueOrNull($sheet->getCell("U{$row}")->getValue()),
-                'premio_puntualidad'          => $valueOrNull($sheet->getCell("V{$row}")->getValue()),
-            ]);
-        }
-
-        return response()->json([
-            'status' => 'success',
-            'mensaje' => 'Incidencias cargadas correctamente.',
-        ]);
-    }
-
-
     /**
      * Display a listing of the resource.
      */
     public function index()
-    {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
     {
         //
     }
@@ -1047,179 +735,5 @@ class IncidenciaController extends Controller
     public function destroy(string $id)
     {
         //
-    }
-
-    function moveShapes($sheet, $origenCol, $origenFila, $anchoCols, $altoRows, $dxCols, $dxRows)
-    {
-        $drawingCollection = $sheet->getDrawingCollection();
-
-        $colIndex = $this->colToIndex($origenCol);
-
-        foreach ($drawingCollection as $drawing) {
-
-            $coord = $drawing->getCoordinates(); // ejemplo: "Q15"
-
-            // Extraer la columna y fila reales
-            preg_match('/([A-Z]+)([0-9]+)/', $coord, $m);
-
-            $col = $m[1];
-            $row = intval($m[2]);
-            $colIdx = $this->colToIndex($col);
-
-            // Verificar si el shape está dentro del rango a mover (el cuadro completo)
-            if (
-                $colIdx >= $colIndex &&
-                $colIdx <= $colIndex + $anchoCols - 1 &&
-                $row >= $origenFila &&
-                $row <= $origenFila + $altoRows - 1
-            ) {
-                // Nuevo destino
-                $newCol = $this->indexToCol($colIdx + $dxCols);
-                $newRow = $row + $dxRows;
-
-                $drawing->setCoordinates($newCol . $newRow);
-            }
-        }
-    }
-
-    function colToIndex($col)
-    {
-        return Coordinate::columnIndexFromString($col);
-    }
-
-    function indexToCol($i)
-    {
-        return Coordinate::stringFromColumnIndex($i);
-    }
-
-    public function asignarFormatoMonto($sheet, string $rango)
-    {
-        // Aplicar formato al rango completo (esto sí acepta A:A, A:D, etc.)
-        $sheet->getStyle($rango)
-            ->getNumberFormat()
-            ->setFormatCode('_-$* #,##0.00_-;-$* #,##0.00_-;_-$* "-"??_-;_-@_-');
-
-        // Si el rango contiene ":" entonces hay varias columnas
-        if (strpos($rango, ':') !== false) {
-
-            [$colInicio, $colFin] = explode(':', $rango);
-
-            // Convertir letras a índices (A=1, B=2...)
-            $startIndex = Coordinate::columnIndexFromString($colInicio);
-            $endIndex   = Coordinate::columnIndexFromString($colFin);
-
-            // Recorrer todas las columnas del rango
-            for ($i = $startIndex; $i <= $endIndex; $i++) {
-                $col = Coordinate::stringFromColumnIndex($i);
-                $sheet->getColumnDimension($col)->setAutoSize(true);
-            }
-        } else {
-            // Rango de una sola columna
-            $sheet->getColumnDimension($rango)->setAutoSize(true);
-        }
-    }
-
-    public function aplicarFormatoDinamico($sheet, $headerRow, $startRow, $endRow)
-    {
-        $highestCol = $sheet->getHighestColumn();
-        $highestIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($highestCol);
-
-        for ($c = 1; $c <= $highestIndex; $c++) {
-
-            $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($c);
-
-            // Leer encabezado original
-            $header = (string) $sheet->getCell("{$col}{$headerRow}")->getValue();
-
-            // Normalizar: minúsculas y acentos fuera
-            $h = strtolower(trim($header));
-            $h = str_replace(
-                ['á', 'é', 'í', 'ó', 'ú'],
-                ['a', 'e', 'i', 'o', 'u'],
-                $h
-            );
-
-            // Rango de la columna
-            $range = "{$col}{$startRow}:{$col}{$endRow}";
-
-            // --- DETECTAR CANTIDAD ---
-            if (
-                str_contains($h, 'cantidad') ||
-                str_contains($h, 'dias') ||
-                str_contains($h, 'faltas') ||
-                str_contains($h, 'incapacidad')
-            ) {
-                $sheet->getStyle($range)->getNumberFormat()
-                    ->setFormatCode('#,##0');
-
-                $sheet->getColumnDimension($col)->setAutoSize(false);
-                $sheet->getColumnDimension($col)->setWidth(10);
-
-                $sheet->getStyle($col)->getAlignment()->setHorizontal('center');
-                continue;
-            }
-        }
-    }
-
-    public function colorearColumnasPorEncabezado($sheet, int $headerRow)
-    {
-        $highestCol = $sheet->getHighestColumn();
-        $highestIndex = Coordinate::columnIndexFromString($highestCol);
-
-        for ($i = 1; $i <= $highestIndex; $i++) {
-
-            $col = Coordinate::stringFromColumnIndex($i);
-            $header = (string) $sheet->getCell("{$col}{$headerRow}")->getValue();
-
-            // Normalizar
-            $h = strtolower(trim($header));
-            $h = str_replace(['á', 'é', 'í', 'ó', 'ú'], ['a', 'e', 'i', 'o', 'u'], $h);
-
-            // Validar si está vacío
-            if ($h === '') continue;
-
-            // --- TOTAL → VERDE ---
-            if (str_contains($h, 'total')) {
-                $sheet->getStyle("{$col}{$headerRow}")
-                    ->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-                    ->getStartColor()->setARGB('92D050'); // verde claro
-                continue;
-            }
-
-            // --- NETO → NEGRO ---
-            if (str_contains($h, 'neto')) {
-                $sheet->getStyle("{$col}{$headerRow}")
-                    ->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-                    ->getStartColor()->setARGB('000000'); // negro
-                $sheet->getStyle("{$col}{$headerRow}")
-                    ->getFont()->getColor()->setARGB('FFFFFF'); // texto blanco
-                continue;
-            }
-        }
-    }
-
-    function columnRangeGroup($sheet, string $startCol, string $endCol)
-    {
-        $startIndex = Coordinate::columnIndexFromString($startCol);
-        $endIndex   = Coordinate::columnIndexFromString($endCol);
-
-        for ($i = $startIndex; $i <= $endIndex; $i++) {
-            $colLetter = Coordinate::stringFromColumnIndex($i);
-
-            $sheet->getColumnDimension($colLetter)
-                ->setOutlineLevel(1)
-                ->setVisible(false)
-                ->setCollapsed(true);
-        }
-    }
-
-    function rowRangeGroup($sheet, int $startRow, int $endRow)
-    {
-        for ($row = $startRow; $row <= $endRow; $row++) {
-            $sheet->getRowDimension($row)
-                ->setOutlineLevel(1)
-                ->setVisible(false)
-                ->setCollapsed(false);
-        }
     }
 }
