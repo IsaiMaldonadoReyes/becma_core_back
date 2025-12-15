@@ -22,13 +22,16 @@ use App\Models\nomina\default\TarjetaIncapacidad;
 use App\Models\nomina\default\MovimientosPDOVigente;
 use App\Models\nomina\default\Conceptos;
 
-use Illuminate\Support\Facades\DB;
+use App\Http\Services\Nomina\Export\Incidencias\ConfigFormatoIncidenciasService;
+use App\Http\Services\Nomina\Export\Incidencias\IncidenciasQueryService;
+use App\Http\Services\Nomina\Export\Incidencias\ExportIncidenciasService;
 
-use App\Http\Services\Nomina\ConfigFormatoIncidenciasService;
-use App\Http\Services\Nomina\IncidenciasQueryService;
-use App\Http\Services\Nomina\ExportIncidenciasService;
+use App\Http\Services\Nomina\Import\Incidencias\IncidenciasSaver;
+use App\Http\Services\Nomina\Import\Incidencias\IncidenciasNominaApplier;
 
 use App\Http\Services\Nomina\Import\Incidencias\IncidenciasImporter;
+
+use App\Http\Services\Core\HelperService;
 
 class IncidenciaController extends Controller
 {
@@ -88,11 +91,54 @@ class IncidenciaController extends Controller
 
     public function uploadIncidenciasFiscales(
         Request $request,
-        IncidenciasImporter $importer
+        HelperService $helper,
+        IncidenciasImporter $importer,
+        IncidenciasSaver $saver,
+        IncidenciasNominaApplier $applier
     ) {
-        $resultado = $importer->procesar($request);
 
-        return response()->json($resultado);
+        // VALIDACIÓN BÁSICA
+        $validated = $request->validate([
+            'file'          => 'required|file|mimes:xlsx,xls',
+            'idCliente'     => 'required',
+            'idEmpresa'     => 'required',
+            'idTipoPeriodo' => 'nullable',
+            'idPeriodo'     => 'nullable',
+        ]);
+
+        $idNominaGapeEmpresa = $validated['idEmpresa'];
+
+        $conexion = $helper->getConexionDatabaseNGE($idNominaGapeEmpresa, 'Nom');
+        $helper->setDatabaseConnection($conexion, $conexion->nombre_base);
+
+        $result = $importer->procesar($request);
+
+        if (!empty($result->errores)) {
+            return response()->json([
+                'errores' => $result->errores,
+            ], 422);
+        }
+
+        // 2. GUARDAR MAESTRO
+        $incidencia = $saver->guardarMaestro($request);
+
+        // 3. GUARDAR DETALLE + APLICAR EN NOM100xx
+        foreach ($result->filasValidas as $row) {
+
+            $detalle = $saver->guardarDetalle($result->sheet, $row, $incidencia->id);
+
+            $applier->aplicar(
+                $result->sheet,
+                $row,
+                $detalle->id_empleado,
+                $request->idPeriodo
+            );
+        }
+
+        return response()->json([
+            'ok'  => true,
+            'msg' => "Incidencias procesadas correctamente.",
+        ]);
     }
 
     public function uploadIncidenciasFiscales2(Request $request)

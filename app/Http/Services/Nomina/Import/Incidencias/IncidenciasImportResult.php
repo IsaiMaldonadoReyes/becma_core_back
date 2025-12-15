@@ -2,18 +2,17 @@
 
 namespace App\Http\Services\Nomina\Import\Incidencias;
 
+
 class IncidenciasImportResult
 {
-    public array $errores = [];
-    public array $filasValidas = [];
+    public $sheet;
+    public $filasValidas;
+    public $errores;
 
-    public function addErrors(array $errors)
+    public function __construct($sheet, array $filasValidas, array $errores)
     {
-        $this->errores = array_merge($this->errores, $errors);
-    }
-
-    public function addValidRow(int $row)
-    {
-        $this->filasValidas[] = $row;
+        $this->sheet       = $sheet;
+        $this->filasValidas = $filasValidas;
+        $this->errores      = $errores;
     }
 }
