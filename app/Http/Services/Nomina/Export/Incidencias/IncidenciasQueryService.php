@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Services\Nomina;
+namespace App\Http\Services\Nomina\Export\Incidencias;
 
 use Illuminate\Http\Request;
 

@@ -2,66 +2,118 @@
 
 namespace App\Http\Services\Nomina\Import\Incidencias;
 
+use PhpOffice\PhpSpreadsheet\IOFactory;
 use Illuminate\Http\Request;
-use App\Http\Services\Nomina\Import\Incidencias\IncidenciasExcelReader;
-use App\Http\Services\Nomina\Import\Incidencias\IncidenciasRowValidator;
-use App\Http\Services\Nomina\Import\Incidencias\IncidenciasConceptValidator;
-use App\Http\Services\Nomina\Import\Incidencias\IncidenciasVacacionesValidator;
-use App\Http\Services\Nomina\Import\Incidencias\IncidenciasPeriodoValidator;
-use App\Http\Services\Nomina\Import\Incidencias\IncidenciasImportResult;
 
 class IncidenciasImporter
 {
+    protected IncidenciasRowValidator $rowValidator;
+    protected IncidenciasConceptValidator $conceptValidator;
+    protected IncidenciasVacacionesValidator $vacacionesValidator;
+    protected IncidenciasPeriodoValidator $periodoValidator;
+
+    public function __construct(
+        IncidenciasRowValidator        $rowValidator,
+        IncidenciasConceptValidator    $conceptValidator,
+        IncidenciasVacacionesValidator $vacacionesValidator,
+        IncidenciasPeriodoValidator    $periodoValidator
+    ) {
+        $this->rowValidator        = $rowValidator;
+        $this->conceptValidator    = $conceptValidator;
+        $this->vacacionesValidator = $vacacionesValidator;
+        $this->periodoValidator    = $periodoValidator;
+    }
+
+    /**
+     * Procesa el archivo Excel y devuelve:
+     *  - $sheet
+     *  - $errores
+     *  - $filasValidas
+     */
     public function procesar(Request $request): IncidenciasImportResult
     {
-        $reader = new IncidenciasExcelReader($request->file('file'));
-        $sheet = $reader->getSheet();
-        $rows = $reader->getRowCount();
+        // ======================================================
+        // 1. CARGAR ARCHIVO
+        // ======================================================
+        $path = $request->file('file')->getRealPath();
+        $spreadsheet = IOFactory::load($path);
+        $sheet = $spreadsheet->getActiveSheet();
 
-        $result = new IncidenciasImportResult();
+        $highestRow = $sheet->getHighestRow();
 
-        for ($row = 10; $row <= $rows; $row++) {
+        $errores = [];
+        $filasValidas = [];
 
-            // 1. Validación general
-            $generalValidator = new IncidenciasRowValidator();
-            $generalIssues = $generalValidator->validate($sheet, $row, $request);
+        // ======================================================
+        // 2. RECORRER FILA POR FILA (10...N)
+        // ======================================================
+        for ($row = 10; $row <= $highestRow; $row++) {
 
-            if ($generalIssues->hasErrors()) {
-                $result->addErrors($generalIssues->get());
+            $rowHasError = false; // ← Bandera para esta fila
+
+            // --------------------------------------------------
+            // 2.1 VALIDACIÓN GENERAL DE LA FILA
+            // --------------------------------------------------
+            $issuesRow = $this->rowValidator->validate($sheet, $row, $request);
+
+            // Si debe ignorarse la fila → continue
+            if ($issuesRow->shouldSkipRow()) {
                 continue;
             }
 
-            // 2. Validación de conceptos
-            $conceptValidator = new IncidenciasConceptValidator();
-            $conceptIssues = $conceptValidator->validate($sheet, $row, $request);
-
-            if ($conceptIssues->hasErrors()) {
-                $result->addErrors($conceptIssues->get());
+            // Si tiene errores de formato o empleado → registrar errores
+            if ($issuesRow->hasErrors()) {
+                $errores = array_merge($errores, $issuesRow->errors);
                 continue;
             }
 
-            // 3. Validación de vacaciones
-            $vacValidator = new IncidenciasVacacionesValidator();
-            $vacIssues = $vacValidator->validate($sheet, $row, $request);
+            $request->attributes->set('_validator_row', $issuesRow->data);
 
-            if ($vacIssues->hasErrors()) {
-                $result->addErrors($vacIssues->get());
-                continue;
+            // --------------------------------------------------
+            // 2.2 VALIDACIÓN DE CONCEPTOS (16,10,11)
+            // --------------------------------------------------
+            $issuesConcept = $this->conceptValidator->validate($sheet, $row, $request);
+
+            if ($issuesConcept->hasErrors()) {
+                $errores = array_merge($errores, $issuesConcept->errors);
+                $rowHasError = true; // No hacemos continue
             }
 
-            // 4. Validación de días del periodo
-            $periodValidator = new IncidenciasPeriodoValidator();
-            $periodIssues = $periodValidator->validate($sheet, $row, $request);
+            // --------------------------------------------------
+            // 2.3 VALIDACIÓN DE VACACIONES
+            // --------------------------------------------------
+            $issuesVac = $this->vacacionesValidator->validate($sheet, $row, $request);
 
-            if ($periodIssues->hasErrors()) {
-                $result->addErrors($periodIssues->get());
-                continue;
+            if ($issuesVac->hasErrors()) {
+                $errores = array_merge($errores, $issuesVac->errors);
+                $rowHasError = true; // No hacemos continue
             }
 
-            // Si pasó todo:
-            $result->addValidRow($row);
+            // --------------------------------------------------
+            // 2.4 VALIDACIÓN DE DÍAS DEL PERIODO
+            // --------------------------------------------------
+            $issuesPeriodo = $this->periodoValidator->validate($sheet, $row, $request);
+
+            if ($issuesPeriodo->hasErrors()) {
+                $errores = array_merge($errores, $issuesPeriodo->errors);
+                $rowHasError = true; // No hacemos continue
+            }
+
+            // --------------------------------------------------
+            // 2.5 SI TODAS LAS VALIDACIONES PASARON
+            // --------------------------------------------------
+            if (!$rowHasError) {
+                $filasValidas[] = $row;
+            }
         }
 
-        return $result;
+        // ======================================================
+        // 3. RETORNAR RESULTADO
+        // ======================================================
+        return new IncidenciasImportResult(
+            sheet: $sheet,
+            filasValidas: $filasValidas,
+            errores: $errores
+        );
     }
 }

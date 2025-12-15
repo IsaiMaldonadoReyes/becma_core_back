@@ -16,20 +16,37 @@ class NominaGapeIncidenciaDetalle extends Model
     protected $fillable = [
         'id_nomina_gape_incidencia',
         'id_empleado',
+
         'cantidad_faltas',
-        'cantidad_incapacidad',
         'cantidad_vacaciones',
+        'cantidad_prima_vacacional',
+
         'cantidad_prima_dominical',
-        'cantidad_dias_retroactivos',
         'cantidad_dias_festivos',
         'comision',
         'bono',
+
         'horas_extra_doble_cantidad',
-        'horas_extra_doble',
         'horas_extra_triple_cantidad',
-        'horas_extra_triple',
-        'pago_adicional',
         'premio_puntualidad',
+
+        'pago_adicional',
+        'descuento',
+
+        'descuento_aportacion_caja_ahorro',
+        'descuento_prestamo_caja_ahorro',
+
+        'infonavit',
+        'fonacot',
+
+        'cantidad_incapacidad',
+        'incapacidad_dias',
+
+        'cantidad_dias_retroactivos',
+
+        'horas_extra_doble',
+        'horas_extra_triple',
+
         'codigo_empleado'
     ];
 
