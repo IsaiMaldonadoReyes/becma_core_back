@@ -40,6 +40,28 @@ class ExportIncidenciasService
         return $spreadsheet; // El controlador hará el StreamedResponse
     }
 
+    public function loadSpreadsheet(string $path)
+    {
+        return $this->loadTemplate($path);
+    }
+
+    public function fillSheetFromConfig($spreadsheet, array $config, array $data): void
+    {
+        if (empty($data)) {
+            return;
+        }
+
+        $sheet = $this->getWorksheet($spreadsheet, $config['sheet_name']);
+
+        $matrix = $this->buildMatrix($data);
+
+        $this->insertRows($sheet, $config['fila_insert'], count($matrix));
+        $this->fillMatrix($sheet, $matrix, $config['col_inicio']);
+        $this->autosizeColumns($sheet, $config['auto_cols'][0], $config['auto_cols'][1]);
+        $this->applyGrouping($sheet, $config['group_rows']);
+        $this->applyFreezePane($sheet, $config['freeze_cell']);
+    }
+
     /* ===========================================================
      *     MÉTODOS PRIVADOS PARA MANTENER CÓDIGO LIMPIO
      * ===========================================================

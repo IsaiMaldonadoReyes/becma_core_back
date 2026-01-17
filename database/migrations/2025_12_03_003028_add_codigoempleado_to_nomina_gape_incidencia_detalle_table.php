@@ -21,6 +21,7 @@ return new class extends Migration
             $table->double('infonavit')->nullable();
             $table->double('fonacot')->nullable();
             $table->string('incapacidad_dias')->nullable();
+            $table->double('anios_prima_vacacional')->nullable();
 
         });
     }
@@ -40,6 +41,7 @@ return new class extends Migration
             $table->dropColumn('infonavit');
             $table->dropColumn('fonacot');
             $table->dropColumn('incapacidad_dias');
+            $table->dropColumn('anios_prima_vacacional');
         });
     }
 };
