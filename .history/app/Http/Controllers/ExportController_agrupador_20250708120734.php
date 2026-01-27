@@ -22,28 +22,28 @@ class ExportController extends Controller
     public function exportExcel(Request $request)
     {
 
+       
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
 
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
+// Datos de ejemplo
+$sheet->setCellValue('A1', 'ID');
+$sheet->setCellValue('B1', 'Nombre');
+$sheet->setCellValue('C1', 'Enero');
+$sheet->setCellValue('D1', 'Febrero');
+$sheet->setCellValue('E1', 'Marzo');
 
-        // Datos de ejemplo
-        $sheet->setCellValue('A1', 'ID');
-        $sheet->setCellValue('B1', 'Nombre');
-        $sheet->setCellValue('C1', 'Enero');
-        $sheet->setCellValue('D1', 'Febrero');
-        $sheet->setCellValue('E1', 'Marzo');
+// Agrupar columnas C a E (Enero a Marzo)
+for ($col = ord('C'); $col <= ord('E'); $col++) {
+    $colLetter = chr($col);
+    $sheet->getColumnDimension($colLetter)
+        ->setOutlineLevel(1)
+        ->setVisible(false)
+        ->setCollapsed(true);
+}
 
-        // Agrupar columnas C a E (Enero a Marzo)
-        for ($col = ord('C'); $col <= ord('E'); $col++) {
-            $colLetter = chr($col);
-            $sheet->getColumnDimension($colLetter)
-                ->setOutlineLevel(1)
-                ->setVisible(false)
-                ->setCollapsed(true);
-        }
-
-        // Es importante activar el resumen a la derecha
-        $sheet->setShowSummaryRight(true);
+// Es importante activar el resumen a la derecha
+$sheet->setShowSummaryRight(true);
 
         // Crear un writer para guardar el archivo
         $writer = new Xlsx($spreadsheet);

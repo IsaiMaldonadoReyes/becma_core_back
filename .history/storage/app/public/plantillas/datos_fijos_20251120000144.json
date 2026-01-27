@@ -1,0 +1,3282 @@
+[
+    {
+        "id": 7757,
+        "nombre": "ACA CRUZ EDWAR ELIUD",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2023-08-16",
+        "fechaDeIngresoGape": "2023-08-16",
+        "nss": 92058910917,
+        "rfc": "AACE890419790",
+        "curp": "AACE890419HDFCRD06"
+    },
+    {
+        "id": 9566,
+        "nombre": "AGUILAR TEMPLOS LESLIE JOSELIN",
+        "puesto": "ATENCION A CLIENTES",
+        "fechaDeIngresoCliente": "2023-12-23",
+        "fechaDeIngresoGape": "2023-12-23",
+        "nss": 45119602014,
+        "rfc": "AUTL960105P28",
+        "curp": "AUTL960105MDFGMS06"
+    },
+    {
+        "id": 5684,
+        "nombre": "ALONSO DEL ANGEL ABIGAIL",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2022-07-14",
+        "fechaDeIngresoGape": "2022-07-14",
+        "nss": 1160300024,
+        "rfc": "AOAA030325U84",
+        "curp": "AOAA030325MDFLNBA1"
+    },
+    {
+        "id": 12799,
+        "nombre": "ALVARADO DIAZ CAZANDRA",
+        "puesto": "EJECUTIVO DE COBRANZA ",
+        "fechaDeIngresoCliente": "2024-09-25",
+        "fechaDeIngresoGape": "2024-09-25",
+        "nss": 6200542170,
+        "rfc": "AADC050813645",
+        "curp": "AADC05813MDFLZZA8"
+    },
+    {
+        "id": 8233,
+        "nombre": "ALVAREZ APOLINAR LAURA CELINA",
+        "puesto": "ATENCION A CLIENTES",
+        "fechaDeIngresoCliente": "2023-11-02",
+        "fechaDeIngresoGape": "2023-11-02",
+        "nss": 94119319260,
+        "rfc": "AAAL931224IV9",
+        "curp": "AAAL931224MDFLPR00"
+    },
+    {
+        "id": 6883,
+        "nombre": "AMARO TENORIO RUTH VIVIANA",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2023-03-10",
+        "fechaDeIngresoGape": "2023-03-10",
+        "nss": 83957971365,
+        "rfc": "AATR790910UR7",
+        "curp": "AATR790910MPLMNT00"
+    },
+    {
+        "id": 5049,
+        "nombre": "ARMENTA MORENO RODRIGO",
+        "puesto": "SUPERVISOR DE COBRANZA",
+        "fechaDeIngresoCliente": "2021-11-04",
+        "fechaDeIngresoGape": "2021-11-04",
+        "nss": 62169806130,
+        "rfc": "AEMR981114DZ1",
+        "curp": "AEMR981114HDFRRD03"
+    },
+    {
+        "id": 10820,
+        "nombre": "AVILA CARDOSO EDISET ABIGAIL",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-04-04",
+        "fechaDeIngresoGape": "2024-04-04",
+        "nss": 92997909178,
+        "rfc": "AICE791228191",
+        "curp": "AICE791228MVZVRD04"
+    },
+    {
+        "id": 11727,
+        "nombre": "AVILA SUAREZ MA. MICAELA",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-06-25",
+        "fechaDeIngresoGape": "2024-06-25",
+        "nss": 3217023039,
+        "rfc": "AISM700929UK7",
+        "curp": "AISM700929MMCVRC02"
+    },
+    {
+        "id": 12368,
+        "nombre": "AYALA BLANCAS JOSE MANUEL",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-08-30",
+        "fechaDeIngresoGape": "2024-08-30",
+        "nss": 42977909870,
+        "rfc": "AABM791113I8A",
+        "curp": "AABM791113HDFYLN04"
+    },
+    {
+        "id": 5284,
+        "nombre": "BARDALES DURAN ALEJANDRA",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2022-03-03",
+        "fechaDeIngresoGape": "2022-03-03",
+        "nss": 39927319861,
+        "rfc": "BADA730217U30",
+        "curp": "BADA730217MDFRRL00"
+    },
+    {
+        "id": 10976,
+        "nombre": "BAUTISTA FUENTES CESY ARELY",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-04-17",
+        "fechaDeIngresoGape": "2024-04-17",
+        "nss": 46149578810,
+        "rfc": "BAFC950224BB8",
+        "curp": "BAFC950224MHGTNS03"
+    },
+    {
+        "id": 11091,
+        "nombre": "BAUTISTA IBAÑEZ LAURA VERONICA",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-04-26",
+        "fechaDeIngresoGape": "2024-04-26",
+        "nss": 5219242129,
+        "rfc": "BAIL920202HT3",
+        "curp": "BAIL920202MDFTBR02"
+    },
+    {
+        "id": 11733,
+        "nombre": "BAUTISTA MARTINEZ RICARDO ENRIQUE",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-06-28",
+        "fechaDeIngresoGape": "2024-06-28",
+        "nss": 66169649432,
+        "rfc": "BAMR960629CG3",
+        "curp": "BAMR960629HMCTRC09"
+    },
+    {
+        "id": 11956,
+        "nombre": "BAUTISTA RUIZ GILBERTO",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-07-22",
+        "fechaDeIngresoGape": "2024-07-22",
+        "nss": 90997601167,
+        "rfc": "BARG760822EQ8",
+        "curp": "BARG760822HHGTZL04"
+    },
+    {
+        "id": 13366,
+        "nombre": "BAUTISTA RUIZ ERICK DANIEL",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-11-04",
+        "fechaDeIngresoGape": "2024-11-04",
+        "nss": 17190060933,
+        "rfc": "BARE000501FM2",
+        "curp": "BARE000501HDFTZRA5"
+    },
+    {
+        "id": 13368,
+        "nombre": "BAUTISTA AVILA DELIA ANAHI",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-11-04",
+        "fechaDeIngresoGape": "2024-11-04",
+        "nss": 1160028138,
+        "rfc": "BAAD000617817",
+        "curp": "BAAD000617MMCTVLA5"
+    },
+    {
+        "id": 7047,
+        "nombre": "BENITEZ HERNANDEZ LEONEL",
+        "puesto": "ATENCION A CLIENTES",
+        "fechaDeIngresoCliente": "2023-04-13",
+        "fechaDeIngresoGape": "2023-04-13",
+        "nss": 2178995672,
+        "rfc": "BEHL891002EW4",
+        "curp": "BEHL891002HMCNRN00"
+    },
+    {
+        "id": 6775,
+        "nombre": "BLAS SERRANO LUIS ADAN",
+        "puesto": "ESPECIALISTA DE VIDEO",
+        "fechaDeIngresoCliente": "2023-02-21",
+        "fechaDeIngresoGape": "2023-02-21",
+        "nss": 8209828469,
+        "rfc": "BASL981209SY6",
+        "curp": "BASL981209HDFLRS07"
+    },
+    {
+        "id": 10817,
+        "nombre": "BOLAÑOS SANCHEZ DENISE AGALI",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-04-05",
+        "fechaDeIngresoGape": "2024-04-05",
+        "nss": 90160005063,
+        "rfc": "BOSD000130LH2",
+        "curp": "BOSD000130MMCLNNA9"
+    },
+    {
+        "id": 5775,
+        "nombre": "BRISEÑO GOMEZ ANA CRISTINA",
+        "puesto": "ANALISTA DE CALIDAD",
+        "fechaDeIngresoCliente": "2022-07-12",
+        "fechaDeIngresoGape": "2022-07-12",
+        "nss": 27169958827,
+        "rfc": "BIGA990914TX2",
+        "curp": "BIGA990914MDFRMN08"
+    },
+    {
+        "id": 5354,
+        "nombre": "CABALLERO ALONSO MARTHA EDITH",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2022-09-19",
+        "fechaDeIngresoGape": "2022-09-19",
+        "nss": 10826139288,
+        "rfc": "CAAM6101207A1",
+        "curp": "CAAM610120MPLBLR09"
+    },
+    {
+        "id": 10075,
+        "nombre": "CAMPOS MARTINEZ JOSE NICOLAS",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-01-23",
+        "fechaDeIngresoGape": "2024-01-23",
+        "nss": 42816425260,
+        "rfc": "CAMN640224I68",
+        "curp": "CAMN640224HDFMRC08"
+    },
+    {
+        "id": 12982,
+        "nombre": "CANO DIAZ LEONARDO",
+        "puesto": "AUXILIAR DE MERCADOTECNIA",
+        "fechaDeIngresoCliente": "2024-10-14",
+        "fechaDeIngresoGape": "2024-10-14",
+        "nss": 19190157982,
+        "rfc": "CADL010718KU9",
+        "curp": "CADL010718HDFNZNA4"
+    },
+    {
+        "id": 8185,
+        "nombre": "CARMONA SOLIS GILDA ADRIANA",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2023-10-26",
+        "fechaDeIngresoGape": "2023-10-26",
+        "nss": 40978132997,
+        "rfc": "CASG810608UB5",
+        "curp": "CASG810608MDFRLL03"
+    },
+    {
+        "id": 6774,
+        "nombre": "CARREON ROSAS LUIS MIGUEL",
+        "puesto": "CONTENT MANAGER",
+        "fechaDeIngresoCliente": "2023-02-21",
+        "fechaDeIngresoGape": "2023-02-21",
+        "nss": 3189568573,
+        "rfc": "CARL950804FZ4",
+        "curp": "CARL950804HVZRSS07"
+    },
+    {
+        "id": 10752,
+        "nombre": "CASTILLO ESQUIVEL ANGEL URIEL",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-03-27",
+        "fechaDeIngresoGape": "2024-03-27",
+        "nss": 16130109289,
+        "rfc": "CAEA010611Q4A",
+        "curp": "CAEA010611HDFSSNA5"
+    },
+    {
+        "id": 13618,
+        "nombre": "CASTILLO GONZALEZ ERICK ROBERTO",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-11-26",
+        "fechaDeIngresoGape": "2024-11-26",
+        "nss": 39149503573,
+        "rfc": "CAGE950917QR9",
+        "curp": "CAGE950917HDFSNR07"
+    },
+    {
+        "id": 10816,
+        "nombre": "CHAVEZ DIAZ JENNIFER BETBIRAY",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-04-05",
+        "fechaDeIngresoGape": "2024-04-05",
+        "nss": 23088843125,
+        "rfc": "CADJ880701SV4",
+        "curp": "CADJ880701MPLHZN07"
+    },
+    {
+        "id": 10823,
+        "nombre": "CRUZ ESCOBEDO ALEJANDRO ANTONIO",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-04-09",
+        "fechaDeIngresoGape": "2024-04-09",
+        "nss": 19786243154,
+        "rfc": "CUEA6201174F2",
+        "curp": "CUEA62011HDFRSL03"
+    },
+    {
+        "id": 12646,
+        "nombre": "CRUZ MENDEZ ALEXIS RAFAEL",
+        "puesto": "AUXILIAR DE MARKETING",
+        "fechaDeIngresoCliente": "2024-09-19",
+        "fechaDeIngresoGape": "2024-09-19",
+        "nss": 1109524049,
+        "rfc": "CUMA950725EG7",
+        "curp": "CUMA950725HDFRNL00"
+    },
+    {
+        "id": 10270,
+        "nombre": "CUADROS HERNANDEZ ALBERTO",
+        "puesto": "VALIDACION DE CREDITO",
+        "fechaDeIngresoCliente": "2024-02-13",
+        "fechaDeIngresoGape": "2024-02-13",
+        "nss": 30957631531,
+        "rfc": "CUHA760214EU4",
+        "curp": "CUHA760214HDFDRL04"
+    },
+    {
+        "id": 5299,
+        "nombre": "DE ANDA LOPEZ ALEXIA ALINE",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2022-03-04",
+        "fechaDeIngresoGape": "2022-03-04",
+        "nss": 1160221972,
+        "rfc": "AALA020207EU7",
+        "curp": "AALA020207MMCNPLA9"
+    },
+    {
+        "id": 4996,
+        "nombre": "DE LA LUZ HERNANDEZ ERICK ALEXIS",
+        "puesto": "COORDINADOR DE OPERACIONES",
+        "fechaDeIngresoCliente": "2021-10-08",
+        "fechaDeIngresoGape": "2021-10-08",
+        "nss": 56169764190,
+        "rfc": "LUHE9710025F8",
+        "curp": "LUHE971002HDFZRR03"
+    },
+    {
+        "id": 13672,
+        "nombre": "DE LA ROSA ARROYO ARANXA DANIELA",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-11-29",
+        "fechaDeIngresoGape": "2024-11-29",
+        "nss": 94139348943,
+        "rfc": "ROAA930119UW3",
+        "curp": "ROAA930119MDFSRR06"
+    },
+    {
+        "id": 12043,
+        "nombre": "DE LA VEGA MORALES JESUS ISMAEL",
+        "puesto": "ANALISTA DE CALIDAD ",
+        "fechaDeIngresoCliente": "2024-07-30",
+        "fechaDeIngresoGape": "2024-07-30",
+        "nss": 2210086472,
+        "rfc": "VEMJ000831PG5",
+        "curp": "VEMJ000831HDFGRSA6"
+    },
+    {
+        "id": 6918,
+        "nombre": "DEL VALLE CRUZ ERIKA YANIN",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-02-21",
+        "fechaDeIngresoGape": "2024-02-21",
+        "nss": 37038511046,
+        "rfc": "VACE8501267U2",
+        "curp": "VACE850126MDFLRR02"
+    },
+    {
+        "id": 6513,
+        "nombre": "DIAZ OSORIO JANNIZ ABIGAIL",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2023-10-02",
+        "fechaDeIngresoGape": "2023-10-02",
+        "nss": 27169968487,
+        "rfc": "DIOJ990823IS3",
+        "curp": "DIOJ990823MDFZSN05"
+    },
+    {
+        "id": 9988,
+        "nombre": "DOMINGUEZ GOMEZ ISAI",
+        "puesto": "ATENCION A CLIENTES",
+        "fechaDeIngresoCliente": "2024-01-15",
+        "fechaDeIngresoGape": "2024-01-15",
+        "nss": 94159901209,
+        "rfc": "DOGI9909176F9",
+        "curp": "DOGI990917HMCMMS03"
+    },
+    {
+        "id": 7843,
+        "nombre": "ESPINOSA SERRANO MARIE TOINETTE",
+        "puesto": "ESPECIALISTA EN OPERACIONES DE COBRANZA",
+        "fechaDeIngresoCliente": "2023-09-04",
+        "fechaDeIngresoGape": "2023-09-04",
+        "nss": 3210078170,
+        "rfc": "EISM000629GW0",
+        "curp": "EISM000629MDFSRRA3"
+    },
+    {
+        "id": 12609,
+        "nombre": "ESPINOSA HERNANDEZ NELLY",
+        "puesto": "EJECUTIVO DE COBRANZA ",
+        "fechaDeIngresoCliente": "2024-09-11",
+        "fechaDeIngresoGape": "2024-09-11",
+        "nss": 3249509765,
+        "rfc": "EIHN950820G2A",
+        "curp": "EIHN950820MMCSRL04"
+    },
+    {
+        "id": 7355,
+        "nombre": "ESTRADA MEJIA NANCY MARGARITA",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2023-06-06",
+        "fechaDeIngresoGape": "2023-06-06",
+        "nss": 52190384355,
+        "rfc": "EAMN0304035X7",
+        "curp": "EAMN030403MDFSJNA4"
+    },
+    {
+        "id": 6686,
+        "nombre": "FELIX GONZALEZ TEIRY YAZMIN",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-02-14",
+        "fechaDeIngresoGape": "2024-02-14",
+        "nss": 11119214648,
+        "rfc": "FEGT9206136S2",
+        "curp": "FEGT920613MDFLNR03"
+    },
+    {
+        "id": 5511,
+        "nombre": "FLORES AVILA CESAR",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2022-05-12",
+        "fechaDeIngresoGape": "2022-05-12",
+        "nss": 68170258518,
+        "rfc": "FOAC020216LZ7",
+        "curp": "FOAC020216HDFLVSA6"
+    },
+    {
+        "id": 7758,
+        "nombre": "FLORES GARCIA JOSE ALFREDO",
+        "puesto": "SUPERVISOR DE CALIDAD",
+        "fechaDeIngresoCliente": "2023-08-17",
+        "fechaDeIngresoGape": "2023-08-17",
+        "nss": 62169633179,
+        "rfc": "FOGA961028S68",
+        "curp": "FOGA961028HDFLRL12"
+    },
+    {
+        "id": 13208,
+        "nombre": "FLORES HERNANDEZ MARIA FERNANDA",
+        "puesto": "RECLUTADOR JR",
+        "fechaDeIngresoCliente": "2024-10-23",
+        "fechaDeIngresoGape": "2024-10-23",
+        "nss": 25149313188,
+        "rfc": "FOHF9301059A2",
+        "curp": "FOHF930105MDFLRR09"
+    },
+    {
+        "id": 7745,
+        "nombre": "FLORES ORTIZ JOSE ANTONIO",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-03-15",
+        "fechaDeIngresoGape": "2024-03-15",
+        "nss": 30906701997,
+        "rfc": "FOOA6703192A2",
+        "curp": "FOOA670319HDFLRN03"
+    },
+    {
+        "id": 9513,
+        "nombre": "FUENTES CARDOSO HUGO",
+        "puesto": "ANALISTA DE CALIDAD",
+        "fechaDeIngresoCliente": "2023-12-12",
+        "fechaDeIngresoGape": "2023-12-12",
+        "nss": 20119359311,
+        "rfc": "FUCH930322H81",
+        "curp": "FUCH930322HDFNRG08"
+    },
+    {
+        "id": 8043,
+        "nombre": "GALEANA ROMERO ULISES",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2023-10-06",
+        "fechaDeIngresoGape": "2023-10-06",
+        "nss": 6856825333,
+        "rfc": "GARU681001F7A",
+        "curp": "GARU681001HGRLML08"
+    },
+    {
+        "id": 5149,
+        "nombre": "GALINDO CAMACHO CRISTOPHER ALEJANDRO",
+        "puesto": "SUPERVISOR DE COBRANZA",
+        "fechaDeIngresoCliente": "2021-11-10",
+        "fechaDeIngresoGape": "2021-11-10",
+        "nss": 1099122564,
+        "rfc": "GACC910511KD9",
+        "curp": "GACC910511HDFLMR03"
+    },
+    {
+        "id": 5206,
+        "nombre": "GARCIA DIEGO LUIS JESUS",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2022-01-20",
+        "fechaDeIngresoGape": "2022-01-20",
+        "nss": 7169865800,
+        "rfc": "GADL980429DE5",
+        "curp": "GADL980429HMCRGS01"
+    },
+    {
+        "id": 8319,
+        "nombre": "GARCIA HERNANDEZ ANA KAREN",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-04-18",
+        "fechaDeIngresoGape": "2024-04-18",
+        "nss": 8139538378,
+        "rfc": "GAHA950724Q81",
+        "curp": "GAHA950724MHGRRN04"
+    },
+    {
+        "id": 6031,
+        "nombre": "GARCIA MERINO ABIGAIL",
+        "puesto": "ATENCION A CLIENTES",
+        "fechaDeIngresoCliente": "2022-09-21",
+        "fechaDeIngresoGape": "2022-09-21",
+        "nss": 78129414153,
+        "rfc": "GAMA9405059T4",
+        "curp": "GAMA940505MOCRRB04"
+    },
+    {
+        "id": 7990,
+        "nombre": "GARCIA MORALES MIGUEL ALEJANDRO",
+        "puesto": "SUPERVISOR DE ATC",
+        "fechaDeIngresoCliente": "2023-09-27",
+        "fechaDeIngresoGape": "2023-09-27",
+        "nss": 17149610986,
+        "rfc": "GAMM960405JP6",
+        "curp": "GAMM960405HMCRRG05"
+    },
+    {
+        "id": 5759,
+        "nombre": "GOMEZ URIBE MAGALI LORENA",
+        "puesto": "ANALISTA DE CALIDAD ATC",
+        "fechaDeIngresoCliente": "2022-07-08",
+        "fechaDeIngresoGape": "2022-07-08",
+        "nss": 94109052798,
+        "rfc": "GOUM9012311P0",
+        "curp": "GOUM901231MMCMRG00"
+    },
+    {
+        "id": 7363,
+        "nombre": "GONZALEZ GUZMAN BRANDON",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2023-06-08",
+        "fechaDeIngresoGape": "2023-06-08",
+        "nss": 3159356389,
+        "rfc": "GOGB931125IR4",
+        "curp": "GOGB931125HDFNZR03"
+    },
+    {
+        "id": 7351,
+        "nombre": "GONZALEZ VILLEGAS DIEGO",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2023-06-05",
+        "fechaDeIngresoGape": "2023-06-05",
+        "nss": 1200433058,
+        "rfc": "GOVD0412035D6",
+        "curp": "GOVD041203HMCNLGA8"
+    },
+    {
+        "id": 9570,
+        "nombre": "GUADARRAMA GOMEZ RODRIGO",
+        "puesto": "ATENCION A CLIENTES",
+        "fechaDeIngresoCliente": "2023-12-23",
+        "fechaDeIngresoGape": "2023-12-23",
+        "nss": 94109416290,
+        "rfc": "GUGR940410N82",
+        "curp": "GUGR940410HDFDMD08"
+    },
+    {
+        "id": 7277,
+        "nombre": "GUINEA FLORES GABRIELA AMELI",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2023-05-17",
+        "fechaDeIngresoGape": "2023-05-17",
+        "nss": 19230460768,
+        "rfc": "GUFG040306957",
+        "curp": "GUFG040306MDFNLBA7"
+    },
+    {
+        "id": 10327,
+        "nombre": "GUZMAN HERRERA GILDARDO",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-02-21",
+        "fechaDeIngresoGape": "2024-02-21",
+        "nss": 65047206845,
+        "rfc": "GUHG720916IU5",
+        "curp": "GUHG720916HTCZRL03"
+    },
+    {
+        "id": 9605,
+        "nombre": "HERNANDEZ MENDOZA ZYANYA SAMARA",
+        "puesto": "EJECUTIVO DE COBRANZA ",
+        "fechaDeIngresoCliente": "2024-10-02",
+        "fechaDeIngresoGape": "2024-10-02",
+        "nss": 55230577771,
+        "rfc": "HEMZ050814N91",
+        "curp": "HEMZ050814MDFRNYA1"
+    },
+    {
+        "id": 12818,
+        "nombre": "HERNANDEZ BAUTISTA EDGAR OMAR",
+        "puesto": "EJECUTIVO DE COBRANZA ",
+        "fechaDeIngresoCliente": "2024-09-29",
+        "fechaDeIngresoGape": "2024-09-29",
+        "nss": 78200512503,
+        "rfc": "HEBE050624HI8",
+        "curp": "HEBE050624HDFRTDA7"
+    },
+    {
+        "id": 11872,
+        "nombre": "HERNANDEZ HERNANDEZ GRECIA ALEJANDRA",
+        "puesto": "ATENCION A CLIENTES",
+        "fechaDeIngresoCliente": "2024-07-11",
+        "fechaDeIngresoGape": "2024-07-11",
+        "nss": 39119514618,
+        "rfc": "HEHG951121UY9",
+        "curp": "HEHG951121MDFRRR08"
+    },
+    {
+        "id": 5238,
+        "nombre": "HERNANDEZ HERNANDEZ JUAN LUIS",
+        "puesto": "SUPERVISOR DE COBRANZA",
+        "fechaDeIngresoCliente": "2022-02-10",
+        "fechaDeIngresoGape": "2022-02-10",
+        "nss": 62149697641,
+        "rfc": "HEHJ960819413",
+        "curp": "HEHJ960819HHGRRN04"
+    },
+    {
+        "id": 10273,
+        "nombre": "HERNANDEZ HERNANDEZ OSCAR JAVIER",
+        "puesto": "ATENCION A CLIENTES",
+        "fechaDeIngresoCliente": "2024-02-14",
+        "fechaDeIngresoGape": "2024-02-14",
+        "nss": 20038211460,
+        "rfc": "HEHO821106K79",
+        "curp": "HEHO821106HDFRRS08"
+    },
+    {
+        "id": 11931,
+        "nombre": "HERNANDEZ HERNANDEZ ROMANA",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-07-18",
+        "fechaDeIngresoGape": "2024-07-18",
+        "nss": 13159864563,
+        "rfc": "HEHR980809T96",
+        "curp": "HEHR980809MHGRRM06"
+    },
+    {
+        "id": 9657,
+        "nombre": "HERNANDEZ LOPEZ GUADALUPE",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-01-03",
+        "fechaDeIngresoGape": "2024-01-03",
+        "nss": 22169666264,
+        "rfc": "HELG961028HW3",
+        "curp": "HELG961028MMCRPD07"
+    },
+    {
+        "id": 10107,
+        "nombre": "HERNANDEZ MENDOZA JORGE ALBERTO",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-01-27",
+        "fechaDeIngresoGape": "2024-01-27",
+        "nss": 19210107769,
+        "rfc": "HEMJ010829G91",
+        "curp": "HEMJ010829HDFRNRA4"
+    },
+    {
+        "id": 12149,
+        "nombre": "HERNANDEZ MORALES LESLY SHAYRA",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-08-09",
+        "fechaDeIngresoGape": "2024-08-09",
+        "nss": 9210668860,
+        "rfc": "HEML0601129F3",
+        "curp": "HEML060112MMCRRSA1"
+    },
+    {
+        "id": 13616,
+        "nombre": "HERNANDEZ LORENZO ANABEL",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-11-26",
+        "fechaDeIngresoGape": "2024-11-26",
+        "nss": 61160030450,
+        "rfc": "HELA000818BV0",
+        "curp": "HELA000818MMNRRNA1"
+    },
+    {
+        "id": 13367,
+        "nombre": "HERNANDEZ BAUTISTA ALAN",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-11-04",
+        "fechaDeIngresoGape": "2024-11-04",
+        "nss": 26200691835,
+        "rfc": "HEBA061015DN6",
+        "curp": "HEBA061015HDFRTLA5"
+    },
+    {
+        "id": 10685,
+        "nombre": "HERRERA OROZCO ATXEL ALEIXEN",
+        "puesto": "ANALISTA DE CALIDAD",
+        "fechaDeIngresoCliente": "2024-03-22",
+        "fechaDeIngresoGape": "2024-03-22",
+        "nss": 66159715755,
+        "rfc": "HEOA970725LD5",
+        "curp": "HEOA970725HDFRRT08"
+    },
+    {
+        "id": 12261,
+        "nombre": "HORTA DE LA RIVA DIEGO AXEL",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-08-20",
+        "fechaDeIngresoGape": "2024-08-20",
+        "nss": 30240519717,
+        "rfc": "HORD0511054Z6",
+        "curp": "HORD051105HDFRVGA0"
+    },
+    {
+        "id": 7427,
+        "nombre": "JUAREZ COVARRUBIAS CLAUDIA LETICIA",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2023-06-16",
+        "fechaDeIngresoGape": "2023-06-16",
+        "nss": 39927637049,
+        "rfc": "JUCC760121C74",
+        "curp": "JUCC760121MDFRVL05"
+    },
+    {
+        "id": 12878,
+        "nombre": "JUAREZ MORALES ALEJANDRO",
+        "puesto": "EJECUTIVO DE COBRANZA ",
+        "fechaDeIngresoCliente": "2024-10-03",
+        "fechaDeIngresoGape": "2024-10-03",
+        "nss": 72210614326,
+        "rfc": "JUMA060919NE9",
+        "curp": "JUMA060919HMCRRLA4"
+    },
+    {
+        "id": 12286,
+        "nombre": "JUAREZ MORALES MARIA FERNANDA",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-08-20",
+        "fechaDeIngresoGape": "2024-08-20",
+        "nss": 2200490668,
+        "rfc": "JUMF041013GW7",
+        "curp": "JUMF041013MMCRRRA5"
+    },
+    {
+        "id": 13679,
+        "nombre": "JUAREZ CIPRIANO ALEJANDRO",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-11-29",
+        "fechaDeIngresoGape": "2024-11-29",
+        "nss": 18169833714,
+        "rfc": "JUCA9801039Z9",
+        "curp": "JUCA980103HDFPL07"
+    },
+    {
+        "id": 11484,
+        "nombre": "JULIO JOSE FATIMA JIMENA",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-06-03",
+        "fechaDeIngresoGape": "2024-06-03",
+        "nss": 35180239390,
+        "rfc": "JUJF0205046F1",
+        "curp": "JUJF020504MDFLSTA7"
+    },
+    {
+        "id": 12862,
+        "nombre": "LAZCANO TINOCO KARLA ROSSY",
+        "puesto": "EJECUTIVO DE COBRANZA ",
+        "fechaDeIngresoCliente": "2024-10-03",
+        "fechaDeIngresoGape": "2024-10-03",
+        "nss": 5240196013,
+        "rfc": "LATK011029A41",
+        "curp": "LATK01129MMCZNRA8"
+    },
+    {
+        "id": 11485,
+        "nombre": "LEON MARTINEZ MITZI NELLY",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-06-03",
+        "fechaDeIngresoGape": "2024-06-03",
+        "nss": 16169744691,
+        "rfc": "LEMM9706161H2",
+        "curp": "LEMM970616MMCNRT06"
+    },
+    {
+        "id": 9559,
+        "nombre": "LOPEZ CARREON NESTOR RAFAEL",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2023-12-18",
+        "fechaDeIngresoGape": "2023-12-18",
+        "nss": 38169609054,
+        "rfc": "LOCN961230PP4",
+        "curp": "LOCN961230HDFPRS06"
+    },
+    {
+        "id": 12231,
+        "nombre": "LOPEZ COLIN DANIEL JONATHAN",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-08-16",
+        "fechaDeIngresoGape": "2024-08-16",
+        "nss": 30098502468,
+        "rfc": "LOCD8510214E4",
+        "curp": "LOCD851021HDFPLN02"
+    },
+    {
+        "id": 12229,
+        "nombre": "LOPEZ COLIN PRISCILA MARIA DEL CARMEN",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-08-16",
+        "fechaDeIngresoGape": "2024-08-16",
+        "nss": 30129403900,
+        "rfc": "LOCP9407084P5",
+        "curp": "LOCP940708MDFPLR03"
+    },
+    {
+        "id": 12230,
+        "nombre": "LOPEZ COLIN RODRIGO UBALDO",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-08-16",
+        "fechaDeIngresoGape": "2024-08-16",
+        "nss": 30088706897,
+        "rfc": "LOCR870810ME5",
+        "curp": "LOCR870810HDFPLD04"
+    },
+    {
+        "id": 5222,
+        "nombre": "LOPEZ ROJAS VIRIDIANA",
+        "puesto": "COORDINADOR DE OPERACIONES",
+        "fechaDeIngresoCliente": "2022-01-25",
+        "fechaDeIngresoGape": "2022-01-25",
+        "nss": 96038312672,
+        "rfc": "LORV830201T56",
+        "curp": "LORV830201MDFPJR00"
+    },
+    {
+        "id": 11734,
+        "nombre": "LOPEZ SAN JUAN CECILIA",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-06-28",
+        "fechaDeIngresoGape": "2024-06-28",
+        "nss": 13159959728,
+        "rfc": "LOSC991122SU8",
+        "curp": "LOSC991122MOCPNC08"
+    },
+    {
+        "id": 13294,
+        "nombre": "LOPEZ SANCHEZ ESTRELLA",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-10-29",
+        "fechaDeIngresoGape": "2024-10-29",
+        "nss": 38240573055,
+        "rfc": "LOSE050203N60",
+        "curp": "LOSE050203MHGPNSA9"
+    },
+    {
+        "id": 13336,
+        "nombre": "LOPEZ RODE MIGUEL ANGEL",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-10-31",
+        "fechaDeIngresoGape": "2024-10-31",
+        "nss": 4200521344,
+        "rfc": "LORM050705SY4",
+        "curp": "LORM050705HDFPDGA5"
+    },
+    {
+        "id": 12346,
+        "nombre": "MALDONADO JUAREZ CARMEN GUADALUPE",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-08-29",
+        "fechaDeIngresoGape": "2024-08-29",
+        "nss": 45159928808,
+        "rfc": "MAJC991001P7A",
+        "curp": "MAJC991001MMCLRR03"
+    },
+    {
+        "id": 7607,
+        "nombre": "MARTINEZ BETANCOURT HECTOR",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2023-07-19",
+        "fechaDeIngresoGape": "2023-07-19",
+        "nss": 90139204573,
+        "rfc": "MABH9201043HA",
+        "curp": "MABH920104HDFRTC01"
+    },
+    {
+        "id": 5122,
+        "nombre": "MARTINEZ FLORES SANDRA",
+        "puesto": "SUPERVISOR DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-05-07",
+        "fechaDeIngresoGape": "2024-05-07",
+        "nss": 12170281336,
+        "rfc": "MAFS0212242L9",
+        "curp": "MAFS021224MDFRLNA3"
+    },
+    {
+        "id": 8423,
+        "nombre": "MARTINEZ RAMIREZ VICTOR AUGUSTO",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2023-11-16",
+        "fechaDeIngresoGape": "2023-11-16",
+        "nss": 34160038955,
+        "rfc": "MARV000704CW5",
+        "curp": "MARV000704HCSRMCA5"
+    },
+    {
+        "id": 11871,
+        "nombre": "MARTINEZ SANTIAGO FRANCISCO DE JESUS",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-07-10",
+        "fechaDeIngresoGape": "2024-07-10",
+        "nss": 10846517695,
+        "rfc": "MASF670616NE8",
+        "curp": "MASF670616HDFRNR07"
+    },
+    {
+        "id": 11122,
+        "nombre": "MARTINEZ VELAZQUEZ JUAN CARLOS",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-05-01",
+        "fechaDeIngresoGape": "2024-05-01",
+        "nss": 30028208582,
+        "rfc": "MAVJ820621P96",
+        "curp": "MAVJ820621HDFRLN04"
+    },
+    {
+        "id": 13673,
+        "nombre": "MARTINEZ HERNANDEZ ANA ZAIRA",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-11-29",
+        "fechaDeIngresoGape": "2024-11-29",
+        "nss": 42109427627,
+        "rfc": "MAHA9402219P2",
+        "curp": "MAHA940221MHGRRN01"
+    },
+    {
+        "id": 5399,
+        "nombre": "MEJIA GARCIA SAHARAI CAROLINA",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-04-04",
+        "fechaDeIngresoGape": "2024-04-04",
+        "nss": 19148780448,
+        "rfc": "MEGS870430TN9",
+        "curp": "MEGS870430MDFJRH03"
+    },
+    {
+        "id": 12339,
+        "nombre": "MENDIOLA RUIZ ERICK SALVADOR",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-08-26",
+        "fechaDeIngresoGape": "2024-08-26",
+        "nss": 82200503645,
+        "rfc": "MERE0507281U9",
+        "curp": "MERE050728HMCNZRA9"
+    },
+    {
+        "id": 11241,
+        "nombre": "MENDIOLA SANCHEZ ANA PAOLA",
+        "puesto": "ANALISTA DE CALIDAD",
+        "fechaDeIngresoCliente": "2024-05-15",
+        "fechaDeIngresoGape": "2024-05-15",
+        "nss": 66180395916,
+        "rfc": "MESA030522DV8",
+        "curp": "MESA030522MMCNNNA2"
+    },
+    {
+        "id": 11348,
+        "nombre": "MENDIOLA SANCHEZ BLANCA ADRIANA",
+        "puesto": "CALIDAD NAUCALPAN",
+        "fechaDeIngresoCliente": "2024-05-20",
+        "fechaDeIngresoGape": "2024-05-20",
+        "nss": 4169971258,
+        "rfc": "MESB991126UY8",
+        "curp": "MESB991126MMCNNL05"
+    },
+    {
+        "id": 7549,
+        "nombre": "MENDOZA DAMIAN JORGE ALBERTO",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-04-22",
+        "fechaDeIngresoGape": "2024-04-22",
+        "nss": 11119201785,
+        "rfc": "MEDJ9201219K8",
+        "curp": "MEDJ920121HDFNMR07"
+    },
+    {
+        "id": 6884,
+        "nombre": "MENDOZA DAMIAN VERONICA DANIA",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-03-06",
+        "fechaDeIngresoGape": "2024-03-06",
+        "nss": 68947919996,
+        "rfc": "FEGT9206136S3",
+        "curp": "FEGT920613MDFLNR04"
+    },
+    {
+        "id": 7488,
+        "nombre": "MENDOZA JIMENEZ ISABEL",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2023-07-27",
+        "fechaDeIngresoGape": "2023-07-27",
+        "nss": 78129764813,
+        "rfc": "MEJI970626N62",
+        "curp": "MEJI970626MOCNMS02"
+    },
+    {
+        "id": 6785,
+        "nombre": "MENDOZA SUAREZ SARAHI",
+        "puesto": "VALIDACION DE CREDITO",
+        "fechaDeIngresoCliente": "2023-02-21",
+        "fechaDeIngresoGape": "2023-02-21",
+        "nss": 1008119420,
+        "rfc": "MESS810715JD5",
+        "curp": "MESS810715MMCNRR07"
+    },
+    {
+        "id": 11088,
+        "nombre": "MIGUEL RAFAEL CRISTOFER",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-04-27",
+        "fechaDeIngresoGape": "2024-04-27",
+        "nss": 63159605417,
+        "rfc": "MIRC961024V27",
+        "curp": "MIRC961024HOCGFR01"
+    },
+    {
+        "id": 10280,
+        "nombre": "MILLAN JASSO XAVIER",
+        "puesto": "ANALISTA DE CALIDAD",
+        "fechaDeIngresoCliente": "2024-02-16",
+        "fechaDeIngresoGape": "2024-02-16",
+        "nss": 11927614526,
+        "rfc": "MIJX760603LA5",
+        "curp": "MIJX760603HDFLSV01"
+    },
+    {
+        "id": 12855,
+        "nombre": "MISSETT CORONEL SHENDELL KATHERINE",
+        "puesto": "EJECUTIVO DE COBRANZA ",
+        "fechaDeIngresoCliente": "2024-10-02",
+        "fechaDeIngresoGape": "2024-10-02",
+        "nss": 69170216738,
+        "rfc": "MICS020726JQ6",
+        "curp": "MICS020726MMCSRHA4"
+    },
+    {
+        "id": 8138,
+        "nombre": "MONCADA LOPEZ MARIBEL",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2023-10-16",
+        "fechaDeIngresoGape": "2023-10-16",
+        "nss": 63169900550,
+        "rfc": "MOLM9905226GA",
+        "curp": "MOLM990522MDFNPR07"
+    },
+    {
+        "id": 11928,
+        "nombre": "MORALES PLATA MARIA GUADALUPE",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-07-15",
+        "fechaDeIngresoGape": "2024-07-15",
+        "nss": 7917341054,
+        "rfc": "MOPG730930345",
+        "curp": "MOPG730930MDFRLD07"
+    },
+    {
+        "id": 5384,
+        "nombre": "MORENO MOYA ANGELICA ELVIRA",
+        "puesto": "COORDINADOR RH",
+        "fechaDeIngresoCliente": "2022-04-20",
+        "fechaDeIngresoGape": "2022-04-20",
+        "nss": 1028322566,
+        "rfc": "MOMA830808JA7",
+        "curp": "MOMA830808MDFRYN00"
+    },
+    {
+        "id": 9523,
+        "nombre": "MORENO MOYA LEOMAR",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2023-12-15",
+        "fechaDeIngresoGape": "2023-12-15",
+        "nss": 68957704783,
+        "rfc": "MOML7703169V3",
+        "curp": "MOML770316HDFRYM03"
+    },
+    {
+        "id": 10076,
+        "nombre": "MORENO PORTILLA DANIELA",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-01-23",
+        "fechaDeIngresoGape": "2024-01-23",
+        "nss": 96078946983,
+        "rfc": "MOPD8901034R0",
+        "curp": "MOPD890103MPLRRN06"
+    },
+    {
+        "id": 5032,
+        "nombre": "MOSCO ZARAGOZA LUIS CESAR",
+        "puesto": "ANALISTA DE CALIDAD",
+        "fechaDeIngresoCliente": "2022-09-21",
+        "fechaDeIngresoGape": "2022-09-21",
+        "nss": 30200137047,
+        "rfc": "MOSL010815B46",
+        "curp": "MOSL010815HDF5RSA1"
+    },
+    {
+        "id": 13681,
+        "nombre": "MARTINEZ HERNANDEZ DIANA LAURA",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-12-02",
+        "fechaDeIngresoGape": "2024-12-02",
+        "nss": 30109119583,
+        "rfc": "MAHD9109046W2",
+        "curp": "MAHD910904MMCRRN00"
+    },
+    {
+        "id": 11148,
+        "nombre": "MUNEVAR REAL JAIRO ENRIQUE",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-05-06",
+        "fechaDeIngresoGape": "2024-05-06",
+        "nss": 2207913290,
+        "rfc": "MURJ790111Q77",
+        "curp": "MURJ790111HNENLR05"
+    },
+    {
+        "id": 10143,
+        "nombre": "MUÑOZ DE ALBA LOPEZ ADRIANA",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-02-02",
+        "fechaDeIngresoGape": "2024-02-02",
+        "nss": 2237342965,
+        "rfc": "MULX730808RI2",
+        "curp": "MXLA730808MMCXPD08"
+    },
+    {
+        "id": 11216,
+        "nombre": "NAVARRETE HERNANDEZ DIANA CLAUDIA",
+        "puesto": "ANALISTA DE CALIDAD ATC",
+        "fechaDeIngresoCliente": "2024-05-13",
+        "fechaDeIngresoGape": "2024-05-13",
+        "nss": 30068810479,
+        "rfc": "NAHD8804121V3",
+        "curp": "NAHD880412MDFVRN03"
+    },
+    {
+        "id": 8315,
+        "nombre": "ORDAZ REVELES CIANNI JOSELYN",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2023-11-10",
+        "fechaDeIngresoGape": "2023-11-10",
+        "nss": 25180125228,
+        "rfc": "OARC010920S7A",
+        "curp": "OARC010920MDFRVNA6"
+    },
+    {
+        "id": 6005,
+        "nombre": "ORTEGA IBARRA JUAN MANUEL",
+        "puesto": "EJECUTIVO DE COBRANZA ",
+        "fechaDeIngresoCliente": "2024-10-03",
+        "fechaDeIngresoGape": "2024-10-03",
+        "nss": 92017403434,
+        "rfc": "OEIJ740214M54",
+        "curp": "OEIJ740214HDFRBN01"
+    },
+    {
+        "id": 7046,
+        "nombre": "PALACIOS JUAREZ IRLANDA",
+        "puesto": "ATENCION A CLIENTES",
+        "fechaDeIngresoCliente": "2024-09-13",
+        "fechaDeIngresoGape": "2024-09-13",
+        "nss": 11038209513,
+        "rfc": "PAJI821103L94",
+        "curp": "PAJI821103MDFLRR02"
+    },
+    {
+        "id": 12041,
+        "nombre": "PALLARES GOMEZ JAVIER",
+        "puesto": "ANALISTA DE CALIDAD ",
+        "fechaDeIngresoCliente": "2024-07-29",
+        "fechaDeIngresoGape": "2024-07-29",
+        "nss": 28068721712,
+        "rfc": "SATF020706EY6",
+        "curp": "SATF020706MDFNRRA8"
+    },
+    {
+        "id": 12052,
+        "nombre": "PEREZ GALVAN KARLA GIOVANNA",
+        "puesto": "LIMPIEZA",
+        "fechaDeIngresoCliente": "2024-08-02",
+        "fechaDeIngresoGape": "2024-08-02",
+        "nss": 12190496922,
+        "rfc": "PEGK040423CF8",
+        "curp": "PEGK040423MDFRLRA0"
+    },
+    {
+        "id": 6017,
+        "nombre": "PEREZ GILES ERIK MARTIN",
+        "puesto": "ANALISTA DE CALIDAD",
+        "fechaDeIngresoCliente": "2022-09-19",
+        "fechaDeIngresoGape": "2022-09-19",
+        "nss": 39109401305,
+        "rfc": "PEGE940504I42",
+        "curp": "PEGE940504HDFRLR04"
+    },
+    {
+        "id": 8039,
+        "nombre": "PEREZ HERNANDEZ EULER MIGUEL",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2023-10-04",
+        "fechaDeIngresoGape": "2023-10-04",
+        "nss": 78139876565,
+        "rfc": "PEHE980928EJ1",
+        "curp": "PEHE980928HOCRRL03"
+    },
+    {
+        "id": 11137,
+        "nombre": "PEREZ LEAL KEVIN",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-05-03",
+        "fechaDeIngresoGape": "2024-05-03",
+        "nss": 68170274499,
+        "rfc": "PELK020704MA3",
+        "curp": "PELK020704HDFRLVA2"
+    },
+    {
+        "id": 8417,
+        "nombre": "PEREZ MORQUECHO ANDRES",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2023-11-16",
+        "fechaDeIngresoGape": "2023-11-16",
+        "nss": 5149548512,
+        "rfc": "PEMA951128IP3",
+        "curp": "PEMA951128HDFRRN08"
+    },
+    {
+        "id": 12392,
+        "nombre": "PEREZ SANCHEZ XIMENA",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-09-02",
+        "fechaDeIngresoGape": "2024-09-02",
+        "nss": 10189990244,
+        "rfc": "PESX990408NF1",
+        "curp": "PESX990408MMCRNM01"
+    },
+    {
+        "id": 13384,
+        "nombre": "PEREZ VEGA BERENICE",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-11-05",
+        "fechaDeIngresoGape": "2024-11-05",
+        "nss": 42119636696,
+        "rfc": "PEVB9609109A7",
+        "curp": "PEVB960910MDFRGR09"
+    },
+    {
+        "id": 10679,
+        "nombre": "PESADO JOAQUIN PERLA CHERLYN",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-03-18",
+        "fechaDeIngresoGape": "2024-03-18",
+        "nss": 10240593607,
+        "rfc": "PEJP0502201D1",
+        "curp": "PEJP050220MDFSQRA9"
+    },
+    {
+        "id": 11469,
+        "nombre": "PIMENTEL PIMENTEL SANTIBEL FIDELIA",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-06-03",
+        "fechaDeIngresoGape": "2024-06-03",
+        "nss": 94139309259,
+        "rfc": "PIPS930501BM7",
+        "curp": "PIPS930501MOCMMN06"
+    },
+    {
+        "id": 11929,
+        "nombre": "PINEDA GARCIA JUAN JESUS",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-07-18",
+        "fechaDeIngresoGape": "2024-07-18",
+        "nss": 75180368708,
+        "rfc": "PIGJ0303073G3",
+        "curp": "PIGJ030307HOCNRNA1"
+    },
+    {
+        "id": 5975,
+        "nombre": "PLAZA LORENZO JUAN CARLOS",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2022-09-09",
+        "fechaDeIngresoGape": "2022-09-09",
+        "nss": 10199900688,
+        "rfc": "PALJ991008BI4",
+        "curp": "PALJ991008HMCLRN06"
+    },
+    {
+        "id": 5790,
+        "nombre": "QUIROGA COBOS ENID NATALIA",
+        "puesto": "ESPECIALISTA EN OPERACIONES DE COBRANZA",
+        "fechaDeIngresoCliente": "2022-07-18",
+        "fechaDeIngresoGape": "2022-07-18",
+        "nss": 20119525283,
+        "rfc": "QUCE9510134B3",
+        "curp": "QUCE951013MDFRBN05"
+    },
+    {
+        "id": 5804,
+        "nombre": "RAMIREZ AREVALO CLAUDIA",
+        "puesto": "AUXILIAR DE ADMNISTRACION3",
+        "fechaDeIngresoCliente": "2022-07-21",
+        "fechaDeIngresoGape": "2022-07-21",
+        "nss": 27149238886,
+        "rfc": "RAAC920713PC7",
+        "curp": "RAAC920713MDFMRL08"
+    },
+    {
+        "id": 7845,
+        "nombre": "RAMIREZ CARRILLO KARLA ITZAYANA",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2023-09-05",
+        "fechaDeIngresoGape": "2023-09-05",
+        "nss": 42139413308,
+        "rfc": "RACK940103SQ1",
+        "curp": "RACK940103MDFMRR05"
+    },
+    {
+        "id": 9524,
+        "nombre": "RAMIREZ CRUZ JOVANI",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-04-16",
+        "fechaDeIngresoGape": "2024-04-16",
+        "nss": 35150150114,
+        "rfc": "RACJ0109113F8",
+        "curp": "RACJ010911HMCMRVA8"
+    },
+    {
+        "id": 12213,
+        "nombre": "RAMIREZ GUERRERO JOSE LUIS",
+        "puesto": "ATENCION A CLIENTES",
+        "fechaDeIngresoCliente": "2024-08-12",
+        "fechaDeIngresoGape": "2024-08-12",
+        "nss": 65139804853,
+        "rfc": "RAGL980820FZ9",
+        "curp": "RAGL980820HDFMRS01"
+    },
+    {
+        "id": 12912,
+        "nombre": "RAMIREZ SANTOS YESSENIA GUADALUPE",
+        "puesto": "EJECUTIVO DE COBRANZA ",
+        "fechaDeIngresoCliente": "2024-10-07",
+        "fechaDeIngresoGape": "2024-10-07",
+        "nss": 25149359793,
+        "rfc": "RASY931031KS6",
+        "curp": "RASY931031MDFMNS05"
+    },
+    {
+        "id": 13680,
+        "nombre": "RAMIREZ FRANCO MARIA FERNANDA",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-11-29",
+        "fechaDeIngresoGape": "2024-11-29",
+        "nss": 45119012586,
+        "rfc": "RAFF900208TP1",
+        "curp": "RAFF900208MDFMRR08"
+    },
+    {
+        "id": 11732,
+        "nombre": "RAMOS PEREYRA ELIZABETH ESTHER",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-06-28",
+        "fechaDeIngresoGape": "2024-06-28",
+        "nss": 1947725063,
+        "rfc": "RAPE781204N38",
+        "curp": "RAPE781204MDFMRL06"
+    },
+    {
+        "id": 11930,
+        "nombre": "RIVERA VILLAGOMEZ ULISES OSVALDO",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-07-18",
+        "fechaDeIngresoGape": "2024-07-18",
+        "nss": 27230478672,
+        "rfc": "RIVU040112UZ5",
+        "curp": "RIVU040112HDFVLLA8"
+    },
+    {
+        "id": 11221,
+        "nombre": "ROCHA ROMAN ANA FERNANDA",
+        "puesto": "ASISTENTE DE ADMINISTRATIVO",
+        "fechaDeIngresoCliente": "2024-05-15",
+        "fechaDeIngresoGape": "2024-05-15",
+        "nss": 96150032652,
+        "rfc": "RORA000211FN4",
+        "curp": "RORA000211MDFCMNA8"
+    },
+    {
+        "id": 11426,
+        "nombre": "RODRIGUEZ CARDENAS RICARDO",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-05-28",
+        "fechaDeIngresoGape": "2024-05-28",
+        "nss": 20129737803,
+        "rfc": "ROCR970207SX0",
+        "curp": "ROCR970207HDFDRC07"
+    },
+    {
+        "id": 7202,
+        "nombre": "RODRIGUEZ SAENZ ARTURO MANUEL",
+        "puesto": "EJECUTIVO DE COBRANZA ",
+        "fechaDeIngresoCliente": "2024-09-17",
+        "fechaDeIngresoGape": "2024-09-17",
+        "nss": 45129649351,
+        "rfc": "ROSA960205TD4",
+        "curp": "ROSA960205HDFDNR08"
+    },
+    {
+        "id": 13166,
+        "nombre": "RODRIGUEZ SEGOVIANO VANESSA",
+        "puesto": "BECARIO RECURSOS HUMANOS",
+        "fechaDeIngresoCliente": "2024-10-22",
+        "fechaDeIngresoGape": "2024-10-22",
+        "nss": 39139721706,
+        "rfc": "ROSV9710175V3",
+        "curp": "ROSV971017MDFDGN00"
+    },
+    {
+        "id": 6750,
+        "nombre": "RODRIGUEZ ULLOA HUGO",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2023-02-17",
+        "fechaDeIngresoGape": "2023-02-17",
+        "nss": 19160199246,
+        "rfc": "ROUH0109027V1",
+        "curp": "ROUH010902HDFDLGA6"
+    },
+    {
+        "id": 7322,
+        "nombre": "ROMERO RAMIREZ DANIELA IVANOVA",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2023-05-31",
+        "fechaDeIngresoGape": "2023-05-31",
+        "nss": 16170259002,
+        "rfc": "RORD020516R12",
+        "curp": "RORD020516MDFMMNA9"
+    },
+    {
+        "id": 10683,
+        "nombre": "ROMERO ROMERO JOSE DANIEL",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-03-19",
+        "fechaDeIngresoGape": "2024-03-19",
+        "nss": 66180326861,
+        "rfc": "RORD030515KK6",
+        "curp": "RORD030515HMCMMNA0"
+    },
+    {
+        "id": 8318,
+        "nombre": "ROMERO SERRANO GUADALUPE",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2023-11-10",
+        "fechaDeIngresoGape": "2023-11-10",
+        "nss": 90988054814,
+        "rfc": "ROSG800310GK5",
+        "curp": "ROSG800310MDFMRD04"
+    },
+    {
+        "id": 13567,
+        "nombre": "ROMERO NAVA JONATHAN CHRISTIAN",
+        "puesto": "RECLUTADOR",
+        "fechaDeIngresoCliente": "2024-11-20",
+        "fechaDeIngresoGape": "2024-11-20",
+        "nss": 94119044942,
+        "rfc": "RONJ9005292G7",
+        "curp": "RONJ900529HDFMVN02"
+    },
+    {
+        "id": 12661,
+        "nombre": "RUEDA PONCE DE LEON IDHANE BERENICE",
+        "puesto": "ATENCION A CLIENTES",
+        "fechaDeIngresoCliente": "2024-09-18",
+        "fechaDeIngresoGape": "2024-09-18",
+        "nss": 59159515580,
+        "rfc": "RUPI951118UD4",
+        "curp": "RUPI951118MDFDND04"
+    },
+    {
+        "id": 12697,
+        "nombre": "RUFINO CASIANO JAZMIN MARIANA",
+        "puesto": "EJECUTIVO DE COBRANZA ",
+        "fechaDeIngresoCliente": "2024-09-20",
+        "fechaDeIngresoGape": "2024-09-20",
+        "nss": 16180338895,
+        "rfc": "RUCJ030704N95",
+        "curp": "RUCJ030704MDFFSZA4"
+    },
+    {
+        "id": 5854,
+        "nombre": "SALDIVAR MAYORGA JUAN JOSE",
+        "puesto": "ATENCION A CLIENTES",
+        "fechaDeIngresoCliente": "2022-08-08",
+        "fechaDeIngresoGape": "2022-08-08",
+        "nss": 45119698731,
+        "rfc": "SAMJ960112MXA",
+        "curp": "SAMJ960112HDFLYN07"
+    },
+    {
+        "id": 12003,
+        "nombre": "SANCHEZ RODRIGUEZ EDWIN ANDRES",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-07-26",
+        "fechaDeIngresoGape": "2024-07-26",
+        "nss": 73200532056,
+        "rfc": "SARE050511NU0",
+        "curp": "SARE050511HMCNDDA3"
+    },
+    {
+        "id": 12042,
+        "nombre": "SANCHEZ TIRADO MARIA FERNANDA AMERICA",
+        "puesto": "ANALISTA DE CALIDAD ",
+        "fechaDeIngresoCliente": "2024-07-29",
+        "fechaDeIngresoGape": "2024-07-29",
+        "nss": 20170239972,
+        "rfc": "PAGJ870421FMA",
+        "curp": "PAGJ870421HDFLMV09"
+    },
+    {
+        "id": 13674,
+        "nombre": "SANCHEZ GUTIERREZ DIEGO MISAEL",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-11-29",
+        "fechaDeIngresoGape": "2024-11-29",
+        "nss": 7139731843,
+        "rfc": "SAGD9706121G3",
+        "curp": "SAGD970612HMCNTG01"
+    },
+    {
+        "id": 11045,
+        "nombre": "SANDOVAL AGUILAR EVA",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-04-24",
+        "fechaDeIngresoGape": "2024-04-24",
+        "nss": 39018327278,
+        "rfc": "SAAE831202RX1",
+        "curp": "SAAE831202MDFNGV03"
+    },
+    {
+        "id": 11316,
+        "nombre": "SEGUNDO ZAMORA EDWIN URIEL",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-05-20",
+        "fechaDeIngresoGape": "2024-05-20",
+        "nss": 39129729172,
+        "rfc": "SEZE970624M66",
+        "curp": "SEZE970624HDFGMD01"
+    },
+    {
+        "id": 11027,
+        "nombre": "SEGURA ESTRADA RICARDO ANTONIO",
+        "puesto": "ANALISTA DE CALIDAD",
+        "fechaDeIngresoCliente": "2024-04-22",
+        "fechaDeIngresoGape": "2024-04-22",
+        "nss": 20099100222,
+        "rfc": "SEER910116UP6",
+        "curp": "SEER910116HDFGSC03"
+    },
+    {
+        "id": 12700,
+        "nombre": "SERRANO AGUILAR JUAN MANUEL",
+        "puesto": "EJECUTIVO DE COBRANZA ",
+        "fechaDeIngresoCliente": "2024-09-20",
+        "fechaDeIngresoGape": "2024-09-20",
+        "nss": 6199544039,
+        "rfc": "SEAJ9509172X6",
+        "curp": "SEAJ950917HMSRGN05"
+    },
+    {
+        "id": 11019,
+        "nombre": "SIERRA VASQUEZ MARIA MAGDALENA",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-04-18",
+        "fechaDeIngresoGape": "2024-04-18",
+        "nss": 8190005515,
+        "rfc": "SIVM000722MA9",
+        "curp": "SIVM000722MOCRSGA8"
+    },
+    {
+        "id": 5292,
+        "nombre": "SOSA SERVIN MAYRA",
+        "puesto": "EJECUTIVO DE COBRANZA ",
+        "fechaDeIngresoCliente": "2024-09-18",
+        "fechaDeIngresoGape": "2024-09-18",
+        "nss": 20078824099,
+        "rfc": "SOSM8809233X2",
+        "curp": "SOSM880923MDFSRY08"
+    },
+    {
+        "id": 10269,
+        "nombre": "TAPIA MALDONADO GABRIEL ESTEBAN",
+        "puesto": "ATENCION A CLIENTES",
+        "fechaDeIngresoCliente": "2024-02-13",
+        "fechaDeIngresoGape": "2024-02-13",
+        "nss": 18169888593,
+        "rfc": "TAMG980806RK1",
+        "curp": "TAMG980806HDFPLB02"
+    },
+    {
+        "id": 8036,
+        "nombre": "TOMAS ARANA YADIRA",
+        "puesto": "ATENCION A CLIENTES",
+        "fechaDeIngresoCliente": "2023-10-03",
+        "fechaDeIngresoGape": "2023-10-03",
+        "nss": 30018209392,
+        "rfc": "TOAY820103H10",
+        "curp": "TOAY820103MMCMRD01"
+    },
+    {
+        "id": 9466,
+        "nombre": "TORRES COLIN JOSE MANUEL",
+        "puesto": "ASISTENTE DE PRODUCCION",
+        "fechaDeIngresoCliente": "2023-12-06",
+        "fechaDeIngresoGape": "2023-12-06",
+        "nss": 1129104434,
+        "rfc": "TOCM910917TY8",
+        "curp": "TOCM910917HDFRLN02"
+    },
+    {
+        "id": 10206,
+        "nombre": "TORRES DIAZ VANESSA LIZETH",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-02-06",
+        "fechaDeIngresoGape": "2024-02-06",
+        "nss": 20170295693,
+        "rfc": "TODV021030M83",
+        "curp": "TODV021030MDFRZNA9"
+    },
+    {
+        "id": 11918,
+        "nombre": "TORRES LIMONES WENDOLY",
+        "puesto": "EJECUTIVO DE VALIDACION",
+        "fechaDeIngresoCliente": "2024-07-15",
+        "fechaDeIngresoGape": "2024-07-15",
+        "nss": 45058435152,
+        "rfc": "TOLW840822EX9",
+        "curp": "TOLW840822MDFRMN00"
+    },
+    {
+        "id": 12391,
+        "nombre": "VALDEZ MELENDEZ LESLEY LILIANA",
+        "puesto": "ASISTENTE ADMINISTRATIVO",
+        "fechaDeIngresoCliente": "2024-09-02",
+        "fechaDeIngresoGape": "2024-09-02",
+        "nss": 37119501544,
+        "rfc": "VAML951129JQ8",
+        "curp": "VAML951129MDFLLS09"
+    },
+    {
+        "id": 12148,
+        "nombre": "VARGAS DURAN LAURA",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-08-09",
+        "fechaDeIngresoGape": "2024-08-09",
+        "nss": 11028011036,
+        "rfc": "VADL800304I4A",
+        "curp": "VADL800304MDFRRR07"
+    },
+    {
+        "id": 9927,
+        "nombre": "VAZQUEZ CLARA MARIA DE JESUS",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-01-10",
+        "fechaDeIngresoGape": "2024-01-10",
+        "nss": 5179057855,
+        "rfc": "VACJ900916BP4",
+        "curp": "VACJ900916MMCZLS05"
+    },
+    {
+        "id": 10014,
+        "nombre": "VAZQUEZ CLARA MARINA",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-01-19",
+        "fechaDeIngresoGape": "2024-01-19",
+        "nss": 94088703080,
+        "rfc": "VACM870420ME0",
+        "curp": "VACM870420MDFZLR00"
+    },
+    {
+        "id": 8317,
+        "nombre": "VAZQUEZ VILLAVICENCIO JESUS",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2023-11-10",
+        "fechaDeIngresoGape": "2023-11-10",
+        "nss": 12170112655,
+        "rfc": "VAVJ0103255J1",
+        "curp": "VAVJ010325HMCZLSA3"
+    },
+    {
+        "id": 9461,
+        "nombre": "VELAZQUEZ VILLASEÑOR MARIA GUADALUPE",
+        "puesto": "VALIDACION DE CREDITO",
+        "fechaDeIngresoCliente": "2023-12-04",
+        "fechaDeIngresoGape": "2023-12-04",
+        "nss": 7129304676,
+        "rfc": "VEVG930107AHA",
+        "curp": "VEVG930107MDFLLD00"
+    },
+    {
+        "id": 12942,
+        "nombre": "YEHEZKEL CORTES ERZEL JAIR",
+        "puesto": "EJECUTIVO DE COBRANZA ",
+        "fechaDeIngresoCliente": "2024-10-09",
+        "fechaDeIngresoGape": "2024-10-09",
+        "nss": 2229296518,
+        "rfc": "YECE9207218R5",
+        "curp": "YECE920721HDFHRR04"
+    },
+    {
+        "id": 12151,
+        "nombre": "ZAMORA CANO GUADALUPE MICHEL",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-08-11",
+        "fechaDeIngresoGape": "2024-08-11",
+        "nss": 11129204852,
+        "rfc": "ZACG921110545",
+        "curp": "ZACG921110MDFMND07"
+    },
+    {
+        "id": 13554,
+        "nombre": "ZARCO FLORES BRYAN SABINO",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-11-19",
+        "fechaDeIngresoGape": "2024-11-19",
+        "nss": 66159654442,
+        "rfc": "ZAFB961119DU8",
+        "curp": "ZAFB961119HDFRLR04"
+    },
+    {
+        "id": 9560,
+        "nombre": "ZEPEDA CERVANTES CARLOS ALBERTO",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2023-12-18",
+        "fechaDeIngresoGape": "2023-12-18",
+        "nss": 11190447786,
+        "rfc": "ZECC0408116V8",
+        "curp": "ZECC040811HMCPRRA5"
+    },
+    {
+        "id": 13751,
+        "nombre": "CRUZ CRUZ GUSTAVO ADOLFO",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-12-12",
+        "fechaDeIngresoGape": "2024-12-12",
+        "nss": 65099106935,
+        "rfc": "CUCG910523PA8",
+        "curp": "CUCG910523HVZRRS09"
+    },
+    {
+        "id": 13793,
+        "nombre": "ROJAS  ANA KAREN",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2024-12-18",
+        "fechaDeIngresoGape": "2024-12-18",
+        "nss": 42099022669,
+        "rfc": "ROAN900106R94",
+        "curp": "ROXA900106MDFJXN09"
+    },
+    {
+        "id": 13875,
+        "nombre": "ISLAS BENITES ELENA",
+        "puesto": "LIMPIEZA",
+        "fechaDeIngresoCliente": "2025-01-02",
+        "fechaDeIngresoGape": "2025-01-02",
+        "nss": 37007405642,
+        "rfc": "IABE741107UZ8",
+        "curp": "IABE741107MVZSNL08"
+    },
+    {
+        "id": 13878,
+        "nombre": "GONZALEZ REYES CARLOS ANTONIO",
+        "puesto": "CAPACITADOR  ",
+        "fechaDeIngresoCliente": "2025-01-06",
+        "fechaDeIngresoGape": "2025-01-06",
+        "nss": 90149928419,
+        "rfc": "GORC991028PQ6",
+        "curp": "GORC991028HMCNYR01"
+    },
+    {
+        "id": 13892,
+        "nombre": "CALDERON GARCIA DIANA LUISA",
+        "puesto": "EJECUTIVO DE COBRANZA ",
+        "fechaDeIngresoCliente": "2025-01-02",
+        "fechaDeIngresoGape": "2025-01-02",
+        "nss": 6160220726,
+        "rfc": "CAGD020603MH2",
+        "curp": "CAGD020603MDFLRNA1"
+    },
+    {
+        "id": 13891,
+        "nombre": "HERNANDEZ MELENDEZ MARIA DE LOS ANGELES",
+        "puesto": "EJECUTIVO DE COBRANZA ",
+        "fechaDeIngresoCliente": "2025-01-02",
+        "fechaDeIngresoGape": "2025-01-02",
+        "nss": 2156983807,
+        "rfc": "HEMA690627RR7",
+        "curp": "HEMA690627MDFRLN04"
+    },
+    {
+        "id": 13897,
+        "nombre": "ESTRADA MEJIA  DULCE EDITH",
+        "puesto": "EJECUTIVO DE COBRANZA ",
+        "fechaDeIngresoCliente": "2025-01-06",
+        "fechaDeIngresoGape": "2025-01-06",
+        "nss": 62169938628,
+        "rfc": "EAMD9912197ZA",
+        "curp": "EAMD991219MDFSJL02"
+    },
+    {
+        "id": 13903,
+        "nombre": "LUNA GONZALEZ JORGE CHRISTOPHER",
+        "puesto": "RECLUTADOR ",
+        "fechaDeIngresoCliente": "2025-01-06",
+        "fechaDeIngresoGape": "2025-01-06",
+        "nss": 62169780244,
+        "rfc": "LUGJ9709166T0",
+        "curp": "LUGJ970916HMCNNR01"
+    },
+    {
+        "id": 13911,
+        "nombre": "RAMÍREZ LINARES LUIS ALBERTO",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2025-01-06",
+        "fechaDeIngresoGape": "2025-01-06",
+        "nss": 18210481596,
+        "rfc": "RALL0403217J8",
+        "curp": "RALL040321HDFMNSA5"
+    },
+    {
+        "id": 13917,
+        "nombre": "RESENDIZ  LOPEZ RODRIGO RAFAEL ",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2025-01-06",
+        "fechaDeIngresoGape": "2025-01-06",
+        "nss": 17159596257,
+        "rfc": "RELR950608QJ2",
+        "curp": "RELR950608HDFSPD08"
+    },
+    {
+        "id": 14229,
+        "nombre": "MENDEZ CANO ERWIN",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2025-01-29",
+        "fechaDeIngresoGape": "2025-01-29",
+        "nss": 52240603309,
+        "rfc": "MECE0607085B6",
+        "curp": "MECE060708HDFNNRA9"
+    },
+    {
+        "id": 14231,
+        "nombre": "GODINEZ ROBLES ANA LAURA",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2025-01-30",
+        "fechaDeIngresoGape": "2025-01-30",
+        "nss": 4130024450,
+        "rfc": "GORA000502P53",
+        "curp": "GORA000502MDFDBNA1"
+    },
+    {
+        "id": 14202,
+        "nombre": "GONZALEZ GARCIA LIZBETH GUADALUPE",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2025-01-29",
+        "fechaDeIngresoGape": "2025-01-29",
+        "nss": 10189896714,
+        "rfc": "GOGL981122R44",
+        "curp": "GOGL981122MDFNRZ03"
+    },
+    {
+        "id": 14160,
+        "nombre": "LOPEZ MARIANO ANA LIZBETH",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2025-01-27",
+        "fechaDeIngresoGape": "2025-01-27",
+        "nss": 20139832248,
+        "rfc": "LOMA980410876",
+        "curp": "LOMA980410MDFPRN03"
+    },
+    {
+        "id": 14161,
+        "nombre": "SALGADO VASQUEZ DANIEL",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2025-01-27",
+        "fechaDeIngresoGape": "2025-01-27",
+        "nss": 12169972341,
+        "rfc": "SAVD9906016F1",
+        "curp": "SAVD990601HMCLSN01"
+    },
+    {
+        "id": 14241,
+        "nombre": "SANDOVAL TREJO JOSE ALBERTO",
+        "puesto": "ANALISTA DE VALIDACION",
+        "fechaDeIngresoCliente": "2025-01-31",
+        "fechaDeIngresoGape": "2025-01-31",
+        "nss": 1129615819,
+        "rfc": "SATA960216PG3",
+        "curp": "SATA960216HDFNRL01"
+    },
+    {
+        "id": 14242,
+        "nombre": "MORALES ISIDRO CARLOS EDUARDO",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2025-01-31",
+        "fechaDeIngresoGape": "2025-01-31",
+        "nss": 69170240720,
+        "rfc": "MOIC0204242K7",
+        "curp": "MOIC020424HMCRSRA3"
+    },
+    {
+        "id": 14256,
+        "nombre": "CRISPIN MARTINEZ JOSE GUADALUPE",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2025-02-05",
+        "fechaDeIngresoGape": "2025-02-05",
+        "nss": 3207605035,
+        "rfc": "CIMG761212KIA",
+        "curp": "CIMG761212HMCRRD05"
+    },
+    {
+        "id": 14385,
+        "nombre": "HERNANDEZ FLORES BERENICE",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2025-02-15",
+        "fechaDeIngresoGape": "2025-02-15",
+        "nss": 5150176112,
+        "rfc": "HEFB010926GY2",
+        "curp": "HEFB010926MMCRLRA5"
+    },
+    {
+        "id": 5811,
+        "nombre": "MARTINEZ ACEVO JOSE RICARDO",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2025-02-17",
+        "fechaDeIngresoGape": "2025-02-17",
+        "nss": 96109286896,
+        "rfc": "MAAR920223K46",
+        "curp": "MAAR920223HMCRCC07"
+    },
+    {
+        "id": 14386,
+        "nombre": "GALVEZ MUÑOZ ENRIQUE",
+        "puesto": "EJECUTIVO DE ATENCIÓN AL CLIENTE",
+        "fechaDeIngresoCliente": "2025-02-17",
+        "fechaDeIngresoGape": "2025-02-17",
+        "nss": 86169959714,
+        "rfc": "GAME9907229G8",
+        "curp": "GAME990722HDFLXN05"
+    },
+    {
+        "id": 14387,
+        "nombre": "RODRIGUEZ LOPEZ MICHELLE JORDAN RICARDO",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2025-02-17",
+        "fechaDeIngresoGape": "2025-02-17",
+        "nss": 19190297044,
+        "rfc": "ROLM020507956",
+        "curp": "ROLM020507HDFDPCA9"
+    },
+    {
+        "id": 14396,
+        "nombre": "CHAVARRIA MIRANDA EDUARDO BRANDON",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2025-02-18",
+        "fechaDeIngresoGape": "2025-02-18",
+        "nss": 1130515941,
+        "rfc": "CAME0507126P2",
+        "curp": "CAME050712HDFHRDA9"
+    },
+    {
+        "id": 14399,
+        "nombre": "PEREZ MUÑOZ ULISES",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2025-02-17",
+        "fechaDeIngresoGape": "2025-02-17",
+        "nss": 94068423477,
+        "rfc": "PEMU840527P28",
+        "curp": "PEMU840527HDFRXL09"
+    },
+    {
+        "id": 14425,
+        "nombre": "MARTINEZ REYES VIRIDIANA",
+        "puesto": "EJECUTIVO DE ATENCIÓN AL CLIENTE",
+        "fechaDeIngresoCliente": "2025-02-20",
+        "fechaDeIngresoGape": "2025-02-20",
+        "nss": 20078202551,
+        "rfc": "MARV8203191L6",
+        "curp": "MARV820319MDFRYR03"
+    },
+    {
+        "id": 14426,
+        "nombre": "AYALA FIERRO EMMA",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2025-02-20",
+        "fechaDeIngresoGape": "2025-02-20",
+        "nss": 33957807622,
+        "rfc": "AAFE780419MM1",
+        "curp": "AAFE780419MCHYRM08"
+    },
+    {
+        "id": 14424,
+        "nombre": "GUERRA GONZALEZ EDSON MARIÑO",
+        "puesto": "EJECUTIVO DE ATENCIÓN AL CLIENTE",
+        "fechaDeIngresoCliente": "2025-02-20",
+        "fechaDeIngresoGape": "2025-02-20",
+        "nss": 45089025469,
+        "rfc": "GUGE900615HA2",
+        "curp": "GUGE900615HDFRND04"
+    },
+    {
+        "id": 14423,
+        "nombre": "BLAS GARCIA GUSTAVO JOSIMAR",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2025-02-20",
+        "fechaDeIngresoGape": "2025-02-20",
+        "nss": 69160019936,
+        "rfc": "BAGG001029Q8A",
+        "curp": "BAGG001029HMCLRSA7"
+    },
+    {
+        "id": 7720,
+        "nombre": "HERNANDEZ CHAVEZ GABRIEL",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2025-02-21",
+        "fechaDeIngresoGape": "2025-02-21",
+        "nss": 11170202243,
+        "rfc": "HECG0207287G2",
+        "curp": "HECG020728HDFRHBA1"
+    },
+    {
+        "id": 14389,
+        "nombre": "DIAZ LANDA JAVIER ULISES",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2025-02-17",
+        "fechaDeIngresoGape": "2025-02-17",
+        "nss": 5160025424,
+        "rfc": "DILJ000716BL5",
+        "curp": "DILJ000716HGRZNVA4"
+    },
+    {
+        "id": 14443,
+        "nombre": "TAPIA RIVERA DANIEL ILEAN",
+        "puesto": "EJECUTIVO DE COBRANZA",
+        "fechaDeIngresoCliente": "2025-02-24",
+        "fechaDeIngresoGape": "2025-02-24",
+        "nss": 16210638967,
+        "rfc": "TARD060204QS3",
+        "curp": "TARD060204HMCPVNA2"
+    },
+    {
+        "id": 11777,
+        "nombre": "PIÑA GOMEZ KARLA ANDREA",
+        "puesto": "RECLUTADOR JR",
+        "fechaDeIngresoCliente": "2025-02-24",
+        "fechaDeIngresoGape": "2025-02-24",
+        "nss": 30159906210,
+        "rfc": "PIGK990615ID8",
+        "curp": "PIGK990615MDFXMR07"
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": "0",
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    },
+    {
+        "id": 0,
+        "nombre": 0,
+        "puesto": 0,
+        "fechaDeIngresoCliente": null,
+        "fechaDeIngresoGape": null,
+        "nss": 0,
+        "rfc": 0,
+        "curp": 0
+    }
+]

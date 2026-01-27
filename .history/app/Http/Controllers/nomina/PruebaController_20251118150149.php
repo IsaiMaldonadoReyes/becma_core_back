@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\nomina;
 
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\Chart\Chart;
 use PhpOffice\PhpSpreadsheet\Chart\ChartColor;
 use PhpOffice\PhpSpreadsheet\Chart\DataSeries;
@@ -12,44 +11,52 @@ use PhpOffice\PhpSpreadsheet\Chart\Layout;
 use PhpOffice\PhpSpreadsheet\Chart\Legend as ChartLegend;
 use PhpOffice\PhpSpreadsheet\Chart\PlotArea;
 use PhpOffice\PhpSpreadsheet\Chart\Title;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Settings;
-use Illuminate\Http\Request;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
-class ExportController extends Controller
+use App\Http\Controllers\Controller;
+
+class PruebaController extends Controller
 {
     public function exportExcel(Request $request)
     {
 
+        $path = storage_path('app/public/plantillas/formato_prenomina.xlsx');
 
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
+        $spreadsheet = IOFactory::load($path);
 
-        // Datos de ejemplo
-        $sheet->setCellValue('A1', 'ID');
-        $sheet->setCellValue('B1', 'Nombre');
-        $sheet->setCellValue('C1', 'Enero');
-        $sheet->setCellValue('D1', 'Febrero');
-        $sheet->setCellValue('E1', 'Marzo');
+        $sheet = $spreadsheet->getSheetByName('prenomina');
+
 
         // Agrupar columnas C a E (Enero a Marzo)
-        for ($col = ord('C'); $col <= ord('E'); $col++) {
-            $colLetter = chr($col);
+        for ($i = 9; $i <= 27; $i++) {
+            $colLetter = Coordinate::stringFromColumnIndex($i);
+
             $sheet->getColumnDimension($colLetter)
                 ->setOutlineLevel(1)
                 ->setVisible(false)
                 ->setCollapsed(true);
         }
 
+
         // Es importante activar el resumen a la derecha
         $sheet->setShowSummaryRight(true);
 
-        // Crear un writer para guardar el archivo
-        $writer = new Xlsx($spreadsheet);
+
+
+        // Congeral la fila 3 y columna H
+        $sheet->freezePane('I4');
+        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+        //$writer->save(storage_path('app/public/resultados/modificado.xlsx'));
+
 
         // Descargar el archivo
         $response = new StreamedResponse(function () use ($writer) {
+
             // Limpiar el buffer de salida
             if (ob_get_level()) {
                 ob_end_clean();
