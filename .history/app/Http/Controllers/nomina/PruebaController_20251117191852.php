@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\nomina;
 
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\Chart\Chart;
 use PhpOffice\PhpSpreadsheet\Chart\ChartColor;
 use PhpOffice\PhpSpreadsheet\Chart\DataSeries;
@@ -12,18 +11,28 @@ use PhpOffice\PhpSpreadsheet\Chart\Layout;
 use PhpOffice\PhpSpreadsheet\Chart\Legend as ChartLegend;
 use PhpOffice\PhpSpreadsheet\Chart\PlotArea;
 use PhpOffice\PhpSpreadsheet\Chart\Title;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Settings;
-use Illuminate\Http\Request;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
-class ExportController extends Controller
+use App\Http\Controllers\Controller;
+
+class PruebaController extends Controller
 {
     public function exportExcel(Request $request)
     {
 
+        $path = storage_path('app/public/plantillas/mi_archivo.xlsx');
 
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = IOFactory::load($path);
+
+        $sheet = $spreadsheet->getSheetByName('prenomina');
+
+
+
+        /*$spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 
         // Datos de ejemplo
@@ -45,11 +54,22 @@ class ExportController extends Controller
         // Es importante activar el resumen a la derecha
         $sheet->setShowSummaryRight(true);
 
+        // Congeral la fila 1 y columna A
+        $sheet->freezePane('C2');*/
+
         // Crear un writer para guardar el archivo
-        $writer = new Xlsx($spreadsheet);
+        //$writer = new Xlsx($spreadsheet);
+
+
+        // Congeral la fila 1 y columna A
+        $sheet->freezePane('I4');
+        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+        //$writer->save(storage_path('app/public/resultados/modificado.xlsx'));
+
 
         // Descargar el archivo
         $response = new StreamedResponse(function () use ($writer) {
+
             // Limpiar el buffer de salida
             if (ob_get_level()) {
                 ob_end_clean();
