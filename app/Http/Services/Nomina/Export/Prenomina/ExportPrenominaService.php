@@ -14,19 +14,30 @@ class ExportPrenominaService
         return $this->loadTemplate($path);
     }
 
-    public function getDatosTotalesPorEsquema(array $config, PrenominaQueryService $queryService, $request): ?object
+    public function getDatosTotalesPorEsquema(array $config, PrenominaQueryService $queryService, $request, $baseFee): ?object
     {
         $queries = $config['queries'] ?? [];
 
-        if (!isset($queries['totales'])) {
+        $keyTotales = 'totales_' . $baseFee;
+
+        if (!isset($queries[$keyTotales])) {
             return null;
-        }
-;
-        return $queryService->getData($queries['totales'], $request);
+        };
+
+        /*
+        dd([
+            'row' => $request,
+        ]);
+        */
+
+        return $queryService->getData($queries[$keyTotales], $request);
     }
 
-    public function fillSheetFromConfig($spreadsheet, array $config, PrenominaQueryService $queryService, $request): void
+    public function fillSheetFromConfig($spreadsheet, array $config, PrenominaQueryService $queryService, $request, $baseFee): void
     {
+
+        $arrayDetalleTotales = ['detalle', 'totales_01', 'totales_02', 'totales_03', 'totales_04', 'totales_05'];
+
         if (empty($spreadsheet) || empty($config)) {
             return;
         }
@@ -53,7 +64,7 @@ class ExportPrenominaService
 
         foreach ($queries as $seccion => $queryName) {
 
-            if (in_array($seccion, ['detalle', 'totales'])) {
+            if (in_array($seccion, $arrayDetalleTotales)) {
                 continue; // ⛔ IMPORTANTE
             }
 
@@ -65,8 +76,10 @@ class ExportPrenominaService
             $indices[$seccion] = !empty($rows) ? array_keys($rows[0]) : [];
         }
 
-        $datosTotales = isset($queries['totales'])
-            ? $queryService->getData($queries['totales'], $request)
+        $keyTotales = 'totales_' . $baseFee;
+
+        $datosTotales = isset($queries[$keyTotales])
+            ? $queryService->getData($queries[$keyTotales], $request)
             : null;
 
         /*
@@ -352,6 +365,8 @@ class ExportPrenominaService
 
         foreach ($esquemas as $i => $esquema) {
 
+            $baseFee = $esquema->base_fee;
+
             $clave = $mapaEsquemaConfig[$esquema->esquema] ?? null;
             if (!$clave || !isset($config[$clave])) {
                 continue;
@@ -389,7 +404,7 @@ class ExportPrenominaService
             ));
 
             // 2️⃣ Obtener datos
-            $datos = $this->getDatosTotalesPorEsquema($configHoja, $queryService, $requestCombo);
+            $datos = $this->getDatosTotalesPorEsquema($configHoja, $queryService, $requestCombo, $baseFee);
 
             /*
             dd([

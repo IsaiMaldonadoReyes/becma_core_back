@@ -152,6 +152,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::delete('deleteBancoBanorte/{id}', [BancosDispersionController::class, 'deleteBancoBanorte']);
     });
 
+    // Bancos dispersion
+    Route::prefix('dispersion')->group(function () {
+        Route::post('bancosPorCombinacion', [BancosDispersionController::class, 'bancosPorCombinacion']);
+
+        Route::post('exportarFormatos', [BancosDispersionController::class, 'exportarFormatos']);
+    });
+
 
     // Prenomina
     Route::prefix('prenomina')->group(function () {
@@ -164,14 +171,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
         Route::post('esquemaPorEmpresaDisponibles', [CatalogosController::class, 'esquemaPorEmpresaDisponibles']);
 
+        Route::post('esquemaPorCombinacion', [CatalogosController::class, 'esquemaPorCombinacion']);
+
         Route::post('ejerciciosPorTipoPeriodo', [CatalogosController::class, 'ejerciciosPorTipoPeriodoPorClienteEmpresa']);
 
         Route::post('periodoPorEjercicio', [CatalogosController::class, 'periodoPorEjercicioPorClienteEmpresa']);
 
         //Route::post('ejecutar', [PrenominaController::class, 'ejecutar']);
         Route::post('prenomina', [PrenominaController::class, 'prenomina']);
-
-        Route::post('noFiscal', [PrenominaController::class, 'prenominaNoFiscal']);
     });
 
     Route::prefix('incidencia')->group(function () {
