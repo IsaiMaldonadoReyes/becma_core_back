@@ -20,7 +20,11 @@ class ConfigFormatoPrenominaService
                     'excedente'     => 'datosSueldoImss_4',
                     'provisiones'   => 'datosSueldoImss_5',
                     'carga_social'  => 'datosSueldoImss_6',
-                    'totales'       => 'datosTotalesSueldoImss_7',
+                    'totales_01'       => 'totalSueldoImss_01',
+                    'totales_02'       => 'totalSueldoImss_02',
+                    'totales_03'       => 'totalSueldoImss_03',
+                    'totales_04'       => 'totalSueldoImss_04',
+                    'totales_05'       => 'totalSueldoImss_05',
                 ],
                 'titulos' => [
                     'ingresos'      => 'NÓMINA EN BASE A INGRESOS REALES',
@@ -45,7 +49,12 @@ class ConfigFormatoPrenominaService
                     'excedente'     => 'datosAsimilados_4',
                     'provisiones'   => 'datosAsimilados_5',
                     'carga_social'  => 'datosAsimilados_6',
-                    'totales'       => 'datosTotalesAsimilados_7',
+                    //'totales'       => 'datosTotalesAsimilados_7',
+                    'totales_01'       => 'totalAsimilados_01',
+                    'totales_02'       => 'totalAsimilados_02',
+                    'totales_03'       => 'totalAsimilados_03',
+                    'totales_04'       => 'totalAsimilados_04',
+                    'totales_05'       => 'totalAsimilados_05',
                 ],
                 'titulos' => [
                     'ingresos'      => 'NÓMINA EN BASE A INGRESOS REALES',
@@ -67,7 +76,7 @@ class ConfigFormatoPrenominaService
                     'detalle'       => 'datosSindicato_1',
                     'ingresos'      => 'datosSindicato_2',
                     'excedente'     => 'datosSindicato_4',
-                    'totales'       => 'datosTotalesSindicato_7',
+                    'totales_01'    => 'totalSindicato_01',
                 ],
                 'titulos' => [
                     'ingresos'      => 'NÓMINA EN BASE A INGRESOS REALES',
@@ -86,7 +95,7 @@ class ConfigFormatoPrenominaService
                     'detalle'       => 'datosTarjetaFacil_1',
                     'ingresos'      => 'datosTarjetaFacil_2',
                     'excedente'     => 'datosTarjetaFacil_4',
-                    'totales'       => 'datosTotalesTarjetaFacil_7',
+                    'totales_01'    => 'totalTarjetaFacil_01',
                 ],
                 'titulos' => [
                     'ingresos'      => 'NÓMINA EN BASE A INGRESOS REALES',
@@ -105,7 +114,7 @@ class ConfigFormatoPrenominaService
                     'detalle'       => 'datosGastosPorComprobar_1',
                     'ingresos'      => 'datosGastosPorComprobar_2',
                     'excedente'     => 'datosGastosPorComprobar_4',
-                    'totales'       => 'datosTotalesGastosPorComprobar_7',
+                    'totales_01'    => 'totalGastosPorComprobar_01',
                 ],
                 'titulos' => [
                     'ingresos'      => 'NÓMINA EN BASE A INGRESOS REALES',

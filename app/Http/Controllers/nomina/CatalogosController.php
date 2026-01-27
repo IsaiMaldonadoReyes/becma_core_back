@@ -609,6 +609,44 @@ class CatalogosController extends Controller
         }
     }
 
+    public function esquemaPorCombinacion(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'idEmpresa'     => 'required|integer',
+                'idCliente'     => 'required|integer',
+                'idEsquema'     => 'required',
+            ]);
+
+            $idNominaGapeEmpresa   = $validated['idEmpresa'];
+            $idNominaGapeCliente   = $validated['idCliente'];
+            $idCombinacion   = $validated['idEsquema'];
+
+            $esquemas = NominaGapeEsquema::select(
+                'nomina_gape_esquema.id',
+                'nomina_gape_esquema.esquema',
+                'nomina_gape_esquema.contpaq'
+            )
+                ->join('nomina_gape_cliente_esquema_combinacion', 'nomina_gape_esquema.id', '=', 'nomina_gape_cliente_esquema_combinacion.id_nomina_gape_esquema')
+                ->where('nomina_gape_cliente_esquema_combinacion.id_nomina_gape_empresa', $idNominaGapeEmpresa)
+                ->where('nomina_gape_cliente_esquema_combinacion.id_nomina_gape_cliente', $idNominaGapeCliente)
+                ->where('nomina_gape_cliente_esquema_combinacion.combinacion', $idCombinacion)
+                ->where('nomina_gape_cliente_esquema_combinacion.estado', 1)
+                ->get();
+
+            return response()->json([
+                'code' => 200,
+                'data' => $esquemas,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'code' => 500,
+                'message' => 'Error al obtener los esquemas por tipo de periodo.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function esquemaPorEmpresaDisponibles(Request $request)
     {
         try {

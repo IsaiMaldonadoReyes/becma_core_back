@@ -78,7 +78,7 @@ class PrenominaController extends Controller
             ->where('ngcec.id_nomina_gape_cliente', $idCliente)
             ->whereIn('ngcec.combinacion', $idEsquemas)
             ->where('ngcec.orden', 1)
-            ->select('nge.esquema', 'ngcec.combinacion AS id', 'nge.id AS id_nomina_gape_esquema')
+            ->select('nge.esquema', 'ngcec.combinacion AS id', 'nge.id AS id_nomina_gape_esquema', 'ngepcp.base_fee AS base_fee')
             ->get();
 
         if ($esquemas->isEmpty()) {
@@ -98,6 +98,7 @@ class PrenominaController extends Controller
         foreach ($esquemas as $row) {
             // 🔹 id de combinación (ngcec.combinacion)
             $idCombinacion = (int) $row->id;
+            $baseFee = $row->base_fee;
 
             // 🔹 nombre BD (Sueldo IMSS, Asimilados, etc.)
             $nombreEsquema = $row->esquema;
@@ -133,7 +134,7 @@ class PrenominaController extends Controller
             ]);
             */
 
-            $exporter->fillSheetFromConfig($spreadsheet, $configHoja, $queryService, $requestCombo);
+            $exporter->fillSheetFromConfig($spreadsheet, $configHoja, $queryService, $requestCombo, $baseFee);
 
             $hojasUsadas[] = $configHoja['sheet_name'];
         }
