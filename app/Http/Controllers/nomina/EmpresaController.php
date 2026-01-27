@@ -229,14 +229,17 @@ class EmpresaController extends Controller
 
     public function asignadasAClienteTipo(Request $request)
     {
-        $idCliente = $request->idCliente; // ejemplo, o puedes obtenerlo del usuario autenticado
-        $fiscal = $request->fiscal; // fiscal no fiscal
+        // VALIDACIÓN BÁSICA
+        $validated = $request->validate([
+            'idCliente'     => 'required',
+        ]);
+
+        $idCliente = $validated['idCliente'];
 
         try {
             $empresas = NominaGapeEmpresa::query()
                 ->select('id', 'id_empresa_database', 'razon_social', 'rfc')
                 ->where('id_nomina_gape_cliente', $idCliente)
-                ->where('fiscal', $fiscal)
                 ->get();
 
             return response()->json([

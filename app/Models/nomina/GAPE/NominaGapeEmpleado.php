@@ -11,6 +11,7 @@ class NominaGapeEmpleado extends Model
     protected $table = 'nomina_gape_empleado';
 
     protected $casts = [
+        'id' => 'integer',
         'calculado' => 'boolean',
         'afectado' => 'boolean',
         'calculadoextraordinario' => 'boolean',
@@ -32,6 +33,7 @@ class NominaGapeEmpleado extends Model
         'idtipoperiodo' => 'integer',
         'idturno' => 'integer',
         'cidregistropatronal' => 'integer',
+        'id_nomina_gape_esquema' => 'integer',
     ];
 
     protected $fillable = [
@@ -138,6 +140,7 @@ class NominaGapeEmpleado extends Model
         'fiscal',
         'fecha_alta_gape',
         'sueldo_real',
-        'sueldo_imss_gape'
+        'sueldo_imss_gape',
+        'id_nomina_gape_esquema',
     ];
 }

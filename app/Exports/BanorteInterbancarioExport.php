@@ -8,7 +8,7 @@ use Maatwebsite\Excel\Concerns\WithCustomCsvSettings;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithTitle;
 
-class BanorteTerceroExport implements FromCollection, WithHeadings, WithCustomCsvSettings, WithTitle
+class BanorteInterbancarioExport implements FromCollection, WithHeadings, WithCustomCsvSettings, WithTitle
 {
     protected Collection $data;
     protected string $claveId;
@@ -21,13 +21,13 @@ class BanorteTerceroExport implements FromCollection, WithHeadings, WithCustomCs
         $this->data = $data;
         $this->cuentaOrigen = $cuentaOrigen;
         $this->rfcOrdenante = $rfcOrdenante;
-        $this->concepto = $concepto;
+        $this->concepto = $concepto;;
     }
 
     public function collection(): Collection
     {
         return $this->data
-            ->filter(fn($row) => ($row['claveBanco'] ?? null) === '072')
+            ->filter(fn($row) => ($row['claveBanco'] ?? null) !== '072')
             ->map(fn($row) => $this->buildRow($row))
             ->values(); // 🔑 reindexa
     }
@@ -35,17 +35,17 @@ class BanorteTerceroExport implements FromCollection, WithHeadings, WithCustomCs
     private function buildRow(array $row): array
     {
         return [
-            '02',
+            '04',
             trim($row['campoextra3'] ?? ''),
             $this->formatNumericField($this->cuentaOrigen),
-            $this->formatNumericField($row['cuentaPagoElectronico'] ?? ''),
+            $this->formatNumericField($row['clabeInterbancaria'] ?? ''),
             $this->formatAmount($row['importe'] ?? 0),
             '',
             $this->concepto ?? '',
             $this->cleanText($this->rfcOrdenante),
             '0.00',
             now()->format('dmY'),
-            'X',
+            $this->buildDescription($row['nombre'] ?? ''),
             '',
         ];
     }
@@ -72,13 +72,12 @@ class BanorteTerceroExport implements FromCollection, WithHeadings, WithCustomCs
 
     private function buildDescription(string $nombre): string
     {
-        return $this->cleanText($nombre, 30);
+        return $this->cleanText($nombre, 100);
     }
 
     private function formatNumericField(string $value): string
     {
         $value = trim($value);
-
         return "'{$value}";
     }
 

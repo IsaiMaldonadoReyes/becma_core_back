@@ -19,7 +19,7 @@ class IncidenciasSaver
         ]);
     }
 
-    public function guardarDetalle($sheet, $row, $incidenciaId)
+    public function guardarDetalle($sheet, $row, $incidenciaId, $nombreHoja, $idEsquema, $idEsquemaCombinacion)
     {
         $codigo = trim($sheet->getCell("A{$row}")->getValue());
         $empleado = Empleado::where('codigoempleado', $codigo)->first();
@@ -31,7 +31,7 @@ class IncidenciasSaver
 
             'cantidad_faltas'             => floatval($sheet->getCell("M{$row}")->getValue()),
             'cantidad_vacaciones'         => floatval($sheet->getCell("N{$row}")->getValue()),
-            'horas_extra_doble'           => floatval($sheet->getCell("O{$row}")->getValue()),
+            'anios_prima_vacacional'      => floatval($sheet->getCell("O{$row}")->getValue()),
             'cantidad_prima_vacacional'   => floatval($sheet->getCell("P{$row}")->getValue()),
 
             'cantidad_prima_dominical'    => floatval($sheet->getCell("Q{$row}")->getValue()),
@@ -56,8 +56,13 @@ class IncidenciasSaver
             'incapacidad_dias'          => trim((string) $sheet->getCell("AE{$row}")->getValue()),
             'cantidad_dias_retroactivos'      => floatval($sheet->getCell("AG{$row}")->getValue()),
 
+            'codigo_empleado'           => $codigo,
 
-            'codigo_empleado' => $codigo,
+            'pago_simple'               => floatval($sheet->getCell("AH{$row}")->getValue()),
+            'neto'                      => floatval($sheet->getCell("AI{$row}")->getValue()),
+
+            'id_nomina_gape_esquema' => $idEsquema,
+            'id_nomina_gape_combinacion' => $idEsquemaCombinacion,
         ]);
     }
 }

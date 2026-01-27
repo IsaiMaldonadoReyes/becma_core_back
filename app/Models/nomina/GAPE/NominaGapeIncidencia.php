@@ -18,7 +18,7 @@ class NominaGapeIncidencia extends Model
         'id_nomina_gape_empresa',
         'id_tipo_periodo',
         'id_periodo',
-        'estado'
+        'estado',
     ];
 
     public $timestamps = true;

@@ -6,14 +6,16 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 use App\Models\nomina\default\Empleado;
+use App\Models\nomina\default\EmpleadosPorPeriodo;
 use App\Models\nomina\default\MovimientosDiasHorasVigente;
 use App\Models\nomina\default\Periodo;
+use App\Models\nomina\GAPE\NominaGapeEmpleado;
 use Carbon\Carbon;
 
 class IncidenciasRowValidator
 {
 
-    public function validate(Worksheet $sheet, int $row, $request): IncidenciasValidationBag
+    public function validateSueldoImss(Worksheet $sheet, int $row, $request): IncidenciasValidationBag
     {
         $issues = new IncidenciasValidationBag();
 
@@ -35,7 +37,14 @@ class IncidenciasRowValidator
             ->first();
 
         if (!$empleado) {
-            $issues->add("El empleado con código '{$codigoEmpleado}' no existe.", $row, 'A');
+            $issues->add(
+                "El empleado con código '{$codigoEmpleado}' no existe.",
+                $row,
+                'A',
+                'nomina',
+                'Información incorrecta',
+                $codigoEmpleado
+            );
             return $issues;
         }
 
@@ -80,7 +89,10 @@ class IncidenciasRowValidator
                     $issues->add(
                         "El valor '{$cellValue}' en {$colLetter}{$row} debe ser un entero mayor a 0.",
                         $row,
-                        $colLetter
+                        $colLetter,
+                        'formato',
+                        'numerico',
+                        $cellValue
                     );
                 } else {
                     if (in_array($colLetter, ['M', 'N', 'AD'])) {
@@ -98,7 +110,10 @@ class IncidenciasRowValidator
                     $issues->add(
                         "El valor '{$cellValue}' en {$colLetter}{$row} debe ser decimal o entero.",
                         $row,
-                        $colLetter
+                        $colLetter,
+                        'formato',
+                        'decimal',
+                        $cellValue
                     );
                 }
 
@@ -120,7 +135,14 @@ class IncidenciasRowValidator
         if ($valorAD > 0) {
 
             if ($valorAE === "") {
-                $issues->add("Debe capturar las fechas de incapacidad en AE{$row}.", $row, 'AE');
+                $issues->add(
+                    "Debe capturar las fechas de incapacidad en AE{$row}.",
+                    $row,
+                    'AE',
+                    'nomina',
+                    'fechasInvalidas',
+                    $cellValue
+                );
             } else {
 
                 // Convertir "valorAE" a array de fechas separadas
@@ -136,7 +158,14 @@ class IncidenciasRowValidator
                             $dt = ExcelDate::excelToDateTimeObject($f);
                             $fechas[] = $dt->format('d/m/Y');
                         } catch (\Throwable $e) {
-                            $issues->add("La fecha '{$f}' no se pudo interpretar como fecha de Excel.", $row, 'AE');
+                            $issues->add(
+                                "La fecha '{$f}' no se pudo interpretar como fecha de Excel.",
+                                $row,
+                                'AE',
+                                'nomina',
+                                'fechasInvalidas',
+                                $f
+                            );
                         }
                     } else {
                         // Mantener string tal cual
@@ -149,15 +178,48 @@ class IncidenciasRowValidator
                     $issues->add(
                         "El número de fechas en AE{$row} debe coincidir con el valor de AD ({$valorAD}).",
                         $row,
-                        'AE'
+                        'AE',
+                        'nomina',
+                        'fechasInvalidas',
+                        $valorAD
                     );
                 }
 
-                // Rango del periodo
+                $empPeriodo = EmpleadosPorPeriodo::where('idempleado', $empleado->idempleado)
+                    ->where('cidperiodo', $request->idPeriodo)
+                    ->first();
+
                 $periodo = Periodo::find($request->idPeriodo);
 
                 $inicio = Carbon::parse($periodo->fechainicio)->startOfDay();
                 $fin    = Carbon::parse($periodo->fechafin)->endOfDay();
+
+                $fechaAltaEmpleado = $empPeriodo
+                    ? Carbon::parse($empPeriodo->fechaalta)->startOfDay()
+                    : null;
+
+                $inicioHabil = null;
+
+                if ($fechaAltaEmpleado) {
+
+                    // 1️⃣ Entró ANTES del periodo → inicio del periodo
+                    if ($fechaAltaEmpleado->lt($inicio)) {
+
+                        $inicioHabil = $inicio;
+
+                        // 2️⃣ Entró DENTRO del periodo → fecha de alta
+                    } elseif (
+                        $fechaAltaEmpleado->gte($inicio) &&
+                        $fechaAltaEmpleado->lte($fin)
+                    ) {
+
+                        $inicioHabil = $fechaAltaEmpleado;
+
+                        // 3️⃣ Entró DESPUÉS del periodo → no aplica
+                    } else {
+                        $inicioHabil = null;
+                    }
+                }
 
                 // Fechas ya usadas
                 $fechasUsadas = MovimientosDiasHorasVigente::where('idempleado', $empleado->idempleado)
@@ -174,16 +236,26 @@ class IncidenciasRowValidator
                     try {
                         $fecha = Carbon::createFromFormat('d/m/Y', $fechaStr)->startOfDay();
                     } catch (\Exception $e) {
-                        $issues->add("La fecha '{$fechaStr}' no tiene formato válido (dd/mm/yyyy).", $row, 'AE');
+                        $issues->add(
+                            "La fecha '{$fechaStr}' no tiene formato válido (dd/mm/yyyy).",
+                            $row,
+                            'AE',
+                            'nomina',
+                            'fechasInvalidas',
+                            $fechaStr
+                        );
                         continue;
                     }
 
                     // Validar periodo
-                    if ($fecha->lt($inicio) || $fecha->gt($fin)) {
+                    if ($fecha->lt($inicioHabil) || $fecha->gt($fin)) {
                         $issues->add(
-                            "La fecha '{$fechaStr}' está fuera del periodo ({$inicio->format('d-m-Y')} al {$fin->format('d-m-Y')}).",
+                            "La fecha '{$fechaStr}' está fuera del periodo ({$inicioHabil->format('d-m-Y')} al {$fin->format('d-m-Y')}).",
                             $row,
-                            'AE'
+                            'AE',
+                            'nomina',
+                            'fechasInvalidas',
+                            $fechaStr
                         );
                     }
 
@@ -191,14 +263,28 @@ class IncidenciasRowValidator
                     $key = $fecha->format('Y-m-d');
 
                     if (isset($fechasSet[$key])) {
-                        $issues->add("La fecha '{$fechaStr}' está duplicada.", $row, 'AE');
+                        $issues->add(
+                            "La fecha '{$fechaStr}' está duplicada.",
+                            $row,
+                            'AE',
+                            'nomina',
+                            'fechasInvalidas',
+                            $fechaStr
+                        );
                     } else {
                         $fechasSet[$key] = true;
                     }
 
                     // Validar usadas previamente
                     if (in_array($key, $fechasUsadas)) {
-                        $issues->add("La fecha '{$fechaStr}' ya fue usada previamente.", $row, 'AE');
+                        $issues->add(
+                            "La fecha '{$fechaStr}' ya fue usada previamente.",
+                            $row,
+                            'AE',
+                            'nomina',
+                            'fechasInvalidas',
+                            $fechaStr
+                        );
                     }
                 }
             }
@@ -214,8 +300,7 @@ class IncidenciasRowValidator
         return $issues;
     }
 
-
-    public function validate3(Worksheet $sheet, int $row, $request): IncidenciasValidationBag
+    public function validateAsimilado(Worksheet $sheet, int $row, $request): IncidenciasValidationBag
     {
         $issues = new IncidenciasValidationBag();
 
@@ -237,77 +322,64 @@ class IncidenciasRowValidator
             ->first();
 
         if (!$empleado) {
-            $issues->add("El empleado con código '{$codigoEmpleado}' no existe.", $row, 'A');
+            $issues->add(
+                "El empleado con código '{$codigoEmpleado}' no existe.",
+                $row,
+                'A',
+                'nomina',
+                'Información incorrecta',
+                $codigoEmpleado
+            );
             return $issues;
         }
 
         // ---------------------------------------------------------
-        // COLUMNAS SEGÚN NUEVAS REGLAS
+        // 3. Columnas: enteros, decimales, omitidas
         // ---------------------------------------------------------
+        $enteros = ['R'];
 
-        // Enteros positivos
-        $enteros = [
-            'M', // faltas
-            'N', // vacaciones
-            'P', // prima vacacional
-            'R', // dias festivos
-            'AD', // incapacidad
-            'AG'  // dias retroactivos
-        ];
-
-        // Decimales / enteros mixtos (Q–AC excepto R)
-        $decimales = [];
-
+        $decimales = ['AI'];
         $startIndex = Coordinate::columnIndexFromString('Q');
         $endIndex   = Coordinate::columnIndexFromString('AC');
 
         for ($i = $startIndex; $i <= $endIndex; $i++) {
             $colLetter = Coordinate::stringFromColumnIndex($i);
-
-            // Excluir la R del rango
-            if ($colLetter === 'R') {
-                continue;
+            if ($colLetter !== 'R') {
+                $decimales[] = $colLetter;
             }
-
-            $decimales[] = $colLetter;
         }
 
-        // Excluir columna O
-        $columnasOmitidas = ['O'];
-
-        $tieneDatos = false;
+        $tieneDatos    = false;
         $sumaDiasExcel = 0;
 
         // ---------------------------------------------------------
-        // 3. VALIDACIÓN DE FORMATO POR COLUMNA
+        // 4. Validación general de columnas
         // ---------------------------------------------------------
         $todasColumnas = array_merge($enteros, $decimales);
 
         foreach ($todasColumnas as $colLetter) {
 
-            if (in_array($colLetter, $columnasOmitidas)) {
-                continue;
-            }
-
             $cellValue = trim((string)$sheet->getCell("{$colLetter}{$row}")->getValue());
 
-            if ($cellValue !== "" && $cellValue !== null) {
+            if ($cellValue !== "") {
                 $tieneDatos = true;
             } else {
                 continue;
             }
 
-            // ------------------ ENTEROS POSITIVOS
+            // ENTEROS POSITIVOS
             if (in_array($colLetter, $enteros)) {
 
                 if (!preg_match('/^[1-9]\d*$/', $cellValue)) {
                     $issues->add(
                         "El valor '{$cellValue}' en {$colLetter}{$row} debe ser un entero mayor a 0.",
                         $row,
-                        $colLetter
+                        $colLetter,
+                        'formato',
+                        'numerico',
+                        $cellValue
                     );
                 } else {
-                    // Sumar solo M, N, AD
                     if (in_array($colLetter, ['M', 'N', 'AD'])) {
                         $sumaDiasExcel += intval($cellValue);
                     }
@@ -316,14 +388,17 @@ class IncidenciasRowValidator
                 continue;
             }
 
-            // ------------------ DECIMALES O ENTEROS
+            // DECIMALES
             if (in_array($colLetter, $decimales)) {
 
                 if (!preg_match('/^\s*-?(?:\d+|\d*\.\d+)\s*$/', $cellValue)) {
                     $issues->add(
                         "El valor '{$cellValue}' en {$colLetter}{$row} debe ser decimal o entero.",
                         $row,
-                        $colLetter
+                        $colLetter,
+                        'formato',
+                        'decimal',
+                        $cellValue
                     );
                 }
 
@@ -331,83 +406,13 @@ class IncidenciasRowValidator
             }
         }
 
-        // Si NO tiene datos → ignorar fila
         if (!$tieneDatos) {
             $issues->markSkipRow();
             return $issues;
         }
 
         // ---------------------------------------------------------
-        // 4. VALIDACIÓN DE COLUMNA AE (FECHAS DE INCAPACIDAD)
-        // ---------------------------------------------------------
-        $valorAD = intval($sheet->getCell("AD{$row}")->getValue());
-        $valorAE = trim((string)$sheet->getCell("AE{$row}")->getValue());
-
-        if ($valorAD > 0) {
-
-            if ($valorAE === "") {
-                $issues->add("Debe capturar las fechas de incapacidad en AE{$row}.", $row, 'AE');
-            } else {
-                $fechas = array_map('trim', explode(',', $valorAE));
-
-                // Validar cantidad
-                if (count($fechas) !== $valorAD) {
-                    $issues->add(
-                        "El número de fechas en AE{$row} debe coincidir con el valor de AD ({$valorAD}).",
-                        $row,
-                        'AE'
-                    );
-                }
-
-                // Validar formato y rango del periodo
-                $periodo = Periodo::find($request->idPeriodo);
-
-                $inicio = Carbon::parse($periodo->fechainicio)->startOfDay();
-                $fin    = Carbon::parse($periodo->fechafin)->endOfDay();
-
-                $fechasUsadas = MovimientosDiasHorasVigente::where('idempleado', $empleado->idempleado)
-                    ->where('idperiodo', $request->idPeriodo)
-                    ->pluck('fecha')
-                    ->map(fn($f) => Carbon::parse($f)->format('Y-m-d'))
-                    ->toArray();
-
-                $fechasSet = [];
-
-                foreach ($fechas as $fechaStr) {
-
-                    $fechaStr = trim($fechaStr);
-
-                    // Validar formato
-                    try {
-                        $fecha = Carbon::createFromFormat('d/m/Y', $fechaStr)->startOfDay();
-                    } catch (\Exception $e) {
-                        $issues->add("La fecha '{$fechaStr}' no tiene formato válido (dd/mm/yyyy).", $row, 'AE');
-                        continue;
-                    }
-
-                    // Validar dentro del periodo
-                    if ($fecha->lt($inicio) || $fecha->gt($fin)) {
-                        $issues->add("La fecha '{$fechaStr}' está fuera del periodo ({$inicio->format('d-m-Y')} al {$fin->format('d-m-Y')}).", $row, 'AE');
-                    }
-
-                    // Validar duplicados en la misma lista
-                    $key = $fecha->format('Y-m-d');
-                    if (isset($fechasSet[$key])) {
-                        $issues->add("La fecha '{$fechaStr}' está duplicada.", $row, 'AE');
-                    } else {
-                        $fechasSet[$key] = true;
-                    }
-
-                    // Validar que la fecha no esté usada antes
-                    if (in_array($key, $fechasUsadas)) {
-                        $issues->add("La fecha '{$fechaStr}' ya fue usada previamente.", $row, 'AE');
-                    }
-                }
-            }
-        }
-
-        // ---------------------------------------------------------
-        // 5. Guardar datos para los demás validadores
+        // 6. Guardar datos para otros validadores
         // ---------------------------------------------------------
         $issues->set('empleado', $empleado);
         $issues->set('sumaDiasExcel', $sumaDiasExcel);
@@ -416,16 +421,15 @@ class IncidenciasRowValidator
         return $issues;
     }
 
-    public function validate2(Worksheet $sheet, int $row, $request): IncidenciasValidationBag
+    public function validateExcedente(Worksheet $sheet, int $row, $request): IncidenciasValidationBag
     {
         $issues = new IncidenciasValidationBag();
 
         // ---------------------------------------------------------
-        // 1. Leer código de empleado
+        // 1. Código de empleado
         // ---------------------------------------------------------
         $codigoEmpleado = trim((string)$sheet->getCell("A{$row}")->getValue());
 
-        // Si está vacío, ignorar fila (igual que tu código)
         if ($codigoEmpleado === "") {
             $issues->markSkipRow();
             return $issues;
@@ -434,7 +438,7 @@ class IncidenciasRowValidator
         // ---------------------------------------------------------
         // 2. Validar existencia del empleado
         // ---------------------------------------------------------
-        $empleado = Empleado::select('idempleado')
+        $empleado = NominaGapeEmpleado::select('idempleado')
             ->where('codigoempleado', $codigoEmpleado)
             ->first();
 
@@ -442,52 +446,62 @@ class IncidenciasRowValidator
             $issues->add(
                 "El empleado con código '{$codigoEmpleado}' no existe.",
                 $row,
-                'A'
+                'A',
+                'nomina',
+                'Información incorrecta',
+                $codigoEmpleado
             );
             return $issues;
         }
 
         // ---------------------------------------------------------
-        // PARÁMETROS QUE VIENEN DEL EXCEL
+        // 3. Columnas: enteros, decimales, omitidas
         // ---------------------------------------------------------
-        $colInicioEnteros   = Coordinate::columnIndexFromString('I'); // enteros positivos
-        $colFinEnteros      = Coordinate::columnIndexFromString('N');
-        $colInicioDecimales = Coordinate::columnIndexFromString('O');
-        $colFinDecimales    = Coordinate::columnIndexFromString('V');
+        $enteros = ['R'];
 
-        $tieneDatos = false;
+        $decimales = ['AH'];
+        $startIndex = Coordinate::columnIndexFromString('Q');
+        $endIndex   = Coordinate::columnIndexFromString('AC');
+
+        for ($i = $startIndex; $i <= $endIndex; $i++) {
+            $colLetter = Coordinate::stringFromColumnIndex($i);
+            if ($colLetter !== 'R') {
+                $decimales[] = $colLetter;
+            }
+        }
+
+        $tieneDatos    = false;
         $sumaDiasExcel = 0;
 
         // ---------------------------------------------------------
-        // 3. Recorrer columnas I–V para validar formato
+        // 4. Validación general de columnas
         // ---------------------------------------------------------
-        for ($col = $colInicioEnteros; $col <= $colFinDecimales; $col++) {
+        $todasColumnas = array_merge($enteros, $decimales);
 
-            $colLetter = Coordinate::stringFromColumnIndex($col);
+        foreach ($todasColumnas as $colLetter) {
+
             $cellValue = trim((string)$sheet->getCell("{$colLetter}{$row}")->getValue());
 
-            // Detectar si hay datos capturados
-            if ($cellValue !== "" && $cellValue !== null) {
+            if ($cellValue !== "") {
                 $tieneDatos = true;
-            }
-
-            // Si está vacío → permitido
-            if ($cellValue === "" || $cellValue === null) {
+            } else {
                 continue;
             }
 
-            // ------------------ ENTEROS POSITIVOS (I–N)
-            if ($col >= $colInicioEnteros && $col <= $colFinEnteros) {
+            // ENTEROS POSITIVOS
+            if (in_array($colLetter, $enteros)) {
 
                 if (!preg_match('/^[1-9]\d*$/', $cellValue)) {
                     $issues->add(
                         "El valor '{$cellValue}' en {$colLetter}{$row} debe ser un entero mayor a 0.",
                         $row,
-                        $colLetter
+                        $colLetter,
+                        'formato',
+                        'numerico',
+                        $cellValue
                     );
                 } else {
-                    // Suma de días (solo I, J, K)
-                    if (in_array($colLetter, ['I', 'J', 'K'])) {
+                    if (in_array($colLetter, ['M', 'N', 'AD'])) {
                         $sumaDiasExcel += intval($cellValue);
                     }
                 }
@@ -495,14 +509,17 @@ class IncidenciasRowValidator
                 continue;
             }
 
-            // ------------------ DECIMALES (O–V)
-            if ($col >= $colInicioDecimales && $col <= $colFinDecimales) {
+            // DECIMALES
+            if (in_array($colLetter, $decimales)) {
 
                 if (!preg_match('/^\s*-?(?:\d+|\d*\.\d+)\s*$/', $cellValue)) {
                     $issues->add(
-                        "El valor '{$cellValue}' en {$colLetter}{$row} debe ser decimal.",
+                        "El valor '{$cellValue}' en {$colLetter}{$row} debe ser decimal o entero.",
                         $row,
-                        $colLetter
+                        $colLetter,
+                        'formato',
+                        'decimal',
+                        $cellValue
                     );
                 }
 
@@ -510,14 +527,13 @@ class IncidenciasRowValidator
             }
         }
 
-        // Si NO tiene datos → ignorar fila
         if (!$tieneDatos) {
             $issues->markSkipRow();
             return $issues;
         }
 
         // ---------------------------------------------------------
-        // 4. Guardar datos importantes para próximos validadores
+        // 6. Guardar datos para otros validadores
         // ---------------------------------------------------------
         $issues->set('empleado', $empleado);
         $issues->set('sumaDiasExcel', $sumaDiasExcel);

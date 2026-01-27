@@ -24,7 +24,9 @@ class StoreNoFiscalRequest extends FormRequest
         return [
             'id_nomina_gape_empresa' => 'required|numeric',
             'id_nomina_gape_cliente' => 'nullable|numeric',
+            'id_nomina_gape_esquema' => 'nullable|numeric',
             'fiscal' => 'nullable|boolean',
+            'estado_empleado' => 'nullable|boolean',
             'fechaalta' => 'required|date',
             'apellidopaterno' => 'nullable|string|max:60|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/u',
             'apellidomaterno' => 'nullable|string|max:60|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/u',
@@ -46,6 +48,8 @@ class StoreNoFiscalRequest extends FormRequest
             'id_nomina_gape_empresa.required' => 'Selecciona una empresa para continuar.',
             'id_nomina_gape_empresa.numeric' => 'La empresa seleccionada no es válida.',
             'id_nomina_gape_cliente.numeric' => 'El cliente seleccionado no es válido.',
+
+            'id_nomina_gape_esquema.numeric' => 'El esquema seleccionado no es válido.',
 
             // 💰 Fiscal
             'fiscal.boolean' => 'El campo "Fiscal" debe ser verdadero o falso.',

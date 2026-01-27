@@ -40,6 +40,7 @@ class IncidenciasConceptValidator
 
         $valorAniosPrimaVacacional = intval($sheet->getCell("O{$row}")->getValue()); // concepto 20
         $valorDiasPrimaVacacional = intval($sheet->getCell("P{$row}")->getValue()); // concepto 20
+        $valorDiasRetroactivo = intval($sheet->getCell("AG{$row}")->getValue()); // concepto 16
 
 
         $valorPrimaVacacional =
@@ -50,6 +51,7 @@ class IncidenciasConceptValidator
         // Mismo mapa que tu código original
         $conceptosAValidar = [
             20 => ['valor' => $valorPrimaVacacional,    'col' => 'O | P', 'descripcion' => 'Prima de vacaciones a tiempo'],
+            16 => ['valor' => $valorDiasRetroactivo,    'col' => 'AG', 'descripcion' => 'Retroactivo'],
         ];
 
         // ----------------------------------------------------------------
@@ -60,7 +62,7 @@ class IncidenciasConceptValidator
             ->where('movs.idempleado', $idempleado)
             ->where('movs.idperiodo', $idPeriodo)
             ->where('con.tipoconcepto', 'P')
-            ->whereIn('con.numeroconcepto', [20])
+            ->whereIn('con.numeroconcepto', [20, 16])
             ->pluck('con.numeroconcepto')
             ->toArray();
 
@@ -78,7 +80,10 @@ class IncidenciasConceptValidator
                     $issues->add(
                         "El concepto '{$desc}' (concepto {$numConcepto}) ya existe en la nómina del empleado y no puede duplicarse.",
                         $row,
-                        $col
+                        $col,
+                        'nomina',
+                        'conceptosRepetidos',
+                        $valor
                     );
                 }
             }
