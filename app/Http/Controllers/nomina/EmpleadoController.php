@@ -21,7 +21,15 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use App\Http\Controllers\core\HelperController;
 
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+
 use Illuminate\Support\Facades\Log;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+
+use App\Http\Services\Nomina\Export\Empleados\ConfigFormatoEmpleadosService;
+
 
 class EmpleadoController extends Controller
 {
@@ -1295,5 +1303,79 @@ class EmpleadoController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    /**
+     * Descargar formato base para importación masiva de empleados
+     */
+    public function descargaFormato(
+        Request $request,
+        //IncidenciasQueryService $queryService,
+        //ExportIncidenciasService $exporter
+    ) {
+        $validated = $request->validate([
+            'fiscal' => 'required|boolean',
+        ]);
+
+        $fiscal = $validated['fiscal'];
+
+        // 1. CONFIG
+        $config = ConfigFormatoEmpleadosService::getConfig($fiscal);
+
+        // 2. DATOS
+        //$dataRaw = $queryService->getData($config['query'], $request);
+
+        /*$data = collect($dataRaw)
+            ->map(fn($r) => (array)$r)
+            ->toArray();*/
+
+        // 3. EXCEL
+        $spreadsheet = $this->loadTemplate($config['path']);
+        $sheet = $this->getWorksheet($spreadsheet, $config['sheet_name']);
+
+        // 4. DESCARGA
+        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+
+        // Descargar el archivo
+        $response = new StreamedResponse(function () use ($writer) {
+            // Limpiar el buffer de salida
+            if (ob_get_level()) {
+                ob_end_clean();
+            }
+            $writer->save('php://output');
+        });
+
+        // Configurar los headers para la descarga
+        $filename = "myfile.xlsx";
+        $response->headers->set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        $response->headers->set('Content-Disposition', 'attachment;filename="' . $filename . '"');
+        $response->headers->set('Content-Transfer-Encoding', 'binary');
+        $response->headers->set('Cache-Control', 'must-revalidate');
+        $response->headers->set('Pragma', 'public');
+
+        return $response;
+    }
+
+
+    private function loadTemplate(string $path)
+    {
+        $fullPath = storage_path("app/public/" . $path);
+
+        if (!file_exists($fullPath)) {
+            throw new \Exception("La plantilla no existe: {$fullPath}");
+        }
+
+        return IOFactory::load($fullPath);
+    }
+
+    private function getWorksheet($spreadsheet, string $sheetName): Worksheet
+    {
+        $sheet = $spreadsheet->getSheetByName($sheetName);
+
+        if (!$sheet) {
+            throw new \Exception("La hoja '{$sheetName}' no existe en el archivo Excel.");
+        }
+
+        return $sheet;
     }
 }

@@ -223,6 +223,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
         // Listar empleados por empresa cliente
         Route::post('fiscalesEmpresaCliente', [EmpleadoController::class, 'fiscalesEmpresaCliente']);
+
+
+        // Alta masiva de empleados
+        Route::post('descargaFormato', [EmpleadoController::class, 'descargaFormato']);
+
+        Route::post('importarFormato', [EmpleadoController::class, 'descargaFormato']);
     });
 
 
