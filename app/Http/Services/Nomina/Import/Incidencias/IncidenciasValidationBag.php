@@ -8,12 +8,21 @@ class IncidenciasValidationBag
     public array $data = [];
     public bool $skipRow = false;
 
-    public function add(string $message, int $row, string $column)
-    {
+    public function add(
+        string $message,
+        int $row,
+        string $column,
+        string $agrupador,
+        string $tipo,
+        string $valor
+    ) {
         $this->errors[] = [
+            'agrupador' => $agrupador,
+            'tipo' => $tipo,
             'fila' => $row,
             'columna' => $column,
-            'mensaje' => $message
+            'valor' => $valor,
+            'mensaje' => $message,
         ];
     }
 

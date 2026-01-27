@@ -30,11 +30,16 @@ use App\Models\nomina\nomGenerales\NominaEmpresa;
 use App\Models\nomina\GAPE\NominaGapeCliente;
 use App\Models\nomina\GAPE\NominaGapeEmpleado;
 use App\Models\nomina\GAPE\NominaGapeParametrizacion;
+use App\Models\nomina\GAPE\NominaGapeTipoPeriodo;
+use App\Models\nomina\GAPE\NominaGapeEsquema;
+use App\Models\nomina\GAPE\NominaGapeEmpresaPeriodoCombinacionParametrizacion;
 
 use App\Http\Controllers\core\HelperController;
 use App\Models\nomina\GAPE\NominaGapeEmpresa;
 
 use Illuminate\Support\Facades\DB;
+
+use App\Http\Services\Core\HelperService;
 
 class CatalogosController extends Controller
 {
@@ -301,7 +306,6 @@ class CatalogosController extends Controller
             $validated = $request->validate([
                 'idEmpresa' => 'required|integer',
                 'idCliente' => 'required|integer',
-                'fiscal' => 'required|boolean',
             ]);
 
             $idEmpresa = $validated['idEmpresa'];
@@ -393,8 +397,259 @@ class CatalogosController extends Controller
         }
     }
 
-    public function tipoPeriodoPorClienteEmpresaDisponibles(Request $request)
+    public function tipoPeriodoPorClienteEmpresaDisponibles(
+        Request $request,
+        HelperService $helper
+    ) {
+        try {
+            $validated = $request->validate([
+                'idEmpresa' => 'required|integer',
+                'idCliente' => 'required|integer',
+            ]);
+
+            $idNominaGapeEmpresa = $validated['idEmpresa'];
+            $idNominaGapeCliente = $validated['idCliente'];
+
+            // 1️⃣ Obtener parametrización real
+            $periodosConfigurados = NominaGapeEmpresaPeriodoCombinacionParametrizacion::query()
+                ->where('id_nomina_gape_empresa', $idNominaGapeEmpresa)
+                ->where('id_nomina_gape_cliente', $idNominaGapeCliente)
+                ->whereNotNull('fee')
+                ->whereNotNull('base_fee')
+                ->whereNotNull('provisiones')
+                ->select('id_nomina_gape_tipo_periodo', 'idtipoperiodo')
+                ->groupBy('id_nomina_gape_tipo_periodo', 'idtipoperiodo')
+                ->get();
+
+            // 2️⃣ Separar fiscales / no fiscales
+            $fiscalesIds = $periodosConfigurados
+                ->whereNotNull('idtipoperiodo')
+                ->pluck('idtipoperiodo')
+                ->unique();
+
+            $noFiscalesIds = $periodosConfigurados
+                ->whereNotNull('id_nomina_gape_tipo_periodo')
+                ->pluck('id_nomina_gape_tipo_periodo')
+                ->unique();
+
+            // 3️⃣ Catálogo fiscal (NGE)
+            $fiscales = collect();
+            if ($fiscalesIds->isNotEmpty()) {
+                $conexion = $helper->getConexionDatabaseNGE($idNominaGapeEmpresa, 'Nom');
+                $helper->setDatabaseConnection($conexion, $conexion->nombre_base);
+
+                $fiscales = TipoPeriodo::whereIn('idtipoperiodo', $fiscalesIds)
+                    ->select('idtipoperiodo as idtipoperiodo', 'nombretipoperiodo')
+                    ->get();
+            }
+
+            // 4️⃣ Catálogo NO fiscal (GAPE)
+            $noFiscales = collect();
+            if ($noFiscalesIds->isNotEmpty()) {
+                $noFiscales = NominaGapeTipoPeriodo::whereIn('id', $noFiscalesIds)
+                    ->select('id as idtipoperiodo', 'nombretipoperiodo')
+                    ->get();
+            }
+
+            // 5️⃣ Resultado final
+            return response()->json([
+                'code' => 200,
+                'data' => $fiscales->merge($noFiscales)->values(),
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'code' => 500,
+                'message' => 'Error al obtener los tipos de periodo.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function combinacionPorTipoPeriodoDisponibles(Request $request)
     {
+        try {
+            $validated = $request->validate([
+                'idEmpresa'     => 'required|integer',
+                'idCliente'     => 'required|integer',
+                'idTipoPeriodo' => 'required|integer',
+            ]);
+
+            $idEmpresa     = $validated['idEmpresa'];
+            $idCliente     = $validated['idCliente'];
+            $idTipoPeriodo = $validated['idTipoPeriodo'];
+
+            $combinaciones = DB::table('nomina_gape_cliente_esquema_combinacion as ngcec')
+                ->join(
+                    'nomina_gape_empresa_periodo_combinacion_parametrizacion as ngepcp',
+                    'ngcec.combinacion',
+                    '=',
+                    'ngepcp.id_nomina_gape_cliente_esquema_combinacion'
+                )
+                ->join(
+                    'nomina_gape_esquema as nge',
+                    'ngcec.id_nomina_gape_esquema',
+                    '=',
+                    'nge.id'
+                )
+                ->where('ngepcp.id_nomina_gape_cliente', $idCliente)
+                ->where('ngepcp.id_nomina_gape_empresa', $idEmpresa)
+                ->where('ngcec.id_nomina_gape_cliente', $idCliente)
+                // 🔥 AQUÍ VA EL OR
+                ->where(function ($q) use ($idTipoPeriodo) {
+                    $q->where('ngepcp.idtipoperiodo', $idTipoPeriodo)
+                        ->orWhere('ngepcp.id_nomina_gape_tipo_periodo', $idTipoPeriodo);
+                })
+                ->select([
+                    'ngcec.combinacion as id',
+                    DB::raw(
+                        "STRING_AGG(nge.esquema, ' + ')
+                     WITHIN GROUP (ORDER BY nge.id) as combinacion"
+                    ),
+                    DB::raw(
+                        "MAX(CAST(nge.contpaq AS INT)) AS contpaq"
+                    ),
+                ])
+                ->groupBy('ngcec.combinacion')
+                ->get();
+
+            return response()->json([
+                'code' => 200,
+                'data' => $combinaciones,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'code' => 500,
+                'message' => 'Error al obtener las combinaciones disponibles.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function esquemaPorTipoPeriodoDisponibles(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'idEmpresa'     => 'required|integer',
+                'idCliente'     => 'required|integer',
+                'idTipoPeriodo' => 'required|integer',
+            ]);
+
+            $idNominaGapeEmpresa   = $validated['idEmpresa'];
+            $idNominaGapeTipoPeriodo = $validated['idTipoPeriodo'];
+
+            /*$esquemas = NominaGapeEmpresaPeriodoEsquemaParametrizacion::query()
+                ->join(
+                    'nomina_gape_esquema as esquema',
+                    'nomina_gape_empresa_periodo_esquema_parametrizacion.id_nomina_gape_esquema',
+                    '=',
+                    'esquema.id'
+                )
+                ->where('nomina_gape_empresa_periodo_esquema_parametrizacion.id_nomina_gape_empresa', $idNominaGapeEmpresa)
+                ->whereNotNull('nomina_gape_empresa_periodo_esquema_parametrizacion.fee')
+                ->whereNotNull('nomina_gape_empresa_periodo_esquema_parametrizacion.base_fee')
+                ->whereNotNull('nomina_gape_empresa_periodo_esquema_parametrizacion.provisiones')
+                ->where(function ($q) use ($idNominaGapeTipoPeriodo) {
+                    $q->where(
+                        'nomina_gape_empresa_periodo_esquema_parametrizacion.id_nomina_gape_tipo_periodo',
+                        $idNominaGapeTipoPeriodo
+                    )->orWhere(
+                        'nomina_gape_empresa_periodo_esquema_parametrizacion.idtipoperiodo',
+                        $idNominaGapeTipoPeriodo
+                    );
+                })
+                ->select(
+                    'esquema.id',
+                    'esquema.esquema',
+                    'esquema.contpaq',
+                )
+                ->groupBy(
+                    'esquema.id',
+                    'esquema.esquema',
+                    'esquema.contpaq'
+                )
+                ->get();*/
+
+            $esquemas = NominaGapeEsquema::query()
+                ->join(
+                    'nomina_gape_empresa_periodo_combinacion_parametrizacion as parame',
+                    'parame.id_nomina_gape_esquema',
+                    '=',
+                    'nomina_gape_esquema.id'
+                )
+                ->where('parame.id_nomina_gape_empresa', $idNominaGapeEmpresa)
+                ->whereNotNull('parame.fee')
+                ->whereNotNull('parame.base_fee')
+                ->whereNotNull('parame.provisiones')
+                ->where(function ($q) use ($idNominaGapeTipoPeriodo) {
+                    $q->where('parame.id_nomina_gape_tipo_periodo', $idNominaGapeTipoPeriodo)
+                        ->orWhere('parame.idtipoperiodo', $idNominaGapeTipoPeriodo);
+                })
+                ->select(
+                    'nomina_gape_esquema.id',
+                    'nomina_gape_esquema.esquema',
+                    'nomina_gape_esquema.contpaq'
+                )
+                ->groupBy(
+                    'nomina_gape_esquema.id',
+                    'nomina_gape_esquema.esquema',
+                    'nomina_gape_esquema.contpaq'
+                )
+                ->get();
+
+            return response()->json([
+                'code' => 200,
+                'data' => $esquemas,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'code' => 500,
+                'message' => 'Error al obtener los esquemas por tipo de periodo.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function esquemaPorEmpresaDisponibles(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'idEmpresa'     => 'required|integer',
+                'idCliente'     => 'required|integer',
+            ]);
+
+            $idNominaGapeEmpresa   = $validated['idEmpresa'];
+            $idNominaGapeCliente   = $validated['idCliente'];
+
+            $esquemas = NominaGapeEsquema::select(
+                'nomina_gape_esquema.id',
+                'nomina_gape_esquema.esquema',
+                'nomina_gape_esquema.contpaq'
+            )
+                ->join('nomina_gape_cliente_esquema_combinacion', 'nomina_gape_esquema.id', '=', 'nomina_gape_cliente_esquema_combinacion.id_nomina_gape_esquema')
+                ->where('nomina_gape_cliente_esquema_combinacion.id_nomina_gape_empresa', $idNominaGapeEmpresa)
+                ->where('nomina_gape_cliente_esquema_combinacion.id_nomina_gape_cliente', $idNominaGapeCliente)
+                ->where('nomina_gape_cliente_esquema_combinacion.estado', 1)
+                ->where('nomina_gape_cliente_esquema_combinacion.orden', 1)
+                ->get();
+
+            return response()->json([
+                'code' => 200,
+                'data' => $esquemas,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'code' => 500,
+                'message' => 'Error al obtener los esquemas por tipo de periodo.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+
+    public function tipoPeriodoPorClienteEmpresaDisponibles2(
+        Request $request,
+        HelperService $helper
+    ) {
         try {
             // 1️⃣ Validar parámetros de entrada
             $validated = $request->validate([
@@ -413,11 +668,13 @@ class CatalogosController extends Controller
                 ->toArray();
 
             // 3️⃣ Conectarse a la base de datos de nómina (según empresa)
-            $conexion = $this->helperController->getConexionDatabaseNGE($idNominaGapeEmpresa, 'Nom');
-            $this->helperController->setDatabaseConnection($conexion, $conexion->nombre_base);
+            $conexion = $helper->getConexionDatabaseNGE($idNominaGapeEmpresa, 'Nom');
+            $helper->setDatabaseConnection($conexion, $conexion->nombre_base);
 
             // 4️⃣ Obtener todos los tipos de periodo desde la base NGE
             $tipoPeriodo = TipoPeriodo::select('idtipoperiodo', 'nombretipoperiodo')->get();
+
+            $tipoPeriodoGape = NominaGapeTipoPeriodo::select('id', 'nombretipoperiodo')->get();
 
             // Solo mostrar los que NO estén ya registrados
             $tipoPeriodo = $tipoPeriodo->filter(function ($item) use ($tiposExistentes) {

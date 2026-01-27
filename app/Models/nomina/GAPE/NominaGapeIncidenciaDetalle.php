@@ -47,7 +47,15 @@ class NominaGapeIncidenciaDetalle extends Model
         'horas_extra_doble',
         'horas_extra_triple',
 
-        'codigo_empleado'
+        'anios_prima_vacacional',
+
+        'codigo_empleado',
+
+        'id_nomina_gape_esquema',
+        'id_nomina_gape_combinacion',
+
+        'pago_simple',
+        'neto',
     ];
 
     public $timestamps = true;

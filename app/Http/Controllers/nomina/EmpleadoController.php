@@ -15,6 +15,7 @@ use App\Models\nomina\default\Departamento; // Asegúrate de que este modelo exi
 use App\Models\nomina\default\Empresa;
 use App\Models\nomina\default\EmpleadosPorPeriodo; // Asegúrate de que este modelo exista
 use App\Models\nomina\GAPE\NominaGapeEmpresa;
+use App\Models\nomina\GAPE\NominaGapeEsquema;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -42,16 +43,19 @@ class EmpleadoController extends Controller
             $validated = $request->validate([
                 'idCliente' => 'required',
                 'idEmpresa' => 'required',
-                'fiscal' => 'required',
+                'idEsquema' => 'required',
             ]);
 
             $idNominaGapeCliente = $validated['idCliente'];
             $idNominaGapeEmpresa = $validated['idEmpresa'];
-            $fiscal = $validated['fiscal'];
+            $idNominaGapeEsquema = $validated['idEsquema'];
+
+            $esquema = NominaGapeEsquema::where('id', $idNominaGapeEsquema)
+                ->first();
 
             $empleados = null;
 
-            if ($fiscal == true) {
+            if ($esquema->contpaq == true) {
                 $conexion = $this->helperController->getConexionDatabaseNGE($idNominaGapeEmpresa, 'Nom');
                 $this->helperController->setDatabaseConnection($conexion, $conexion->nombre_base);
 
@@ -66,6 +70,7 @@ class EmpleadoController extends Controller
             } else {
                 $empleados = NominaGapeEmpleado::where('id_nomina_gape_cliente', $idNominaGapeCliente)
                     ->where('id_nomina_gape_empresa', $idNominaGapeEmpresa)
+                    ->where('id_nomina_gape_esquema', $idNominaGapeEsquema)
                     ->select(
                         'id as idempleado',
                         'codigoempleado',
@@ -97,25 +102,48 @@ class EmpleadoController extends Controller
             $validated = $request->validate([
                 'idCliente' => 'required',
                 'idEmpresa' => 'required',
-                'fiscal' => 'required',
+                'idEsquema' => 'required',
             ]);
 
             $idNominaGapeCliente = $validated['idCliente'];
             $idNominaGapeEmpresa = $validated['idEmpresa'];
-            $fiscal = $validated['fiscal'];
+            $idEsquema = $validated['idEsquema'];
 
             $empleados = null;
 
+            $esquemasPermitidos = DB::table('nomina_gape_cliente_esquema_combinacion as ngcec')
+                ->join(
+                    'nomina_gape_empresa_periodo_combinacion_parametrizacion as ngepcp',
+                    'ngcec.combinacion',
+                    '=',
+                    'ngepcp.id_nomina_gape_cliente_esquema_combinacion'
+                )
+                ->join(
+                    'nomina_gape_esquema as nge',
+                    'ngcec.id_nomina_gape_esquema',
+                    '=',
+                    'nge.id'
+                )
+                ->where('ngepcp.id_nomina_gape_cliente', $idNominaGapeCliente)
+                ->where('ngepcp.id_nomina_gape_empresa', $idNominaGapeEmpresa)
+                ->where('ngcec.id_nomina_gape_cliente', $idNominaGapeCliente)
+                ->where('ngcec.combinacion', $idEsquema)
+                ->where('ngcec.orden', 1)
+                ->pluck('nge.id');
+
             $empleados = NominaGapeEmpleado::where('id_nomina_gape_cliente', $idNominaGapeCliente)
                 ->where('id_nomina_gape_empresa', $idNominaGapeEmpresa)
+                ->where('id_nomina_gape_esquema', $esquemasPermitidos)
                 ->select(
-                    'id',
+                    'id AS idempleado',
                     'codigoempleado',
                     DB::raw("LTRIM(RTRIM(nombre)) + ' ' + LTRIM(RTRIM(apellidopaterno)) + ' ' + LTRIM(RTRIM(apellidomaterno)) AS nombrelargo"),
                     DB::raw("cuentacw AS rfc"),
                     DB::raw("FORMAT(fechaalta, 'dd-MM-yyyy') as fechaalta"),
                 )
+                ->OrderBy('id')
                 ->get();
+
             return response()->json([
                 'code' => 200,
                 'data' => $empleados,
@@ -138,43 +166,71 @@ class EmpleadoController extends Controller
                 'idCliente' => 'required',
                 'idEmpresa' => 'required',
                 'idTipoPeriodo' => 'required',
-                //'departamentoInicial' => 'required',
-                //'departamentoFinal' => 'required',
+                'idPeriodo' => 'required',
+                'idEsquema' => 'required',
             ]);
 
+            $idNominaGapeCliente = $validated['idCliente'];
             $idNominaGapeEmpresa = $validated['idEmpresa'];
             $idTipoPeriodo = $validated['idTipoPeriodo'];
-            //$departamentoInicial = $validated['departamentoInicial'];
-            //$departamentoFinal = $validated['departamentoFinal'];
+            $idPeriodo = $validated['idPeriodo'];
+            $idEsquema = $validated['idEsquema'];
+
+            $esquemasPermitidos = DB::table('nomina_gape_cliente_esquema_combinacion as ngcec')
+                ->join(
+                    'nomina_gape_empresa_periodo_combinacion_parametrizacion as ngepcp',
+                    'ngcec.combinacion',
+                    '=',
+                    'ngepcp.id_nomina_gape_cliente_esquema_combinacion'
+                )
+                ->join(
+                    'nomina_gape_esquema as nge',
+                    'ngcec.id_nomina_gape_esquema',
+                    '=',
+                    'nge.id'
+                )
+                ->where('ngepcp.id_nomina_gape_cliente', $idNominaGapeCliente)
+                ->where('ngepcp.id_nomina_gape_empresa', $idNominaGapeEmpresa)
+                ->where('ngcec.id_nomina_gape_cliente', $idNominaGapeCliente)
+                ->where('ngcec.combinacion', $idEsquema)
+                ->where('ngcec.orden', 1)
+                ->value('nge.esquema');
+
+            $regimen = [];
+            if ($esquemasPermitidos == "Sueldo IMSS") {
+                $regimen = ['02', '03', '04'];
+            } else {
+                $regimen = ['05', '06', '07', '08', '09', '10', '11'];
+            }
 
             $empleados = null;
 
             $conexion = $this->helperController->getConexionDatabaseNGE($idNominaGapeEmpresa, 'Nom');
             $this->helperController->setDatabaseConnection($conexion, $conexion->nombre_base);
 
-            /*
-            $departamentos = Departamento::whereBetween('iddepartamento', [
-                $departamentoInicial,
-                $departamentoFinal
-            ])
-                ->orderBy('iddepartamento') // o por nombre si quieres
-                ->pluck('iddepartamento');  // devuelve un array de IDs
-*/
-
-            $empleados = Empleado::select(
-                'idempleado',
-                'codigoempleado',
-                DB::raw("LTRIM(RTRIM(nombre)) + ' ' + LTRIM(RTRIM(apellidopaterno)) + ' ' + LTRIM(RTRIM(apellidomaterno)) AS nombrelargo"),
-                DB::raw("rfc + SUBSTRING(CONVERT(char(10),fechanacimiento , 126), 3,2)
-                      + SUBSTRING(CONVERT(char(10),fechanacimiento , 126), 6,2)
-                      + SUBSTRING(CONVERT(char(10),fechanacimiento, 126), 9,2)
-                      + homoclave AS rfc"),
-                DB::raw("FORMAT(fechaalta, 'dd-MM-yyyy') as fechaalta")
-            )
-                ->where('idtipoperiodo', $idTipoPeriodo)
-                //->whereIn('iddepartamento', $departamentos)  // 👈 AQUÍ USAS LOS IDs
+            $empleados = Empleado::from('nom10001 as emp')
+                ->join('nom10034 as empPeriodo', function ($join) use ($idPeriodo) {
+                    $join->on('emp.idempleado', '=', 'empPeriodo.idempleado')
+                        ->where('empPeriodo.cidperiodo', $idPeriodo);
+                })
+                ->select([
+                    'emp.idempleado AS idempleado',
+                    'emp.codigoempleado AS codigoempleado',
+                    DB::raw("LTRIM(RTRIM(emp.nombre)) + ' ' + LTRIM(RTRIM(emp.apellidopaterno)) + ' ' + LTRIM(RTRIM(emp.apellidomaterno)) AS nombrelargo"),
+                    DB::raw("
+                        emp.rfc
+                        + SUBSTRING(CONVERT(char(10), emp.fechanacimiento, 126), 3,2)
+                        + SUBSTRING(CONVERT(char(10), emp.fechanacimiento, 126), 6,2)
+                        + SUBSTRING(CONVERT(char(10), emp.fechanacimiento, 126), 9,2)
+                        + emp.homoclave AS rfc
+                    "),
+                    DB::raw("FORMAT(emp.fechaalta, 'dd-MM-yyyy') as fechaalta")
+                ])
+                ->where('emp.idtipoperiodo', $idTipoPeriodo)
+                ->whereIn('emp.TipoRegimen', $regimen)
+                ->whereIn('empPeriodo.estadoempleado', ['A', 'R'])
+                ->orderBy('emp.idempleado')
                 ->get();
-
 
 
             return response()->json([

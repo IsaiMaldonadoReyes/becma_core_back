@@ -42,7 +42,7 @@ class IncidenciasVacacionesValidator
         // ---------------------------------------------------------
         // 2) Leer vacaciones del Excel (K)
         // ---------------------------------------------------------
-        $vacacionesExcel = intval($sheet->getCell("K{$row}")->getValue());
+        $vacacionesExcel = intval($sheet->getCell("N{$row}")->getValue());
 
         // Si no capturó vacaciones → no validar nada
         if ($vacacionesExcel <= 0) {
@@ -96,7 +96,10 @@ class IncidenciasVacacionesValidator
             $issues->add(
                 "El empleado solo tiene {$vacacionesDisponibles} días de vacaciones disponibles, pero capturó {$vacacionesExcel}.",
                 $row,
-                'K'
+                'N',
+                'nomina',
+                'vacaciones',
+                $vacacionesExcel
             );
         }
 
