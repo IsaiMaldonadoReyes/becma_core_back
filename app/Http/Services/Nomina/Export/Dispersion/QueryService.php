@@ -156,7 +156,7 @@ class QueryService
                         INNER JOIN nom10022 ti
                             ON fi.idtipoincidencia = ti.idtipoincidencia
                         WHERE
-                            ti.mnemonico IN (''INC'', ''FINJ'')
+                            ti.mnemonico IN (''INC'', ''FINJ'', ''ENFG'')
                             AND idperiodo = @idPeriodo
                         UNION ALL
                         SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
@@ -164,20 +164,20 @@ class QueryService
                         INNER JOIN nom10022 ti
                             ON fi.idtipoincidencia = ti.idtipoincidencia
                         WHERE
-                            ti.mnemonico IN (''INC'', ''FINJ'')
+                            ti.mnemonico IN (''INC'', ''FINJ'', ''ENFG'')
                             AND idperiodo = @idPeriodo
                     ), ' + '
                     TarjetaControlAgrupado AS (
                         SELECT
                             idempleado,
-                            SUM(CASE WHEN mnemonico = ''INC'' THEN valor ELSE 0 END) AS incapacidad,
+                            SUM(CASE WHEN mnemonico IN (''INC'', ''ENFG'') THEN valor ELSE 0 END) AS incapacidad,
                             SUM(CASE WHEN mnemonico = ''FINJ'' THEN valor ELSE 0 END) AS faltas
                         FROM tarjetaControl
                         GROUP BY
                             idempleado
                     ), ' + '
                     Movimientos AS (
-                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
+                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto, con.imprimir, con.ClaveAgrupadoraSAT
                         FROM Nom10007 AS his
                         INNER JOIN nom10004 con
                             ON his.idconcepto = con.idconcepto
@@ -186,7 +186,7 @@ class QueryService
                             AND idperiodo = @idPeriodo
                             AND con.tipoconcepto IN (''P'',''D'')
                         UNION ALL
-                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
+                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto, con.imprimir, con.ClaveAgrupadoraSAT
                         FROM Nom10008 AS actual
                         INNER JOIN nom10004 con
                             ON actual.idconcepto = con.idconcepto
@@ -221,7 +221,14 @@ class QueryService
                             pdo.descripcion,
                             pdo.tipoconcepto AS tipoConcepto,
                             SUM(pdo.valor) AS cantidad,
-                            SUM(pdo.importetotal) AS monto,
+                            CASE
+                                WHEN pdo.numeroconcepto = 20
+                                    AND empPeriodo.sueldodiario <> 0
+                                THEN
+                                    SUM(pdo.importetotal) * (emp.ccampoextranumerico2 / empPeriodo.sueldodiario)
+                                ELSE
+                                    SUM(pdo.importetotal)
+                            END AS monto,
                             emp.ccampoextranumerico3 AS pension
                         FROM nom10001 emp ' + '
                         INNER JOIN nom10034 empPeriodo
@@ -253,6 +260,8 @@ class QueryService
                             empPeriodo.cdiaspagados,
                             pdo.descripcion,
                             pdo.tipoconcepto,
+                            pdo.numeroconcepto,
+                            empPeriodo.sueldodiario,
                             emp.ccampoextranumerico3,
                             periodo.diasdepago,
                             empPeriodo.fechaalta,
@@ -265,7 +274,7 @@ class QueryService
                         SELECT
                             emp.codigoempleado as codigoempleado,
                             x.descripcion AS descripcion,
-                            ''P'' AS tipoConcepto,
+                            x.tipoConcepto AS tipoConcepto,
                             x.valor AS valor,
                             emp.ccampoextranumerico2 AS pagoPorDia,
                             emp.ccampoextranumerico3 AS pension
@@ -278,22 +287,23 @@ class QueryService
                                 AND empP.idtipoperiodo = @idTipoPeriodo
                                 AND empP.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
                                 AND empP.estadoempleado IN (''A'', ''R'')
-                        INNER JOIN nom10001 AS emp
+                        INNER JOIN nom10001 AS emp ' + '
                             ON empP.idempleado = emp.idempleado
                         CROSS APPLY (VALUES
-                            (''Bono'',                      ngid.bono),
-                            (''Comisiones'',                ngid.comision),
-                            (''Dia Festivo cantidad'',      ngid.cantidad_dias_festivos),
-                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2 * 2),
-                            (''Horas Extra Doble cantidad'', ngid.horas_extra_doble_cantidad),
-                            (''Horas Extra Doble monto'',    ISNULL(ngid.horas_extra_doble_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 2),
-                            (''Horas Extra Triple cantidad'', ngid.horas_extra_triple_cantidad),
-                            (''Horas Extra Triple monto'',    ISNULL(ngid.horas_extra_triple_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 3),
-                            (''Pago adicional'',             ngid.pago_adicional),
-                            (''Premio puntualidad'',         ngid.premio_puntualidad),
-                            (''Prima Dominical cantidad'',   ngid.cantidad_prima_dominical),
-                            (''Prima Dominical monto'',      ISNULL(ngid.cantidad_prima_dominical, 0) * emp.ccampoextranumerico2 * 0.25)
-                        ) AS x(descripcion, valor)
+                            (''Bono'',                      ngid.bono,                      ''P''),
+                            (''Comisiones'',                ngid.comision,                  ''P''),
+                            (''Dia Festivo cantidad'',      ngid.cantidad_dias_festivos,    ''P''),
+                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2 * 2, ''P''),
+                            (''Horas Extra Doble cantidad'', ngid.horas_extra_doble_cantidad, ''P''),
+                            (''Horas Extra Doble monto'',    ISNULL(ngid.horas_extra_doble_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 2, ''P''),
+                            (''Horas Extra Triple cantidad'', ngid.horas_extra_triple_cantidad, ''P''),
+                            (''Horas Extra Triple monto'',    ISNULL(ngid.horas_extra_triple_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 3, ''P''),
+                            (''Pago adicional'',             ngid.pago_adicional, ''P''),
+                            (''Premio puntualidad'',         ngid.premio_puntualidad, ''P''),
+                            (''Prima Dominical cantidad'',   ngid.cantidad_prima_dominical, ''P''),
+                            (''Prima Dominical monto'',      ISNULL(ngid.cantidad_prima_dominical, 0) * emp.ccampoextranumerico2 * 0.25, ''P''),
+                            (''Descuentos'',                 ngid.descuento, ''D'')
+                        ) AS x(descripcion, valor, tipoConcepto)
                         WHERE
                             (@idNominaGapeIncidencia IS NULL OR ngi.id = @idNominaGapeIncidencia)
                             AND ngi.id_nomina_gape_empresa = @idNominaGapeEmpresa
@@ -304,13 +314,22 @@ class QueryService
                         SELECT
                             codigoempleado,
                             MAX(sueldo) AS sueldo,
-                            SUM(CASE WHEN tipoConcepto = ''P'' THEN monto ELSE 0 END)
-                            +
-                            SUM(CASE WHEN tipoConcepto = ''P'' THEN valor ELSE 0 END) AS total_percepciones_sin_sueldo,
-                            SUM(CASE WHEN tipoConcepto = ''D'' THEN monto ELSE 0 END) AS total_deducciones,
+                            SUM(
+                                CASE
+                                    WHEN tipoConcepto = ''P''
+                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
+                                    ELSE 0
+                                END
+                            ) AS total_percepciones_sin_sueldo,
+                            SUM(
+                                CASE
+                                    WHEN tipoConcepto = ''D''
+                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
+                                    ELSE 0
+                                END
+                            ) AS total_deducciones,
                             pension AS porcentajePension
-
-                        FROM (
+                        FROM ( ' + '
                             SELECT
                                 codigoempleado,
                                 sueldo,
@@ -323,7 +342,7 @@ class QueryService
                             SELECT
                                 codigoempleado,
                                 0 AS sueldo,
-                                ''P'' AS tipoConcepto,
+                                tipoConcepto AS tipoConcepto,
                                 0 AS monto,
                                 valor AS valor,
                                 pension
@@ -375,18 +394,21 @@ class QueryService
                                 pdo.tipoconcepto AS tipoConcepto,
                                 SUM(pdo.importetotal) AS monto,
                                 emp.ccampoextranumerico3 AS pension,
-                                emp.nombre + emp.apellidopaterno + emp.apellidomaterno AS nombre,
+                                emp.nombre AS nombre,
+                                emp.apellidopaterno AS ap,
+                                emp.apellidomaterno AS am,
+                                emp.nombre + '' '' + emp.apellidopaterno + '' '' + emp.apellidomaterno AS nombreCompleto,
                                 emp.bancopagoelectronico AS claveBanco,
                                 emp.cuentapagoelectronico AS cuentaPagoElectronico,
                                 emp.ClabeInterbancaria AS clabeInterbancaria,
                                 ISNULL(CAST(emp.campoextra3 AS NVARCHAR(50)), '''') AS campoextra3,
-                                ISNULL(CAST(emp.ccampoextranumerico3 AS NVARCHAR(50)), '''') AS tarjetafacil,
+                                ISNULL(CAST(emp.ccampoextranumerico4 AS NVARCHAR(50)), '''') AS tarjetafacil,
                                 emp.rfc +
                                 SUBSTRING(CONVERT(char(10), emp.fechanacimiento, 126), 3, 2) +
                                 SUBSTRING(CONVERT(char(10), emp.fechanacimiento, 126), 6, 2) +
                                 SUBSTRING(CONVERT(char(10), emp.fechanacimiento, 126), 9, 2) +
                                 emp.homoclave as rfc
-                            FROM nom10001 emp
+                            FROM nom10001 emp ' + '
                             INNER JOIN nom10034 empPeriodo
                                 ON emp.idempleado = empPeriodo.idempleado
                                     AND empPeriodo.cidperiodo = @idPeriodo
@@ -407,13 +429,9 @@ class QueryService
                                             (
                                                 pdo.tipoconcepto = ''D''
                                                 AND (
-                                                    pdo.descripcion LIKE ''%ahorro%'' -- caja de ahorro
-                                                    OR pdo.descripcion LIKE ''%infonavit%''
-                                                    OR pdo.descripcion LIKE ''%fonacot%''
-                                                    OR pdo.descripcion LIKE ''%alimenticia%''
-                                                    OR pdo.descripcion LIKE ''%sindical%''
-                                                    OR pdo.numeroconcepto IN (52,35) -- Imss, isr
-                                                    )
+                                                    pdo.imprimir = 1
+                                                    AND pdo.ClaveAgrupadoraSAT != ''''
+                                                )
                                             )
                                         )
                             WHERE ' + '
@@ -438,7 +456,8 @@ class QueryService
                                 emp.cuentapagoelectronico,
                                 emp.ClabeInterbancaria,
                                 emp.campoextra3,
-                                emp.ccampoextranumerico3
+                                emp.ccampoextranumerico3,
+                                emp.ccampoextranumerico4
                     ), ' + '
                     PensionGeneralQ3 AS (
                         SELECT
@@ -463,6 +482,9 @@ class QueryService
                             SELECT
                                 codigoempleado,
                                 nombre,
+                                ap,
+                                am,
+                                nombreCompleto,
                                 rfc,
                                 claveBanco,
                                 cuentaPagoElectronico,
@@ -481,6 +503,9 @@ class QueryService
                                 sdi,
                                 sd,
                                 nombre,
+                                ap,
+                                am,
+                                nombreCompleto,
                                 rfc,
                                 claveBanco,
                                 cuentaPagoElectronico,
@@ -585,6 +610,9 @@ class QueryService
                         SELECT
                             codigoempleado,
                             MAX(nombre)  AS nombre,
+                            MAX(ap)      AS ap,
+                            MAX(am)      AS am,
+                            MAX(nombreCompleto)  AS nombreCompleto,
                             MAX(rfc)     AS rfc,
                             MAX(claveBanco)  AS claveBanco,
                             MAX(cuentaPagoElectronico)  AS cuentaPagoElectronico,
@@ -599,6 +627,9 @@ class QueryService
                         SELECT
                             codigoempleado,
                             nombre,
+                            ap,
+                            am,
+                            nombreCompleto,
                             rfc,
                             claveBanco,
                             cuentaPagoElectronico,
@@ -614,6 +645,9 @@ class QueryService
                         SELECT
                             r.codigoempleado,
                             d.nombre,
+                            d.ap,
+                            d.am,
+                            d.nombreCompleto,
                             d.rfc,
                             d.claveBanco,
                             d.cuentaPagoElectronico,
@@ -627,7 +661,7 @@ class QueryService
                             ON d.codigoempleado = r.codigoempleado
                     ) ' + '
 
-                SELECT p.codigoempleado, p.nombre, p.rfc, p.claveBanco, p.cuentaPagoElectronico, p.clabeInterbancaria, p.campoextra3, p.tarjetafacil, ' + @cols + '
+                SELECT p.codigoempleado, p.nombre, p.ap, p.am, p.nombreCompleto, p.rfc, p.claveBanco, p.cuentaPagoElectronico, p.clabeInterbancaria, p.campoextra3, p.tarjetafacil, ' + @cols + '
                 FROM ProrrateoFinal
                 PIVOT (
                     SUM(monto_asignado)
@@ -791,7 +825,7 @@ class QueryService
                         INNER JOIN nom10022 ti
                             ON fi.idtipoincidencia = ti.idtipoincidencia
                         WHERE
-                            ti.mnemonico IN (''INC'', ''FINJ'')
+                            ti.mnemonico IN (''INC'', ''FINJ'', ''ENFG'')
                             AND idperiodo = @idPeriodo
                         UNION ALL
                         SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
@@ -799,20 +833,20 @@ class QueryService
                         INNER JOIN nom10022 ti
                             ON fi.idtipoincidencia = ti.idtipoincidencia
                         WHERE
-                            ti.mnemonico IN (''INC'', ''FINJ'')
+                            ti.mnemonico IN (''INC'', ''FINJ'', ''ENFG'')
                             AND idperiodo = @idPeriodo
                     ), ' + '
                     TarjetaControlAgrupado AS (
                         SELECT
                             idempleado,
-                            SUM(CASE WHEN mnemonico = ''INC'' THEN valor ELSE 0 END) AS incapacidad,
+                            SUM(CASE WHEN mnemonico IN (''INC'', ''ENFG'') THEN valor ELSE 0 END) AS incapacidad,
                             SUM(CASE WHEN mnemonico = ''FINJ'' THEN valor ELSE 0 END) AS faltas
                         FROM tarjetaControl
                         GROUP BY
                             idempleado
                     ), ' + '
                     Movimientos AS (
-                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
+                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto, con.imprimir, con.ClaveAgrupadoraSAT
                         FROM Nom10007 AS his
                         INNER JOIN nom10004 con
                             ON his.idconcepto = con.idconcepto
@@ -821,7 +855,7 @@ class QueryService
                             AND idperiodo = @idPeriodo
                             AND con.tipoconcepto IN (''P'',''D'')
                         UNION ALL
-                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
+                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto, con.imprimir, con.ClaveAgrupadoraSAT
                         FROM Nom10008 AS actual
                         INNER JOIN nom10004 con
                             ON actual.idconcepto = con.idconcepto
@@ -839,7 +873,14 @@ class QueryService
                             pdo.descripcion,
                             pdo.tipoconcepto AS tipoConcepto,
                             SUM(pdo.valor) AS cantidad,
-                            SUM(pdo.importetotal) AS monto,
+                            CASE
+                                WHEN pdo.numeroconcepto = 20
+                                    AND empPeriodo.sueldodiario <> 0
+                                THEN
+                                    SUM(pdo.importetotal) * (emp.ccampoextranumerico2 / empPeriodo.sueldodiario)
+                                ELSE
+                                    SUM(pdo.importetotal)
+                            END AS monto,
                             emp.ccampoextranumerico3 AS pension
                         FROM nom10001 emp ' + '
                         INNER JOIN nom10034 empPeriodo
@@ -860,7 +901,7 @@ class QueryService
                             ON empPeriodo.idempleado = movP.idempleado
                         LEFT JOIN TarjetaControlAgrupado AS tc
                             ON empPeriodo.idempleado = tc.idempleado
-                        WHERE
+                        WHERE ' + '
                             empPeriodo.idtipoperiodo = @idTipoPeriodo
                             AND empPeriodo.estadoempleado IN (''A'', ''R'')
                             AND emp.TipoRegimen IN (''05'', ''06'', ''07'', ''08'', ''09'', ''10'', ''11'')
@@ -871,19 +912,23 @@ class QueryService
                             empPeriodo.cdiaspagados,
                             pdo.descripcion,
                             pdo.tipoconcepto,
+                            pdo.numeroconcepto,
+                            empPeriodo.sueldodiario,
                             emp.ccampoextranumerico3,
                             periodo.diasdepago,
                             empPeriodo.fechaalta,
                             periodo.fechainicio,
                             periodo.fechafin,
                             tc.faltas,
-                            tc.incapacidad
+                            tc.incapacidad,
+                            movP.tipoconcepto,
+                            movP.importetotal
                     ), ' + '
                     IncidenciasNormalizadasQ2 AS (
                         SELECT
                             emp.codigoempleado as codigoempleado,
                             x.descripcion AS descripcion,
-                            ''P'' AS tipoConcepto,
+                            x.tipoConcepto AS tipoConcepto,
                             x.valor AS valor,
                             emp.ccampoextranumerico2 AS pagoPorDia,
                             emp.ccampoextranumerico3 AS pension
@@ -899,19 +944,20 @@ class QueryService
                         INNER JOIN nom10001 AS emp
                             ON empP.idempleado = emp.idempleado
                         CROSS APPLY (VALUES
-                            (''Bono'',                      ngid.bono),
-                            (''Comisiones'',                ngid.comision),
-                            (''Dia Festivo cantidad'',      ngid.cantidad_dias_festivos),
-                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2 * 2),
-                            (''Horas Extra Doble cantidad'', ngid.horas_extra_doble_cantidad),
-                            (''Horas Extra Doble monto'',    ISNULL(ngid.horas_extra_doble_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 2),
-                            (''Horas Extra Triple cantidad'', ngid.horas_extra_triple_cantidad),
-                            (''Horas Extra Triple monto'',    ISNULL(ngid.horas_extra_triple_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 3),
-                            (''Pago adicional'',             ngid.pago_adicional),
-                            (''Premio puntualidad'',         ngid.premio_puntualidad),
-                            (''Prima Dominical cantidad'',   ngid.cantidad_prima_dominical),
-                            (''Prima Dominical monto'',      ISNULL(ngid.cantidad_prima_dominical, 0) * emp.ccampoextranumerico2 * 0.25)
-                        ) AS x(descripcion, valor)
+                            (''Bono'',                      ngid.bono,                      ''P''),
+                            (''Comisiones'',                ngid.comision,                  ''P''),
+                            (''Dia Festivo cantidad'',      ngid.cantidad_dias_festivos,    ''P''),
+                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2 * 2, ''P''),
+                            (''Horas Extra Doble cantidad'', ngid.horas_extra_doble_cantidad, ''P''),
+                            (''Horas Extra Doble monto'',    ISNULL(ngid.horas_extra_doble_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 2, ''P''),
+                            (''Horas Extra Triple cantidad'', ngid.horas_extra_triple_cantidad, ''P''),
+                            (''Horas Extra Triple monto'',    ISNULL(ngid.horas_extra_triple_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 3, ''P''),
+                            (''Pago adicional'',             ngid.pago_adicional, ''P''),
+                            (''Premio puntualidad'',         ngid.premio_puntualidad, ''P''),
+                            (''Prima Dominical cantidad'',   ngid.cantidad_prima_dominical, ''P''),
+                            (''Prima Dominical monto'',      ISNULL(ngid.cantidad_prima_dominical, 0) * emp.ccampoextranumerico2 * 0.25, ''P''),
+                            (''Descuentos'',                 ngid.descuento, ''D'')
+                        ) AS x(descripcion, valor, tipoConcepto)
                         WHERE
                             (@idNominaGapeIncidencia IS NULL OR ngi.id = @idNominaGapeIncidencia)
                             AND ngi.id_nomina_gape_empresa = @idNominaGapeEmpresa
@@ -922,13 +968,23 @@ class QueryService
                         SELECT
                             codigoempleado,
                             MAX(sueldo) AS sueldo,
-                            SUM(CASE WHEN tipoConcepto = ''P'' THEN monto ELSE 0 END)
-                            +
-                            SUM(CASE WHEN tipoConcepto = ''P'' THEN valor ELSE 0 END) AS total_percepciones_sin_sueldo,
-                            SUM(CASE WHEN tipoConcepto = ''D'' THEN monto ELSE 0 END) AS total_deducciones,
+                            SUM(
+                                CASE
+                                    WHEN tipoConcepto = ''P''
+                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
+                                    ELSE 0
+                                END
+                            ) AS total_percepciones_sin_sueldo,
+                            SUM(
+                                CASE
+                                    WHEN tipoConcepto = ''D''
+                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
+                                    ELSE 0
+                                END
+                            ) AS total_deducciones,
                             pension AS porcentajePension
 
-                        FROM (
+                        FROM ( ' + '
                             SELECT
                                 codigoempleado,
                                 sueldo,
@@ -985,79 +1041,79 @@ class QueryService
                                 )
                     ), ' + '
                     MovimientosSumaQ3 AS (
-                            SELECT
-                                emp.codigoempleado,
-                                empPeriodo.sueldodiario AS sd,
-                                empPeriodo.sueldointegrado AS sdi,
-                                pdo.descripcion,
-                                pdo.tipoconcepto AS tipoConcepto,
-                                SUM(pdo.importetotal) AS monto,
-                                emp.ccampoextranumerico3 AS pension,
-                                emp.nombre + emp.apellidopaterno + emp.apellidomaterno AS nombre,
-                                emp.bancopagoelectronico AS claveBanco,
-                                emp.cuentapagoelectronico AS cuentaPagoElectronico,
-                                emp.ClabeInterbancaria AS clabeInterbancaria,
-                                ISNULL(CAST(emp.campoextra3 AS NVARCHAR(50)), '''') AS campoextra3,
-                                ISNULL(CAST(emp.ccampoextranumerico3 AS NVARCHAR(50)), '''') AS tarjetafacil,
-                                emp.rfc +
-                                SUBSTRING(CONVERT(char(10), emp.fechanacimiento, 126), 3, 2) +
-                                SUBSTRING(CONVERT(char(10), emp.fechanacimiento, 126), 6, 2) +
-                                SUBSTRING(CONVERT(char(10), emp.fechanacimiento, 126), 9, 2) +
-                                emp.homoclave as rfc
-                            FROM nom10001 emp
-                            INNER JOIN nom10034 empPeriodo
-                                ON emp.idempleado = empPeriodo.idempleado
-                                    AND empPeriodo.cidperiodo = @idPeriodo
-                            LEFT JOIN Movimientos pdo
-                                ON empPeriodo.cidperiodo = pdo.idperiodo
-                                    AND emp.idempleado = pdo.idempleado
-                                    AND (
-                                            -- (Sueldo, Vacaciones, Prima vacacional, Retroactivos)
-                                            (pdo.tipoconcepto = ''P''
-                                                AND pdo.numeroconcepto IN (19, 20, 16)
-                                                OR pdo.descripcion LIKE ''%asimilados%''
-                                                OR EXISTS (
-                                                    SELECT 1
-                                                    FROM Previsiones p
-                                                    WHERE p.idconcepto = pdo.idconcepto
-                                                )
-                                            )
-                                            OR ' + '
-                                            (
-                                                pdo.tipoconcepto = ''D''
-                                                AND (
-                                                    pdo.descripcion LIKE ''%ahorro%'' -- caja de ahorro
-                                                    OR pdo.descripcion LIKE ''%infonavit%''
-                                                    OR pdo.descripcion LIKE ''%fonacot%''
-                                                    OR pdo.descripcion LIKE ''%alimenticia%''
-                                                    OR pdo.descripcion LIKE ''%sindical%''
-                                                    OR pdo.numeroconcepto IN (52,35,45) -- Imss, isr
-                                                    )
+                        SELECT
+                            emp.codigoempleado,
+                            empPeriodo.sueldodiario AS sd,
+                            empPeriodo.sueldointegrado AS sdi,
+                            pdo.descripcion,
+                            pdo.tipoconcepto AS tipoConcepto,
+                            SUM(pdo.importetotal) AS monto,
+                            emp.ccampoextranumerico3 AS pension,
+                            emp.nombre AS nombre,
+                            emp.apellidopaterno AS ap,
+                            emp.apellidomaterno AS am,
+                            emp.nombre + '' '' + emp.apellidopaterno + '' '' + emp.apellidomaterno AS nombreCompleto,
+                            emp.bancopagoelectronico AS claveBanco,
+                            emp.cuentapagoelectronico AS cuentaPagoElectronico,
+                            emp.ClabeInterbancaria AS clabeInterbancaria,
+                            ISNULL(CAST(emp.campoextra3 AS NVARCHAR(50)), '''') AS campoextra3,
+                            ISNULL(CAST(emp.ccampoextranumerico4 AS NVARCHAR(50)), '''') AS tarjetafacil,
+                            emp.rfc +
+                            SUBSTRING(CONVERT(char(10), emp.fechanacimiento, 126), 3, 2) +
+                            SUBSTRING(CONVERT(char(10), emp.fechanacimiento, 126), 6, 2) +
+                            SUBSTRING(CONVERT(char(10), emp.fechanacimiento, 126), 9, 2) +
+                            emp.homoclave as rfc
+                        FROM nom10001 emp
+                        INNER JOIN nom10034 empPeriodo
+                            ON emp.idempleado = empPeriodo.idempleado
+                                AND empPeriodo.cidperiodo = @idPeriodo
+                        LEFT JOIN Movimientos pdo
+                            ON empPeriodo.cidperiodo = pdo.idperiodo
+                                AND emp.idempleado = pdo.idempleado
+                                AND (
+                                        -- (Sueldo, Vacaciones, Prima vacacional, Retroactivos)
+                                        (pdo.tipoconcepto = ''P''
+                                            AND pdo.numeroconcepto IN (19, 20, 16)
+                                            OR pdo.descripcion LIKE ''%asimilados%''
+                                            OR EXISTS (
+                                                SELECT 1
+                                                FROM Previsiones p
+                                                WHERE p.idconcepto = pdo.idconcepto
                                             )
                                         )
-                            WHERE ' + '
-                                empPeriodo.idtipoperiodo = @idTipoPeriodo
-                                AND empPeriodo.estadoempleado IN (''A'', ''R'')
-                                AND emp.TipoRegimen IN (''05'', ''06'', ''07'', ''08'', ''09'', ''10'', ''11'')
-                                AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
+                                        OR ' + '
+                                            (
+                                            pdo.tipoconcepto = ''D''
+                                            AND (
+                                                pdo.imprimir = 1
+                                                AND pdo.ClaveAgrupadoraSAT != ''''
+                                            )
+                                        )
+                                    )
+                        WHERE ' + '
+                            empPeriodo.idtipoperiodo = @idTipoPeriodo
+                            AND empPeriodo.estadoempleado IN (''A'', ''R'')
+                            AND emp.TipoRegimen IN (''05'', ''06'', ''07'', ''08'', ''09'', ''10'', ''11'')
+                            AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
 
-                            GROUP BY
-                                emp.codigoempleado,
-                                empPeriodo.sueldodiario,
-                                empPeriodo.sueldointegrado,
-                                pdo.descripcion,
-                                pdo.tipoconcepto,
-                                emp.rfc,
-                                emp.fechanacimiento,
-                                emp.homoclave,
-                                emp.nombre,
-                                emp.apellidopaterno,
-                                emp.apellidomaterno,
-                                emp.bancopagoelectronico,
-                                emp.cuentapagoelectronico,
-                                emp.ClabeInterbancaria,
-                                emp.campoextra3,
-                                emp.ccampoextranumerico3
+                        GROUP BY
+                            emp.codigoempleado,
+                            empPeriodo.sueldodiario,
+                            empPeriodo.sueldointegrado,
+                            pdo.descripcion,
+                            pdo.tipoconcepto,
+                            emp.rfc,
+                            emp.fechanacimiento,
+                            emp.homoclave,
+                            emp.nombre,
+                            emp.apellidopaterno,
+                            emp.apellidomaterno,
+                            emp.bancopagoelectronico,
+                            emp.cuentapagoelectronico,
+                            emp.ClabeInterbancaria,
+                            emp.campoextra3,
+                            emp.ccampoextranumerico3,
+                            emp.ccampoextranumerico4
                     ), ' + '
                     PensionGeneralQ3 AS (
                         SELECT
@@ -1082,6 +1138,9 @@ class QueryService
                         SELECT
                             codigoempleado,
                             nombre,
+                            ap,
+                            am,
+                            nombreCompleto,
                             rfc,
                             claveBanco,
                             cuentaPagoElectronico,
@@ -1100,6 +1159,9 @@ class QueryService
                             sdi,
                             sd,
                             nombre,
+                            ap,
+                            am,
+                            nombreCompleto,
                             rfc,
                             claveBanco,
                             cuentaPagoElectronico,
@@ -1204,6 +1266,9 @@ class QueryService
                         SELECT
                             codigoempleado,
                             MAX(nombre)  AS nombre,
+                            MAX(ap)      AS ap,
+                            MAX(am)      AS am,
+                            MAX(nombreCompleto)  AS nombreCompleto,
                             MAX(rfc)     AS rfc,
                             MAX(claveBanco)  AS claveBanco,
                             MAX(cuentaPagoElectronico)  AS cuentaPagoElectronico,
@@ -1218,13 +1283,16 @@ class QueryService
                         SELECT
                             codigoempleado,
                             nombre,
+                            ap,
+                            am,
+                            nombreCompleto,
                             rfc,
                             claveBanco,
                             cuentaPagoElectronico,
                             clabeInterbancaria,
                             campoextra3,
                             tarjetafacil,
-                            ''Sueldo IMSS'' AS concepto,
+                            ''Asimilados'' AS concepto,
                             (total_percepciones - total_deducciones) AS monto_asignado
                         FROM TotalesPorEmpleadoQ3
 
@@ -1233,6 +1301,9 @@ class QueryService
                         SELECT
                             r.codigoempleado,
                             d.nombre,
+                            d.ap,
+                            d.am,
+                            d.nombreCompleto,
                             d.rfc,
                             d.claveBanco,
                             d.cuentaPagoElectronico,
@@ -1246,7 +1317,7 @@ class QueryService
                             ON d.codigoempleado = r.codigoempleado
                     ) ' + '
 
-                SELECT p.codigoempleado, p.nombre, p.rfc, p.claveBanco, p.cuentaPagoElectronico, p.clabeInterbancaria, p.campoextra3, p.tarjetafacil, ' + @cols + '
+                SELECT p.codigoempleado, p.nombre, p.ap, p.am, p.nombreCompleto, p.rfc, p.claveBanco, p.cuentaPagoElectronico, p.clabeInterbancaria, p.campoextra3, p.tarjetafacil, ' + @cols + '
                 FROM ProrrateoFinal
                 PIVOT (
                     SUM(monto_asignado)
@@ -1273,7 +1344,7 @@ class QueryService
         }
     }
 
-    private function detalle_asimilados2(Request $request)
+    private function detalle_sindicato(Request $request)
     {
         try {
             $idNominaGapeCliente = $request->id_nomina_gape_cliente;
@@ -1282,11 +1353,10 @@ class QueryService
             $idNominaGapeEsquema = $request->id_nomina_gape_esquema;
             $idEsquemaCombinacion = $request->id_esquema;
 
-            $idTipoPeriodo = $request->id_tipo_periodo;
-            $idPeriodo = $request->periodo_inicial;
-
             $idEmpleadoInicial = $request->empleado_inicial;
             $idEmpleadoFinal = $request->empleado_final;
+
+            $idNominaGapeIncidencia = $request->id_nomina_gape_incidencia ?? 0;
 
             $sql = "
                 DECLARE @idNominaGapeCliente INT;
@@ -1301,322 +1371,1027 @@ class QueryService
                 DECLARE @idEmpleadoInicial INT;
                 DECLARE @idEmpleadoFinal INT;
 
+				DECLARE @idNominaGapeIncidencia INT;
+
                 SET @idNominaGapeCliente = $idNominaGapeCliente;
                 SET @idNominaGapeEmpresa = $idNominaGapeEmpresa;
 
                 SET @idNominaGapeEsquema = $idNominaGapeEsquema;
                 SET @idEsquemaCombinacion = $idEsquemaCombinacion;
 
-                SET @idPeriodo = $idPeriodo;
-                SET @idTipoPeriodo = $idTipoPeriodo;
+                SET @idEmpleadoInicial = $idEmpleadoInicial;
+                SET @idEmpleadoFinal = $idEmpleadoFinal;
+
+				SET @idNominaGapeIncidencia = $idNominaGapeIncidencia;
+
+                DECLARE @cols NVARCHAR(MAX),
+                        @sql  NVARCHAR(MAX);
+                ;;WITH ParamConfig AS (
+                    SELECT
+                        nge.esquema AS descripcion
+                        , ngce.tope
+                        , ngce.orden
+                    FROM [becma-core2].[dbo].nomina_gape_cliente_esquema_combinacion AS ngce
+                    INNER JOIN [becma-core2].[dbo].nomina_gape_esquema AS nge
+                        ON ngce.id_nomina_gape_esquema = nge.id
+                    WHERE
+                        ngce.id_nomina_gape_cliente = @idNominaGapeCliente
+                        AND ngce.combinacion = @idEsquemaCombinacion
+                        AND ngce.orden > 0
+                ),
+                titulos AS (
+                    SELECT descripcion, orden FROM ParamConfig
+                )
+                SELECT @cols = STUFF((
+                    SELECT ', ' + QUOTENAME(descripcion)
+                    FROM titulos
+                    ORDER BY orden
+                    FOR XML PATH(''), TYPE
+                ).value('.', 'NVARCHAR(MAX)'), 1, 2, '');
+
+                SET @sql = CAST('' AS NVARCHAR(MAX)) + '
+                DECLARE @idNominaGapeCliente INT;
+                DECLARE @idNominaGapeEmpresa INT;
+
+                DECLARE @idNominaGapeEsquema INT;
+                DECLARE @idEsquemaCombinacion INT;
+
+                DECLARE @idEmpleadoInicial INT;
+                DECLARE @idEmpleadoFinal INT;
+
+				DECLARE @idNominaGapeIncidencia INT;
+
+                SET @idNominaGapeCliente = $idNominaGapeCliente;
+                SET @idNominaGapeEmpresa = $idNominaGapeEmpresa;
+
+                SET @idNominaGapeEsquema = $idNominaGapeEsquema;
+                SET @idEsquemaCombinacion = $idEsquemaCombinacion;
 
                 SET @idEmpleadoInicial = $idEmpleadoInicial;
                 SET @idEmpleadoFinal = $idEmpleadoFinal;
 
-                DECLARE @cols NVARCHAR(MAX),
-                        @query NVARCHAR(MAX);
+				SET @idNominaGapeIncidencia = $idNominaGapeIncidencia;
+                ' + '
+                ;WITH
+                    IncidenciasNormalizadasQ2 AS (
+                        SELECT
+                            emp.codigoempleado as codigoempleado,
+                            emp.nombre AS nombre,
+                            emp.apellidopaterno AS ap,
+                            emp.apellidomaterno AS am,
+                            emp.nombre + '' '' + emp.apellidopaterno + '' '' + emp.apellidomaterno AS nombreCompleto,
+                            emp.bancopagoelectronico AS claveBanco,
+                            emp.cuentapagoelectronico AS cuentaPagoElectronico,
+                            emp.ClabeInterbancaria AS clabeInterbancaria,
+                            ISNULL(CAST(emp.campoextra3 AS NVARCHAR(50)), '''') AS campoextra3,
+                            ISNULL(CAST(emp.ccampoextranumerico4 AS NVARCHAR(50)), '''') AS tarjetafacil,
+                            cuentacw AS rfc,
+                            x.descripcion AS descripcion,
+                            ''P'' AS tipoConcepto,
+                            x.valor AS valor,
+                            ngid.pago_simple AS sueldo
+                        FROM nomina_gape_empleado AS emp
+                        INNER JOIN nomina_gape_esquema AS esquema
+                            on emp.id_nomina_gape_esquema = esquema.id
+                        LEFT JOIN nomina_gape_incidencia AS ngi
+                            ON emp.id_nomina_gape_cliente = ngi.id_nomina_gape_cliente
+                                AND emp.id_nomina_gape_empresa = ngi.id_nomina_gape_empresa
+                                AND ngi.id = @idNominaGapeIncidencia
+                        LEFT JOIN nomina_gape_incidencia_detalle AS ngid
+                            ON ngi.id = ngid.id_nomina_gape_incidencia
+                                AND emp.codigoempleado = ngid.codigo_empleado
+                                AND ngid.id_nomina_gape_combinacion = @idEsquemaCombinacion
+                        CROSS APPLY (VALUES
+                            (''Bono'',                      ngid.bono),
+                            (''Comisiones'',                ngid.comision),
+                            (''Dia Festivo cantidad'',      ngid.cantidad_dias_festivos),
+                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2 * 2),
+                            (''Horas Extra Doble cantidad'', ngid.horas_extra_doble_cantidad),
+                            (''Horas Extra Doble monto'',    ISNULL(ngid.horas_extra_doble_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 2),
+                            (''Horas Extra Triple cantidad'', ngid.horas_extra_triple_cantidad),
+                            (''Horas Extra Triple monto'',    ISNULL(ngid.horas_extra_triple_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 3),
+                            (''Pago adicional'',             ngid.pago_adicional),
+                            (''Premio puntualidad'',         ngid.premio_puntualidad),
+                            (''Prima Dominical cantidad'',   ngid.cantidad_prima_dominical),
+                            (''Prima Dominical monto'',      ISNULL(ngid.cantidad_prima_dominical, 0) * emp.ccampoextranumerico2 * 0.25)
+                        ) AS x(descripcion, valor)
+                        WHERE
+                            esquema.esquema = ''Sindicato''
+                            AND emp.estado_empleado = 1
+                            AND emp.id_nomina_gape_cliente = @idNominaGapeCliente
+                            AND emp.id_nomina_gape_empresa = @idNominaGapeEmpresa
+                        AND emp.id BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
+                    ), ' + '
+                    PreTotalesPorEmpleadoGeneralQ2 AS (
+                        SELECT
+                            codigoempleado,
+                            nombre,
+                            ap,
+                            am,
+                            nombreCompleto,
+                            claveBanco,
+                            cuentaPagoElectronico,
+                            clabeInterbancaria,
+                            campoextra3,
+                            tarjetafacil,
+                            rfc,
+                            MAX(sueldo) AS sueldo,
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN monto ELSE 0 END)
+                            +
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN valor ELSE 0 END) AS total_percepciones_sin_sueldo,
+                            SUM(CASE WHEN tipoConcepto = ''D'' THEN monto ELSE 0 END) AS total_deducciones
+                        FROM (
+                            SELECT
+                                codigoempleado,
+                                nombre,
+                                ap,
+                                am,
+                                nombreCompleto,
+                                claveBanco,
+                                cuentaPagoElectronico,
+                                clabeInterbancaria,
+                                campoextra3,
+                                tarjetafacil,
+                                rfc,
+                                sueldo AS sueldo,
+                                ''P'' AS tipoConcepto,
+                                0 AS monto,
+                                valor AS valor
+                            FROM IncidenciasNormalizadasQ2
+                            WHERE
+                                descripcion NOT LIKE ''%cantidad%''
+                        ) AS x
+                        GROUP BY
+                            codigoempleado,
+                            nombre,
+                            ap,
+                            am,
+                            nombreCompleto,
+                            claveBanco,
+                            cuentaPagoElectronico,
+                            clabeInterbancaria,
+                            campoextra3,
+                            tarjetafacil,
+                            rfc
+                    ), ' + '
+                    TotalesPorEmpleadoGeneralQ2 AS (
+                        SELECT
+                            codigoempleado,
+                            nombre,
+                            ap,
+                            am,
+                            nombreCompleto,
+                            claveBanco,
+                            cuentaPagoElectronico,
+                            clabeInterbancaria,
+                            campoextra3,
+                            tarjetafacil,
+                            rfc,
+                            sueldo,
+                            sueldo + total_percepciones_sin_sueldo AS total_percepciones,
+                            total_deducciones total_deducciones,
+                            (sueldo + total_percepciones_sin_sueldo) - (total_deducciones) AS netoAPagar
+                        FROM PreTotalesPorEmpleadoGeneralQ2
+                    ), ' + '
+                    ParamConfig AS (
+                        SELECT
+                            nge.esquema AS concepto
+                            , ngce.tope
+                            , ngce.orden
+                        FROM [becma-core2].[dbo].nomina_gape_cliente_esquema_combinacion AS ngce
+                        INNER JOIN [becma-core2].[dbo].nomina_gape_esquema AS nge
+                            ON ngce.id_nomina_gape_esquema = nge.id
+                        WHERE
+                            ngce.id_nomina_gape_cliente = @idNominaGapeCliente
+                            AND ngce.id_nomina_gape_empresa = @idNominaGapeEmpresa
+                            AND ngce.combinacion = @idEsquemaCombinacion
+                            AND ngce.orden > 0
+                    ),
+                    BaseProrrateo AS (
+                        SELECT
+                            p.codigoempleado,
+                            CAST(p.netoAPagar AS DECIMAL(18,2)) AS netoAPagar,
+                            c.concepto,
+                            c.tope,
+                            c.orden,
+                            ROW_NUMBER() OVER (PARTITION BY p.codigoempleado ORDER BY c.orden) AS rn
+                        FROM TotalesPorEmpleadoGeneralQ2 p
+                        CROSS JOIN ParamConfig c
+                    ), ' + '
+                    ProrrateoRecursivo AS (
+                        -- ANCLA
+                        SELECT
+                            b.codigoempleado,
+                            b.concepto,
+                            b.orden,
+                            b.tope,
+                            b.rn,
+                            CAST(b.netoAPagar AS DECIMAL(18,2)) AS saldo_antes,
+                            CAST(
+                                CASE
+                                    WHEN b.netoAPagar <= 0 THEN 0
+                                    WHEN b.tope IS NULL OR b.netoAPagar >= b.tope THEN ISNULL(b.tope, b.netoAPagar)
+                                    ELSE b.netoAPagar
+                                END
+                            AS DECIMAL(18,2)) AS monto_asignado,
+                            CAST(
+                                b.netoAPagar -
+                                CASE
+                                    WHEN b.netoAPagar <= 0 THEN 0
+                                    WHEN b.tope IS NULL OR b.netoAPagar >= b.tope THEN ISNULL(b.tope, b.netoAPagar)
+                                    ELSE b.netoAPagar
+                                END
+                            AS DECIMAL(18,2)) AS saldo_despues
+                        FROM BaseProrrateo b
+                        WHERE b.rn = 1
 
-                ;WITH Previsiones AS (
+                        UNION ALL
+
+                        -- RECURSIVO
+                        SELECT
+                            b.codigoempleado,
+                            b.concepto,
+                            b.orden,
+                            b.tope,
+                            b.rn,
+                            CAST(r.saldo_despues AS DECIMAL(18,2)) AS saldo_antes,
+                            CAST(
+                                CASE
+                                    WHEN r.saldo_despues <= 0 THEN 0
+                                    WHEN b.tope IS NULL OR r.saldo_despues >= b.tope THEN ISNULL(b.tope, r.saldo_despues)
+                                    ELSE r.saldo_despues
+                                END
+                            AS DECIMAL(18,2)) AS monto_asignado,
+                            CAST(
+                                r.saldo_despues -
+                                CASE
+                                    WHEN r.saldo_despues <= 0 THEN 0
+                                    WHEN b.tope IS NULL OR r.saldo_despues >= b.tope THEN ISNULL(b.tope, r.saldo_despues)
+                                    ELSE r.saldo_despues
+                                END
+                            AS DECIMAL(18,2)) AS saldo_despues
+                        FROM ProrrateoRecursivo r
+                        JOIN BaseProrrateo b
+                        ON r.codigoempleado = b.codigoempleado
+                        AND r.rn + 1 = b.rn
+                    ), ' + '
+                    DatosEmpleadoQ3 AS (
+                        SELECT
+                            codigoempleado,
+                            MAX(nombre)  AS nombre,
+                            MAX(ap)      AS ap,
+                            MAX(am)      AS am,
+                            MAX(nombreCompleto)  AS nombreCompleto,
+                            MAX(rfc)     AS rfc,
+                            MAX(claveBanco)  AS claveBanco,
+                            MAX(cuentaPagoElectronico)  AS cuentaPagoElectronico,
+                            MAX(clabeInterbancaria)  AS clabeInterbancaria,
+                            MAX(campoextra3) AS campoextra3,
+                            MAX(tarjetafacil) AS tarjetafacil
+                        FROM TotalesPorEmpleadoGeneralQ2
+                        GROUP BY
+                            codigoempleado
+                    ), ' + '
+                    ProrrateoFinal AS (
+                        SELECT
+                            r.codigoempleado,
+                            d.nombre,
+                            d.ap,
+                            d.am,
+                            d.nombreCompleto,
+                            d.rfc,
+                            d.claveBanco,
+                            d.cuentaPagoElectronico,
+                            d.clabeInterbancaria,
+                            d.campoextra3,
+                            d.tarjetafacil,
+                            r.concepto,
+                            r.monto_asignado
+                        FROM ProrrateoRecursivo r
+                        INNER JOIN DatosEmpleadoQ3 d
+                            ON d.codigoempleado = r.codigoempleado
+                    ) ' + '
+                    SELECT p.codigoempleado, p.nombre, p.ap, p.am, p.nombreCompleto, p.rfc, p.claveBanco, p.cuentaPagoElectronico, p.clabeInterbancaria, p.campoextra3, p.tarjetafacil, ' + @cols + '
+                    FROM ProrrateoFinal
+                    PIVOT (
+                        SUM(monto_asignado)
+                        FOR concepto IN (' + @cols + ')
+                    ) p
+                    ORDER BY codigoempleado;
+                    ';
+                    EXEC(@sql)
+            ";
+            /*
+            dd([
+                'row' => $sql,
+            ]);
+            */
+
+            //return $sql;
+            $result = DB::select($sql);
+
+            return $result;
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
+    private function detalle_tarjeta_facil(Request $request)
+    {
+        try {
+            $idNominaGapeCliente = $request->id_nomina_gape_cliente;
+            $idNominaGapeEmpresa = $request->id_nomina_gape_empresa;
+
+            $idNominaGapeEsquema = $request->id_nomina_gape_esquema;
+            $idEsquemaCombinacion = $request->id_esquema;
+
+            $idEmpleadoInicial = $request->empleado_inicial;
+            $idEmpleadoFinal = $request->empleado_final;
+
+            $idNominaGapeIncidencia = $request->id_nomina_gape_incidencia ?? 0;
+
+            $sql = "
+                DECLARE @idNominaGapeCliente INT;
+                DECLARE @idNominaGapeEmpresa INT;
+
+                DECLARE @idNominaGapeEsquema INT;
+                DECLARE @idEsquemaCombinacion INT;
+
+                DECLARE @idPeriodo INT;
+                DECLARE @idTipoPeriodo INT;
+
+                DECLARE @idEmpleadoInicial INT;
+                DECLARE @idEmpleadoFinal INT;
+
+				DECLARE @idNominaGapeIncidencia INT;
+
+                SET @idNominaGapeCliente = $idNominaGapeCliente;
+                SET @idNominaGapeEmpresa = $idNominaGapeEmpresa;
+
+                SET @idNominaGapeEsquema = $idNominaGapeEsquema;
+                SET @idEsquemaCombinacion = $idEsquemaCombinacion;
+
+                SET @idEmpleadoInicial = $idEmpleadoInicial;
+                SET @idEmpleadoFinal = $idEmpleadoFinal;
+
+				SET @idNominaGapeIncidencia = $idNominaGapeIncidencia;
+
+                DECLARE @cols NVARCHAR(MAX),
+                        @sql  NVARCHAR(MAX);
+                ;;WITH ParamConfig AS (
                     SELECT
-                        ngcp.id_concepto AS idconcepto
-                    FROM [becma-core2].dbo.nomina_gape_empresa_periodo_combinacion_parametrizacion AS ngepcp
-                    INNER JOIN [becma-core2].dbo.nomina_gape_combinacion_prevision AS ngcp
-                        ON ngepcp.id = ngcp.nomina_gape_empresa_periodo_combinacion_parametrizacion
+                        nge.esquema AS descripcion
+                        , ngce.tope
+                        , ngce.orden
+                    FROM [becma-core2].[dbo].nomina_gape_cliente_esquema_combinacion AS ngce
+                    INNER JOIN [becma-core2].[dbo].nomina_gape_esquema AS nge
+                        ON ngce.id_nomina_gape_esquema = nge.id
                     WHERE
-                        ngepcp.id_nomina_gape_cliente = @idNominaGapeCliente
-                        AND ngepcp.id_nomina_gape_empresa = @idNominaGapeEmpresa
-                        AND ngepcp.id_nomina_gape_cliente_esquema_combinacion = @idEsquemaCombinacion
-                        AND (
-                                ngepcp.id_nomina_gape_tipo_periodo = @idTipoPeriodo
-                                OR ngepcp.idtipoperiodo = @idTipoPeriodo
-                            )
-                ),
-                Movimientos AS (
-                    SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto
-                    FROM Nom10007 AS his
-                    INNER JOIN nom10004 con
-                        ON his.idconcepto = con.idconcepto
-                    LEFT JOIN Previsiones p
-		                ON con.idconcepto = p.idconcepto
-                    WHERE importetotal > 0
-                        AND idperiodo = @idPeriodo
-                        AND
-                        (
-                        -- (Sueldo, Vacaciones, Prima vacacional, Retroactivos)
-                        (con.tipoconcepto = 'P' AND (
-                                con.numeroconcepto IN (19, 20, 16)
-                                OR con.descripcion LIKE '%asimilados%'
-                                OR p.idconcepto IS NOT NULL
-                            ))
-                        OR
-                        (con.tipoconcepto = 'D' AND (
-                                con.descripcion LIKE '%ahorro%' -- caja de ahorro
-                                OR con.descripcion LIKE '%infonavit%'
-                                OR con.descripcion LIKE '%fonacot%'
-                                OR con.descripcion LIKE '%alimenticia%'
-                                OR con.descripcion LIKE '%sindical%'
-                                OR con.numeroconcepto IN (52,35,45) -- Imss, isr
-                                ))
-                        )
-                    UNION ALL
-                    SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto
-                    FROM Nom10008 AS actual
-                    INNER JOIN nom10004 con
-                        ON actual.idconcepto = con.idconcepto
-                    LEFT JOIN Previsiones p
-		                ON con.idconcepto = p.idconcepto
-                    WHERE
-                        importetotal > 0
-                        AND idperiodo = @idPeriodo
-                        AND (
-                        -- (Sueldo, Vacaciones, Prima vacacional, Retroactivos)
-                        (con.tipoconcepto = 'P' AND (
-                                con.numeroconcepto IN (19, 20, 16)
-                                OR con.descripcion LIKE '%asimilados%'
-                                OR p.idconcepto IS NOT NULL
-                            ))
-                        OR
-                        (con.tipoconcepto = 'D' AND (
-                                con.descripcion LIKE '%ahorro%' -- caja de ahorro
-                                OR con.descripcion LIKE '%infonavit%'
-                                OR con.descripcion LIKE '%fonacot%'
-                                OR con.descripcion LIKE '%alimenticia%'
-                                OR con.descripcion LIKE '%sindical%'
-                                OR con.numeroconcepto IN (52,35,45) -- Imss, isr
-                                ))
-                        )
-                ),
-                MovimientosFiltrados AS (
-                    SELECT
-                        pdo.descripcion,
-                        pdo.tipoconcepto,
-                        CASE WHEN pdo.tipoconcepto = 'P' THEN 10
-                            WHEN pdo.tipoconcepto = 'D' THEN 20 ELSE 0 END AS numeroconcepto,
-                        CASE WHEN pdo.tipoconcepto = 'P' THEN 1
-                            WHEN pdo.tipoconcepto = 'D' THEN 2 ELSE 3 END AS orden
-                    FROM nom10001 emp
-                    INNER JOIN nom10034 AS empPeriodo
-                        ON emp.idempleado = empPeriodo.idempleado
-                        AND empPeriodo.cidperiodo = @idPeriodo
-                    INNER JOIN Movimientos pdo
-                        ON empPeriodo.cidperiodo = pdo.idperiodo
-                        AND emp.idempleado = pdo.idempleado
-                    WHERE
-                        empPeriodo.idtipoperiodo = @idTipoPeriodo
-                        AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
-                        AND empPeriodo.estadoempleado IN ('A', 'R')
-                        AND emp.TipoRegimen IN ('05', '06', '07', '08', '09', '10', '11')
-                    GROUP BY
-                        pdo.descripcion
-                        , pdo.tipoconcepto
-                ),
-                Encabezados AS (
-                    SELECT * FROM (VALUES
-                        ('TOTAL PERCEPCIONES FISCAL', 'P', 1000, 1),
-                        ('TOTAL DEDUCCIONES FISCAL',  'D', 2000, 2),
-                        ('NETO FISCAL',               'N', 3000, 3)
-                    ) AS X(descripcion, tipoconcepto, numeroconcepto, orden)
+                        ngce.id_nomina_gape_cliente = @idNominaGapeCliente
+                        AND ngce.combinacion = @idEsquemaCombinacion
+                        AND ngce.orden > 0
                 ),
                 titulos AS (
-                    SELECT descripcion AS descripcion, orden, numeroconcepto FROM MovimientosFiltrados
-                    UNION ALL
-                    SELECT descripcion, orden, numeroconcepto FROM Encabezados
+                    SELECT descripcion, orden FROM ParamConfig
                 )
-
                 SELECT @cols = STUFF((
                     SELECT ', ' + QUOTENAME(descripcion)
                     FROM titulos
-                    ORDER BY orden, numeroconcepto, descripcion
+                    ORDER BY orden
                     FOR XML PATH(''), TYPE
                 ).value('.', 'NVARCHAR(MAX)'), 1, 2, '');
 
-                SET @query = CAST('' AS NVARCHAR(MAX)) + '
-                    DECLARE @idNominaGapeCliente INT;
-                    DECLARE @idNominaGapeEmpresa INT;
+                SET @sql = CAST('' AS NVARCHAR(MAX)) + '
+                DECLARE @idNominaGapeCliente INT;
+                DECLARE @idNominaGapeEmpresa INT;
 
-                    DECLARE @idNominaGapeEsquema INT;
-                    DECLARE @idEsquemaCombinacion INT;
+                DECLARE @idNominaGapeEsquema INT;
+                DECLARE @idEsquemaCombinacion INT;
 
-                    DECLARE @idPeriodo INT;
-                    DECLARE @idTipoPeriodo INT;
+                DECLARE @idEmpleadoInicial INT;
+                DECLARE @idEmpleadoFinal INT;
 
-                    DECLARE @idEmpleadoInicial INT;
-                    DECLARE @idEmpleadoFinal INT;
+				DECLARE @idNominaGapeIncidencia INT;
 
-                    SET @idNominaGapeCliente = $idNominaGapeCliente;
-                    SET @idNominaGapeEmpresa = $idNominaGapeEmpresa;
+                SET @idNominaGapeCliente = $idNominaGapeCliente;
+                SET @idNominaGapeEmpresa = $idNominaGapeEmpresa;
 
-                    SET @idNominaGapeEsquema = $idNominaGapeEsquema;
-                    SET @idEsquemaCombinacion = $idEsquemaCombinacion;
+                SET @idNominaGapeEsquema = $idNominaGapeEsquema;
+                SET @idEsquemaCombinacion = $idEsquemaCombinacion;
 
-                    SET @idPeriodo = $idPeriodo;
-                    SET @idTipoPeriodo = $idTipoPeriodo;
+                SET @idEmpleadoInicial = $idEmpleadoInicial;
+                SET @idEmpleadoFinal = $idEmpleadoFinal;
 
-                    SET @idEmpleadoInicial = $idEmpleadoInicial;
-                    SET @idEmpleadoFinal = $idEmpleadoFinal;
-
-                    ' + '
-
-                    ;WITH Previsiones AS (
+				SET @idNominaGapeIncidencia = $idNominaGapeIncidencia;
+                ' + '
+                ;WITH
+                    IncidenciasNormalizadasQ2 AS (
                         SELECT
-                            ngcp.id_concepto AS idconcepto
-                        FROM [becma-core2].dbo.nomina_gape_empresa_periodo_combinacion_parametrizacion AS ngepcp
-                        INNER JOIN [becma-core2].dbo.nomina_gape_combinacion_prevision AS ngcp
-                            ON ngepcp.id = ngcp.nomina_gape_empresa_periodo_combinacion_parametrizacion
-                        WHERE ngepcp.id_nomina_gape_cliente = @idNominaGapeCliente
-                            AND ngepcp.id_nomina_gape_empresa = @idNominaGapeEmpresa
-                            AND ngepcp.id_nomina_gape_cliente_esquema_combinacion = @idEsquemaCombinacion
-                            AND (
-                                    ngepcp.id_nomina_gape_tipo_periodo = @idTipoPeriodo
-                                    OR ngepcp.idtipoperiodo = @idTipoPeriodo
-                                )
-                    ), ' + '
-                    Movimientos AS (
-                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto
-                        FROM Nom10007 AS his
-                        INNER JOIN nom10004 con
-                            ON his.idconcepto = con.idconcepto
-                        LEFT JOIN Previsiones p
-		                    ON con.idconcepto = p.idconcepto
+                            emp.codigoempleado as codigoempleado,
+                            emp.nombre AS nombre,
+                            emp.apellidopaterno AS ap,
+                            emp.apellidomaterno AS am,
+                            emp.nombre + '' '' + emp.apellidopaterno + '' '' + emp.apellidomaterno AS nombreCompleto,
+                            emp.bancopagoelectronico AS claveBanco,
+                            emp.cuentapagoelectronico AS cuentaPagoElectronico,
+                            emp.ClabeInterbancaria AS clabeInterbancaria,
+                            ISNULL(CAST(emp.campoextra3 AS NVARCHAR(50)), '''') AS campoextra3,
+                            ISNULL(CAST(emp.ccampoextranumerico4 AS NVARCHAR(50)), '''') AS tarjetafacil,
+                            cuentacw AS rfc,
+                            x.descripcion AS descripcion,
+                            ''P'' AS tipoConcepto,
+                            x.valor AS valor,
+                            ngid.pago_simple AS sueldo
+                        FROM nomina_gape_empleado AS emp
+                        INNER JOIN nomina_gape_esquema AS esquema
+                            on emp.id_nomina_gape_esquema = esquema.id
+                        LEFT JOIN nomina_gape_incidencia AS ngi
+                            ON emp.id_nomina_gape_cliente = ngi.id_nomina_gape_cliente
+                                AND emp.id_nomina_gape_empresa = ngi.id_nomina_gape_empresa
+                                AND ngi.id = @idNominaGapeIncidencia
+                        LEFT JOIN nomina_gape_incidencia_detalle AS ngid
+                            ON ngi.id = ngid.id_nomina_gape_incidencia
+                                AND emp.codigoempleado = ngid.codigo_empleado
+                                AND ngid.id_nomina_gape_combinacion = @idEsquemaCombinacion
+                        CROSS APPLY (VALUES
+                            (''Bono'',                      ngid.bono),
+                            (''Comisiones'',                ngid.comision),
+                            (''Dia Festivo cantidad'',      ngid.cantidad_dias_festivos),
+                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2 * 2),
+                            (''Horas Extra Doble cantidad'', ngid.horas_extra_doble_cantidad),
+                            (''Horas Extra Doble monto'',    ISNULL(ngid.horas_extra_doble_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 2),
+                            (''Horas Extra Triple cantidad'', ngid.horas_extra_triple_cantidad),
+                            (''Horas Extra Triple monto'',    ISNULL(ngid.horas_extra_triple_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 3),
+                            (''Pago adicional'',             ngid.pago_adicional),
+                            (''Premio puntualidad'',         ngid.premio_puntualidad),
+                            (''Prima Dominical cantidad'',   ngid.cantidad_prima_dominical),
+                            (''Prima Dominical monto'',      ISNULL(ngid.cantidad_prima_dominical, 0) * emp.ccampoextranumerico2 * 0.25)
+                        ) AS x(descripcion, valor)
                         WHERE
-                            importetotal > 0
-                            AND idperiodo = @idPeriodo
-                            AND (
-                            -- (Sueldo, Vacaciones, Prima vacacional, Retroactivos)
-                            (con.tipoconcepto = ''P'' AND (
-                                    con.numeroconcepto IN (19, 20, 16)
-                                    OR con.descripcion LIKE ''%asimilados%''
-                                    OR p.idconcepto IS NOT NULL
-                                ))
-                            OR
-                            (con.tipoconcepto = ''D'' AND (
-                                    con.descripcion LIKE ''%ahorro%''
-                                    OR con.descripcion LIKE ''%infonavit%''
-                                    OR con.descripcion LIKE ''%fonacot%''
-                                    OR con.descripcion LIKE ''%alimenticia%''
-                                    OR con.descripcion LIKE ''%sindical%''
-                                    OR con.numeroconcepto IN (52,35,45) -- Imss, isr
-                                    ))
-                            )
-                        UNION ALL ' + '
-                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto
-                        FROM Nom10008 AS actual
-                        INNER JOIN nom10004 con
-                            ON actual.idconcepto = con.idconcepto
-                        LEFT JOIN Previsiones p
-		                    ON con.idconcepto = p.idconcepto
-                        WHERE
-                            importetotal > 0
-                            AND idperiodo = @idPeriodo
-                            AND (
-                            -- (Sueldo, Vacaciones, Prima vacacional, Retroactivos)
-                            (con.tipoconcepto = ''P'' AND (
-                                    con.numeroconcepto IN (19, 20, 16)
-                                    OR con.descripcion LIKE ''%asimilados%''
-                                    OR p.idconcepto IS NOT NULL
-                                ))
-                            OR
-                            (con.tipoconcepto = ''D'' AND (
-                                    con.descripcion LIKE ''%ahorro%''
-                                    OR con.descripcion LIKE ''%infonavit%''
-                                    OR con.descripcion LIKE ''%fonacot%''
-                                    OR con.descripcion LIKE ''%alimenticia%''
-                                    OR con.descripcion LIKE ''%sindical%''
-                                    OR con.numeroconcepto IN (52,35,45) -- Imss, isr
-                                    ))
-                            )
+                            esquema.esquema = ''Tarjeta facil''
+                            AND emp.estado_empleado = 1
+                            AND emp.id_nomina_gape_cliente = @idNominaGapeCliente
+                            AND emp.id_nomina_gape_empresa = @idNominaGapeEmpresa
+                            AND emp.id BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
                     ), ' + '
-                    MovimientosSuma AS (
-                        SELECT
-                            emp.codigoempleado,
-                            empPeriodo.sueldodiario AS sd,
-                            empPeriodo.sueldointegrado AS sdi,
-                            pdo.descripcion,
-                            pdo.tipoconcepto AS tipoConcepto,
-                            SUM(pdo.importetotal) AS monto,
-                            emp.ccampoextranumerico3 AS pension
-                        FROM nom10001 emp
-                        INNER JOIN nom10034 empPeriodo
-                            ON emp.idempleado = empPeriodo.idempleado
-                                AND empPeriodo.cidperiodo = @idPeriodo
-                        LEFT JOIN Movimientos pdo
-                            ON empPeriodo.cidperiodo = pdo.idperiodo
-                                AND emp.idempleado = pdo.idempleado
-                        WHERE
-                            empPeriodo.idtipoperiodo = @idTipoPeriodo
-                            AND empPeriodo.estadoempleado IN (''A'', ''R'')
-                            AND emp.TipoRegimen IN (''05'', ''06'', ''07'', ''08'', ''09'', ''10'', ''11'')
-                            AND empPeriodo.idempleado BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
-                        GROUP BY
-                            emp.codigoempleado
-                            , empPeriodo.sueldodiario
-                            , empPeriodo.sueldointegrado
-                            , pdo.descripcion
-                            , pdo.tipoconcepto
-                            , emp.ccampoextranumerico3
-                    ), ' + '
-                    TotalesPorEmpleado AS (
+                    PreTotalesPorEmpleadoGeneralQ2 AS (
                         SELECT
                             codigoempleado,
-                            sd,
-                            sdi,
-                            SUM(CASE WHEN tipoConcepto = ''P'' THEN monto ELSE 0 END) AS total_percepciones,
-                            SUM(CASE WHEN tipoConcepto = ''D'' THEN monto ELSE 0 END) AS total_deducciones,
-                            pension AS porcentajePension
-                        FROM MovimientosSuma
+                            nombre,
+                            ap,
+                            am,
+                            nombreCompleto,
+                            claveBanco,
+                            cuentaPagoElectronico,
+                            clabeInterbancaria,
+                            campoextra3,
+                            tarjetafacil,
+                            rfc,
+                            MAX(sueldo) AS sueldo,
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN monto ELSE 0 END)
+                            +
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN valor ELSE 0 END) AS total_percepciones_sin_sueldo,
+                            SUM(CASE WHEN tipoConcepto = ''D'' THEN monto ELSE 0 END) AS total_deducciones
+                        FROM (
+                            SELECT
+                                codigoempleado,
+                                nombre,
+                                ap,
+                                am,
+                                nombreCompleto,
+                                claveBanco,
+                                cuentaPagoElectronico,
+                                clabeInterbancaria,
+                                campoextra3,
+                                tarjetafacil,
+                                rfc,
+                                sueldo AS sueldo,
+                                ''P'' AS tipoConcepto,
+                                0 AS monto,
+                                valor AS valor
+                            FROM IncidenciasNormalizadasQ2
+                            WHERE
+                                descripcion NOT LIKE ''%cantidad%''
+                        ) AS x
+                        GROUP BY
+                            codigoempleado,
+                            nombre,
+                            ap,
+                            am,
+                            nombreCompleto,
+                            claveBanco,
+                            cuentaPagoElectronico,
+                            clabeInterbancaria,
+                            campoextra3,
+                            tarjetafacil,
+                            rfc
+                    ), ' + '
+                    TotalesPorEmpleadoGeneralQ2 AS (
+                        SELECT
+                            codigoempleado,
+                            nombre,
+                            ap,
+                            am,
+                            nombreCompleto,
+                            claveBanco,
+                            cuentaPagoElectronico,
+                            clabeInterbancaria,
+                            campoextra3,
+                            tarjetafacil,
+                            rfc,
+                            sueldo,
+                            sueldo + total_percepciones_sin_sueldo AS total_percepciones,
+                            total_deducciones total_deducciones,
+                            (sueldo + total_percepciones_sin_sueldo) - (total_deducciones) AS netoAPagar
+                        FROM PreTotalesPorEmpleadoGeneralQ2
+                    ), ' + '
+                    ParamConfig AS (
+                        SELECT
+                            nge.esquema AS concepto
+                            , ngce.tope
+                            , ngce.orden
+                        FROM [becma-core2].[dbo].nomina_gape_cliente_esquema_combinacion AS ngce
+                        INNER JOIN [becma-core2].[dbo].nomina_gape_esquema AS nge
+                            ON ngce.id_nomina_gape_esquema = nge.id
+                        WHERE
+                            ngce.id_nomina_gape_cliente = @idNominaGapeCliente
+                            AND ngce.id_nomina_gape_empresa = @idNominaGapeEmpresa
+                            AND ngce.combinacion = @idEsquemaCombinacion
+                            AND ngce.orden > 0
+                    ),
+                    BaseProrrateo AS (
+                        SELECT
+                            p.codigoempleado,
+                            CAST(p.netoAPagar AS DECIMAL(18,2)) AS netoAPagar,
+                            c.concepto,
+                            c.tope,
+                            c.orden,
+                            ROW_NUMBER() OVER (PARTITION BY p.codigoempleado ORDER BY c.orden) AS rn
+                        FROM TotalesPorEmpleadoGeneralQ2 p
+                        CROSS JOIN ParamConfig c
+                    ), ' + '
+                    ProrrateoRecursivo AS (
+                        -- ANCLA
+                        SELECT
+                            b.codigoempleado,
+                            b.concepto,
+                            b.orden,
+                            b.tope,
+                            b.rn,
+                            CAST(b.netoAPagar AS DECIMAL(18,2)) AS saldo_antes,
+                            CAST(
+                                CASE
+                                    WHEN b.netoAPagar <= 0 THEN 0
+                                    WHEN b.tope IS NULL OR b.netoAPagar >= b.tope THEN ISNULL(b.tope, b.netoAPagar)
+                                    ELSE b.netoAPagar
+                                END
+                            AS DECIMAL(18,2)) AS monto_asignado,
+                            CAST(
+                                b.netoAPagar -
+                                CASE
+                                    WHEN b.netoAPagar <= 0 THEN 0
+                                    WHEN b.tope IS NULL OR b.netoAPagar >= b.tope THEN ISNULL(b.tope, b.netoAPagar)
+                                    ELSE b.netoAPagar
+                                END
+                            AS DECIMAL(18,2)) AS saldo_despues
+                        FROM BaseProrrateo b
+                        WHERE b.rn = 1
+
+                        UNION ALL
+
+                        -- RECURSIVO
+                        SELECT
+                            b.codigoempleado,
+                            b.concepto,
+                            b.orden,
+                            b.tope,
+                            b.rn,
+                            CAST(r.saldo_despues AS DECIMAL(18,2)) AS saldo_antes,
+                            CAST(
+                                CASE
+                                    WHEN r.saldo_despues <= 0 THEN 0
+                                    WHEN b.tope IS NULL OR r.saldo_despues >= b.tope THEN ISNULL(b.tope, r.saldo_despues)
+                                    ELSE r.saldo_despues
+                                END
+                            AS DECIMAL(18,2)) AS monto_asignado,
+                            CAST(
+                                r.saldo_despues -
+                                CASE
+                                    WHEN r.saldo_despues <= 0 THEN 0
+                                    WHEN b.tope IS NULL OR r.saldo_despues >= b.tope THEN ISNULL(b.tope, r.saldo_despues)
+                                    ELSE r.saldo_despues
+                                END
+                            AS DECIMAL(18,2)) AS saldo_despues
+                        FROM ProrrateoRecursivo r
+                        JOIN BaseProrrateo b
+                        ON r.codigoempleado = b.codigoempleado
+                        AND r.rn + 1 = b.rn
+                    ), ' + '
+                    DatosEmpleadoQ3 AS (
+                        SELECT
+                            codigoempleado,
+                            MAX(nombre)  AS nombre,
+                            MAX(ap)      AS ap,
+                            MAX(am)      AS am,
+                            MAX(nombreCompleto)  AS nombreCompleto,
+                            MAX(rfc)     AS rfc,
+                            MAX(claveBanco)  AS claveBanco,
+                            MAX(cuentaPagoElectronico)  AS cuentaPagoElectronico,
+                            MAX(clabeInterbancaria)  AS clabeInterbancaria,
+                            MAX(campoextra3) AS campoextra3,
+                            MAX(tarjetafacil) AS tarjetafacil
+                        FROM TotalesPorEmpleadoGeneralQ2
                         GROUP BY
                             codigoempleado
-                            , pension
-                            , sdi
-                            , sd
                     ), ' + '
-                    MovimientosPivot AS (
+                    ProrrateoFinal AS (
                         SELECT
-                            ms.codigoempleado,
-                            ms.sd,
-                            ms.sdi,
-                            ms.descripcion AS columna,
-                            ms.monto AS valor
-                        FROM MovimientosSuma ms
-                        UNION ALL
-                        SELECT
-                            t.codigoempleado,
-                            t.sd,
-                            t.sdi,
-                            ''TOTAL PERCEPCIONES FISCAL'' AS columna,
-                            t.total_percepciones AS valor
-                        FROM TotalesPorEmpleado t
-                        UNION ALL
-                        SELECT
-                            t.codigoempleado,
-                            t.sd,
-                            t.sdi,
-                            ''TOTAL DEDUCCIONES FISCAL'' AS columna,
-                            t.total_deducciones AS valor
-                        FROM TotalesPorEmpleado t
-                        UNION ALL
-                        SELECT
-                            t.codigoempleado,
-                            t.sd,
-                            t.sdi,
-                            ''NETO FISCAL'' AS columna,
-                            (t.total_percepciones) - (t.total_deducciones) AS valor
-                        FROM TotalesPorEmpleado t
+                            r.codigoempleado,
+                            d.nombre,
+                            d.ap,
+                            d.am,
+                            d.nombreCompleto,
+                            d.rfc,
+                            d.claveBanco,
+                            d.cuentaPagoElectronico,
+                            d.clabeInterbancaria,
+                            d.campoextra3,
+                            d.tarjetafacil,
+                            r.concepto,
+                            r.monto_asignado
+                        FROM ProrrateoRecursivo r
+                        INNER JOIN DatosEmpleadoQ3 d
+                            ON d.codigoempleado = r.codigoempleado
                     ) ' + '
-                    SELECT codigoempleado, sd, sdi, ' + @cols + '
-                    FROM MovimientosPivot
+                    SELECT p.codigoempleado, p.nombre, p.ap, p.am, p.nombreCompleto, p.rfc, p.claveBanco, p.cuentaPagoElectronico, p.clabeInterbancaria, p.campoextra3, p.tarjetafacil, ' + @cols + '
+                    FROM ProrrateoFinal
                     PIVOT (
-                        SUM(valor)
-                        FOR columna IN (' + @cols + ')
-                    ) AS p
+                        SUM(monto_asignado)
+                        FOR concepto IN (' + @cols + ')
+                    ) p
                     ORDER BY codigoempleado;
                     ';
-
-                EXEC(@query);
+                    EXEC(@sql)
             ";
 
+            /*
+            dd([
+                'row' => $sql,
+            ]);
+            */
             //return $sql;
-            $result = DB::connection('sqlsrv_dynamic')->select($sql);
+            $result = DB::select($sql);
+
+            return $result;
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
+    private function detalle_gastos_por_comprobar(Request $request)
+    {
+        try {
+            $idNominaGapeCliente = $request->id_nomina_gape_cliente;
+            $idNominaGapeEmpresa = $request->id_nomina_gape_empresa;
+
+            $idNominaGapeEsquema = $request->id_nomina_gape_esquema;
+            $idEsquemaCombinacion = $request->id_esquema;
+
+            $idEmpleadoInicial = $request->empleado_inicial;
+            $idEmpleadoFinal = $request->empleado_final;
+
+            $idNominaGapeIncidencia = $request->id_nomina_gape_incidencia ?? 0;
+
+            $sql = "
+                DECLARE @idNominaGapeCliente INT;
+                DECLARE @idNominaGapeEmpresa INT;
+
+                DECLARE @idNominaGapeEsquema INT;
+                DECLARE @idEsquemaCombinacion INT;
+
+                DECLARE @idPeriodo INT;
+                DECLARE @idTipoPeriodo INT;
+
+                DECLARE @idEmpleadoInicial INT;
+                DECLARE @idEmpleadoFinal INT;
+
+				DECLARE @idNominaGapeIncidencia INT;
+
+                SET @idNominaGapeCliente = $idNominaGapeCliente;
+                SET @idNominaGapeEmpresa = $idNominaGapeEmpresa;
+
+                SET @idNominaGapeEsquema = $idNominaGapeEsquema;
+                SET @idEsquemaCombinacion = $idEsquemaCombinacion;
+
+                SET @idEmpleadoInicial = $idEmpleadoInicial;
+                SET @idEmpleadoFinal = $idEmpleadoFinal;
+
+				SET @idNominaGapeIncidencia = $idNominaGapeIncidencia;
+
+                DECLARE @cols NVARCHAR(MAX),
+                        @sql  NVARCHAR(MAX);
+                ;;WITH ParamConfig AS (
+                    SELECT
+                        nge.esquema AS descripcion
+                        , ngce.tope
+                        , ngce.orden
+                    FROM [becma-core2].[dbo].nomina_gape_cliente_esquema_combinacion AS ngce
+                    INNER JOIN [becma-core2].[dbo].nomina_gape_esquema AS nge
+                        ON ngce.id_nomina_gape_esquema = nge.id
+                    WHERE
+                        ngce.id_nomina_gape_cliente = @idNominaGapeCliente
+                        AND ngce.combinacion = @idEsquemaCombinacion
+                        AND ngce.orden > 0
+                ),
+                titulos AS (
+                    SELECT descripcion, orden FROM ParamConfig
+                )
+                SELECT @cols = STUFF((
+                    SELECT ', ' + QUOTENAME(descripcion)
+                    FROM titulos
+                    ORDER BY orden
+                    FOR XML PATH(''), TYPE
+                ).value('.', 'NVARCHAR(MAX)'), 1, 2, '');
+
+                SET @sql = CAST('' AS NVARCHAR(MAX)) + '
+                DECLARE @idNominaGapeCliente INT;
+                DECLARE @idNominaGapeEmpresa INT;
+
+                DECLARE @idNominaGapeEsquema INT;
+                DECLARE @idEsquemaCombinacion INT;
+
+                DECLARE @idEmpleadoInicial INT;
+                DECLARE @idEmpleadoFinal INT;
+
+				DECLARE @idNominaGapeIncidencia INT;
+
+                SET @idNominaGapeCliente = $idNominaGapeCliente;
+                SET @idNominaGapeEmpresa = $idNominaGapeEmpresa;
+
+                SET @idNominaGapeEsquema = $idNominaGapeEsquema;
+                SET @idEsquemaCombinacion = $idEsquemaCombinacion;
+
+                SET @idEmpleadoInicial = $idEmpleadoInicial;
+                SET @idEmpleadoFinal = $idEmpleadoFinal;
+
+				SET @idNominaGapeIncidencia = $idNominaGapeIncidencia;
+                ' + '
+                ;WITH
+                    IncidenciasNormalizadasQ2 AS (
+                        SELECT
+                            emp.codigoempleado as codigoempleado,
+                            emp.nombre AS nombre,
+                            emp.apellidopaterno AS ap,
+                            emp.apellidomaterno AS am,
+                            emp.nombre + '' '' + emp.apellidopaterno + '' '' + emp.apellidomaterno AS nombreCompleto,
+                            emp.bancopagoelectronico AS claveBanco,
+                            emp.cuentapagoelectronico AS cuentaPagoElectronico,
+                            emp.ClabeInterbancaria AS clabeInterbancaria,
+                            ISNULL(CAST(emp.campoextra3 AS NVARCHAR(50)), '''') AS campoextra3,
+                            ISNULL(CAST(emp.ccampoextranumerico4 AS NVARCHAR(50)), '''') AS tarjetafacil,
+                            cuentacw AS rfc,
+                            x.descripcion AS descripcion,
+                            ''P'' AS tipoConcepto,
+                            x.valor AS valor,
+                            ngid.pago_simple AS sueldo
+                        FROM nomina_gape_empleado AS emp
+                        INNER JOIN nomina_gape_esquema AS esquema
+                            on emp.id_nomina_gape_esquema = esquema.id
+                        LEFT JOIN nomina_gape_incidencia AS ngi
+                            ON emp.id_nomina_gape_cliente = ngi.id_nomina_gape_cliente
+                                AND emp.id_nomina_gape_empresa = ngi.id_nomina_gape_empresa
+                                AND ngi.id = @idNominaGapeIncidencia
+                        LEFT JOIN nomina_gape_incidencia_detalle AS ngid
+                            ON ngi.id = ngid.id_nomina_gape_incidencia
+                                AND emp.codigoempleado = ngid.codigo_empleado
+                                AND ngid.id_nomina_gape_combinacion = @idEsquemaCombinacion
+                        CROSS APPLY (VALUES
+                            (''Bono'',                      ngid.bono),
+                            (''Comisiones'',                ngid.comision),
+                            (''Dia Festivo cantidad'',      ngid.cantidad_dias_festivos),
+                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2 * 2),
+                            (''Horas Extra Doble cantidad'', ngid.horas_extra_doble_cantidad),
+                            (''Horas Extra Doble monto'',    ISNULL(ngid.horas_extra_doble_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 2),
+                            (''Horas Extra Triple cantidad'', ngid.horas_extra_triple_cantidad),
+                            (''Horas Extra Triple monto'',    ISNULL(ngid.horas_extra_triple_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 3),
+                            (''Pago adicional'',             ngid.pago_adicional),
+                            (''Premio puntualidad'',         ngid.premio_puntualidad),
+                            (''Prima Dominical cantidad'',   ngid.cantidad_prima_dominical),
+                            (''Prima Dominical monto'',      ISNULL(ngid.cantidad_prima_dominical, 0) * emp.ccampoextranumerico2 * 0.25)
+                        ) AS x(descripcion, valor)
+                        WHERE
+                            esquema.esquema = ''Gastos por comprobar''
+                            AND emp.estado_empleado = 1
+                            AND emp.id_nomina_gape_cliente = @idNominaGapeCliente
+                            AND emp.id_nomina_gape_empresa = @idNominaGapeEmpresa
+                        AND emp.id BETWEEN @idEmpleadoInicial AND @idEmpleadoFinal
+                    ), ' + '
+                    PreTotalesPorEmpleadoGeneralQ2 AS (
+                        SELECT
+                            codigoempleado,
+                            nombre,
+                            ap,
+                            am,
+                            nombreCompleto,
+                            claveBanco,
+                            cuentaPagoElectronico,
+                            clabeInterbancaria,
+                            campoextra3,
+                            tarjetafacil,
+                            rfc,
+                            MAX(sueldo) AS sueldo,
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN monto ELSE 0 END)
+                            +
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN valor ELSE 0 END) AS total_percepciones_sin_sueldo,
+                            SUM(CASE WHEN tipoConcepto = ''D'' THEN monto ELSE 0 END) AS total_deducciones
+                        FROM (
+                            SELECT
+                                codigoempleado,
+                                nombre,
+                                ap,
+                                am,
+                                nombreCompleto,
+                                claveBanco,
+                                cuentaPagoElectronico,
+                                clabeInterbancaria,
+                                campoextra3,
+                                tarjetafacil,
+                                rfc,
+                                sueldo AS sueldo,
+                                ''P'' AS tipoConcepto,
+                                0 AS monto,
+                                valor AS valor
+                            FROM IncidenciasNormalizadasQ2
+                            WHERE
+                                descripcion NOT LIKE ''%cantidad%''
+                        ) AS x
+                        GROUP BY
+                            codigoempleado,
+                            nombre,
+                            ap,
+                            am,
+                            nombreCompleto,
+                            claveBanco,
+                            cuentaPagoElectronico,
+                            clabeInterbancaria,
+                            campoextra3,
+                            tarjetafacil,
+                            rfc
+                    ), ' + '
+                    TotalesPorEmpleadoGeneralQ2 AS (
+                        SELECT
+                            codigoempleado,
+                            nombre,
+                            ap,
+                            am,
+                            nombreCompleto,
+                            claveBanco,
+                            cuentaPagoElectronico,
+                            clabeInterbancaria,
+                            campoextra3,
+                            tarjetafacil,
+                            rfc,
+                            sueldo,
+                            sueldo + total_percepciones_sin_sueldo AS total_percepciones,
+                            total_deducciones total_deducciones,
+                            (sueldo + total_percepciones_sin_sueldo) - (total_deducciones) AS netoAPagar
+                        FROM PreTotalesPorEmpleadoGeneralQ2
+                    ), ' + '
+                    ParamConfig AS (
+                        SELECT
+                            nge.esquema AS concepto
+                            , ngce.tope
+                            , ngce.orden
+                        FROM [becma-core2].[dbo].nomina_gape_cliente_esquema_combinacion AS ngce
+                        INNER JOIN [becma-core2].[dbo].nomina_gape_esquema AS nge
+                            ON ngce.id_nomina_gape_esquema = nge.id
+                        WHERE
+                            ngce.id_nomina_gape_cliente = @idNominaGapeCliente
+                            AND ngce.id_nomina_gape_empresa = @idNominaGapeEmpresa
+                            AND ngce.combinacion = @idEsquemaCombinacion
+                            AND ngce.orden > 0
+                    ),
+                    BaseProrrateo AS (
+                        SELECT
+                            p.codigoempleado,
+                            CAST(p.netoAPagar AS DECIMAL(18,2)) AS netoAPagar,
+                            c.concepto,
+                            c.tope,
+                            c.orden,
+                            ROW_NUMBER() OVER (PARTITION BY p.codigoempleado ORDER BY c.orden) AS rn
+                        FROM TotalesPorEmpleadoGeneralQ2 p
+                        CROSS JOIN ParamConfig c
+                    ), ' + '
+                    ProrrateoRecursivo AS (
+                        -- ANCLA
+                        SELECT
+                            b.codigoempleado,
+                            b.concepto,
+                            b.orden,
+                            b.tope,
+                            b.rn,
+                            CAST(b.netoAPagar AS DECIMAL(18,2)) AS saldo_antes,
+                            CAST(
+                                CASE
+                                    WHEN b.netoAPagar <= 0 THEN 0
+                                    WHEN b.tope IS NULL OR b.netoAPagar >= b.tope THEN ISNULL(b.tope, b.netoAPagar)
+                                    ELSE b.netoAPagar
+                                END
+                            AS DECIMAL(18,2)) AS monto_asignado,
+                            CAST(
+                                b.netoAPagar -
+                                CASE
+                                    WHEN b.netoAPagar <= 0 THEN 0
+                                    WHEN b.tope IS NULL OR b.netoAPagar >= b.tope THEN ISNULL(b.tope, b.netoAPagar)
+                                    ELSE b.netoAPagar
+                                END
+                            AS DECIMAL(18,2)) AS saldo_despues
+                        FROM BaseProrrateo b
+                        WHERE b.rn = 1
+
+                        UNION ALL
+
+                        -- RECURSIVO
+                        SELECT
+                            b.codigoempleado,
+                            b.concepto,
+                            b.orden,
+                            b.tope,
+                            b.rn,
+                            CAST(r.saldo_despues AS DECIMAL(18,2)) AS saldo_antes,
+                            CAST(
+                                CASE
+                                    WHEN r.saldo_despues <= 0 THEN 0
+                                    WHEN b.tope IS NULL OR r.saldo_despues >= b.tope THEN ISNULL(b.tope, r.saldo_despues)
+                                    ELSE r.saldo_despues
+                                END
+                            AS DECIMAL(18,2)) AS monto_asignado,
+                            CAST(
+                                r.saldo_despues -
+                                CASE
+                                    WHEN r.saldo_despues <= 0 THEN 0
+                                    WHEN b.tope IS NULL OR r.saldo_despues >= b.tope THEN ISNULL(b.tope, r.saldo_despues)
+                                    ELSE r.saldo_despues
+                                END
+                            AS DECIMAL(18,2)) AS saldo_despues
+                        FROM ProrrateoRecursivo r
+                        JOIN BaseProrrateo b
+                        ON r.codigoempleado = b.codigoempleado
+                        AND r.rn + 1 = b.rn
+                    ), ' + '
+                    DatosEmpleadoQ3 AS (
+                        SELECT
+                            codigoempleado,
+                            MAX(nombre)  AS nombre,
+                            MAX(ap)      AS ap,
+                            MAX(am)      AS am,
+                            MAX(nombreCompleto)  AS nombreCompleto,
+                            MAX(rfc)     AS rfc,
+                            MAX(claveBanco)  AS claveBanco,
+                            MAX(cuentaPagoElectronico)  AS cuentaPagoElectronico,
+                            MAX(clabeInterbancaria)  AS clabeInterbancaria,
+                            MAX(campoextra3) AS campoextra3,
+                            MAX(tarjetafacil) AS tarjetafacil
+                        FROM TotalesPorEmpleadoGeneralQ2
+                        GROUP BY
+                            codigoempleado
+                    ), ' + '
+                    ProrrateoFinal AS (
+                        SELECT
+                            r.codigoempleado,
+                            d.nombre,
+                            d.ap,
+                            d.am,
+                            d.nombreCompleto,
+                            d.rfc,
+                            d.claveBanco,
+                            d.cuentaPagoElectronico,
+                            d.clabeInterbancaria,
+                            d.campoextra3,
+                            d.tarjetafacil,
+                            r.concepto,
+                            r.monto_asignado
+                        FROM ProrrateoRecursivo r
+                        INNER JOIN DatosEmpleadoQ3 d
+                            ON d.codigoempleado = r.codigoempleado
+                    ) ' + '
+                    SELECT p.codigoempleado, p.nombre, p.ap, p.am, p.nombreCompleto, p.rfc, p.claveBanco, p.cuentaPagoElectronico, p.clabeInterbancaria, p.campoextra3, p.tarjetafacil, ' + @cols + '
+                    FROM ProrrateoFinal
+                    PIVOT (
+                        SUM(monto_asignado)
+                        FOR concepto IN (' + @cols + ')
+                    ) p
+                    ORDER BY codigoempleado;
+                    ';
+                    EXEC(@sql)
+            ";
+            /*
+            dd([
+                'row' => $sql,
+            ]);
+            */
+            //return $sql;
+            $result = DB::select($sql);
 
             return $result;
         } catch (\Exception $e) {

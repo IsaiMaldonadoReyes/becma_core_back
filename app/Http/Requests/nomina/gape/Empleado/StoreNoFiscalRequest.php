@@ -36,8 +36,10 @@ class StoreNoFiscalRequest extends FormRequest
             'codigopostal' => 'nullable|string|max:5',
 
             'campoextra1' => 'required|string',
-            'ccampoextranumerico1' => 'required|numeric|min:0',
-            'ccampoextranumerico2' => 'required|numeric|min:0',
+            'ccampoextranumerico1' => 'nullable|numeric|min:0',
+            'ccampoextranumerico2' => 'nullable|numeric|min:0',
+            'ccampoextranumerico3' => 'nullable|numeric|min:0',
+            'ccampoextranumerico4' => 'nullable|numeric|min:0',
         ];
     }
 

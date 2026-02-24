@@ -7,51 +7,24 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class ExportIncidenciasService
 {
-    /**
-     * Genera el archivo Excel aplicando toda la configuración.
-     */
-    public function generarExcel(array $config, array $data)
-    {
-        $spreadsheet = $this->loadTemplate($config['path']);
-        $sheet = $this->getWorksheet($spreadsheet, $config['sheet_name']);
-
-        // Validar si hay datos
-        if (empty($data)) {
-            throw new \Exception("No hay datos para exportar.");
-        }
-
-        // Construir matriz ordenada (AQUI INTEGRAMOS TU LÓGICA)
-        $matrix = $this->buildMatrix($data);
-
-        // Insertar y escribir
-        $this->insertRows($sheet, $config['fila_insert'], count($matrix));
-
-        $this->fillMatrix($sheet, $matrix, $config['col_inicio']);
-
-        // Autosize
-        $this->autosizeColumns($sheet, $config['auto_cols'][0], $config['auto_cols'][1]);
-
-        // Grouping
-        $this->applyGrouping($sheet, $config['group_rows']);
-
-        // Freeze pane
-        $this->applyFreezePane($sheet, $config['freeze_cell']);
-
-        return $spreadsheet; // El controlador hará el StreamedResponse
-    }
-
     public function loadSpreadsheet(string $path)
     {
         return $this->loadTemplate($path);
     }
 
-    public function fillSheetFromConfig($spreadsheet, array $config, array $data): void
+    public function fillSheetFromConfig($spreadsheet, array $config, array $data, array $dataHeader = []): void
     {
         if (empty($data)) {
             return;
         }
 
         $sheet = $this->getWorksheet($spreadsheet, $config['sheet_name']);
+
+        $sheet->setCellValue('B2', $dataHeader['cliente'] ?? '');
+        $sheet->setCellValue('B4', $dataHeader['empresa'] ?? '');
+        $sheet->setCellValue('B5', $dataHeader['ejercicio'] ?? '');
+        $sheet->setCellValue('B6', $dataHeader['tipoPeriodo'] ?? '');
+        $sheet->setCellValue('B7', $dataHeader['periodo'] ?? '');
 
         $matrix = $this->buildMatrix($data);
 

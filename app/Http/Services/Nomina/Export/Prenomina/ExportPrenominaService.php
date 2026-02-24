@@ -45,6 +45,7 @@ class ExportPrenominaService
         $sheet = $this->getWorksheet($spreadsheet, $config['sheet_name']);
 
         $queries = $config['queries'];
+        $headers = $config['headers'];
         $titulosSeccion = $config['titulos'];
 
         /*
@@ -52,6 +53,21 @@ class ExportPrenominaService
         | 1. CARGAR DATOS SOLO DE SECCIONES EXISTENTES
         |--------------------------------------------------------------------------
         */
+
+        $dataHeader = $queryService->getData($headers, $request);
+
+        $sheet->setCellValue('B2', $dataHeader['cliente'] ?? '');
+        $sheet->setCellValue('B4', $dataHeader['empresa'] ?? '');
+        $sheet->setCellValue('B5', $dataHeader['ejercicio'] ?? '');
+        $sheet->setCellValue('B6', $dataHeader['tipoPeriodo'] ?? '');
+        $sheet->setCellValue('B7', $dataHeader['periodo'] ?? '');
+
+        $sheet->setCellValue(
+            'B9',
+            ($dataHeader['codigoInicio'] ?? '')
+                . ' - ' .
+                ($dataHeader['codigoFin'] ?? '')
+        );
 
         $dataDetalleEmpleado = collect(
             $queryService->getData($queries['detalle'], $request)

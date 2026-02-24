@@ -202,29 +202,29 @@ class PrenominaQueryService
                         AND con.descripcion LIKE '%retroactivo%'
                 ),
                 tarjetaControl AS (
-                    SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                    SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                     FROM nom10009 AS fi
                     INNER JOIN nom10022 ti
                         ON fi.idtipoincidencia = ti.idtipoincidencia
                     WHERE
-                        ti.TipoImss IN ('I', 'F')
+                        ti.mnemonico IN ('INC', 'FINJ')
                         AND idperiodo = @idPeriodo
 
                     UNION ALL
 
-                    SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                    SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                     FROM NOM10010 AS fi
                     INNER JOIN nom10022 ti
                         ON fi.idtipoincidencia = ti.idtipoincidencia
                     WHERE
-                        ti.TipoImss IN ('I', 'F')
+                        ti.mnemonico IN ('INC', 'FINJ')
                         AND idperiodo = @idPeriodo
                 ),
                 TarjetaControlAgrupado AS (
                     SELECT
                         idempleado,
-                        SUM(CASE WHEN TipoImss IN ('I') THEN valor ELSE 0 END) AS incapacidad,
-                        SUM(CASE WHEN TipoImss IN ('F')  THEN valor ELSE 0 END) AS faltas
+                        SUM(CASE WHEN mnemonico = 'INC' THEN valor ELSE 0 END) AS incapacidad,
+                        SUM(CASE WHEN mnemonico = 'FINJ' THEN valor ELSE 0 END) AS faltas
                     FROM tarjetaControl
                     GROUP BY
                         idempleado
@@ -245,7 +245,7 @@ class PrenominaQueryService
 						WHEN empPeriodo.fechaalta <= periodo.fechainicio
 							THEN (periodo.diasdepago)
 						WHEN empPeriodo.fechaalta > periodo.fechainicio AND empPeriodo.fechaalta <= periodo.fechafin
-							THEN (DATEDIFF(DAY, empPeriodo.fechaalta, periodo.fechafin) + 1)
+							THEN (DATEDIFF(DAY, empPeriodo.fechaalta, periodo.fechafin))
 						ELSE 0
 					  END AS diasPeriodo
 
@@ -260,7 +260,7 @@ class PrenominaQueryService
                             - ISNULL(tc.faltas, 0)
 
                         WHEN empPeriodo.fechaalta > periodo.fechainicio AND empPeriodo.fechaalta <= periodo.fechafin THEN
-                            DATEDIFF(DAY, empPeriodo.fechaalta, periodo.fechafin) + 1
+                            DATEDIFF(DAY, empPeriodo.fechaalta, periodo.fechafin)
                             + ISNULL(SUM(movP.valor), 0)
                             - ISNULL(tc.incapacidad, 0)
                             - ISNULL(tc.faltas, 0)
@@ -278,7 +278,7 @@ class PrenominaQueryService
                                         - ISNULL(tc.faltas, 0)
 
                                     WHEN empPeriodo.fechaalta > periodo.fechainicio AND empPeriodo.fechaalta <= periodo.fechafin THEN
-                                        DATEDIFF(DAY, empPeriodo.fechaalta, periodo.fechafin) + 1
+                                        DATEDIFF(DAY, empPeriodo.fechaalta, periodo.fechafin)
                                         + ISNULL(SUM(movP.valor), 0)
                                         - ISNULL(tc.incapacidad, 0)
                                         - ISNULL(tc.faltas, 0)
@@ -522,27 +522,27 @@ class PrenominaQueryService
                         AND con.descripcion LIKE ''%retroactivo%''
                 ), ' + '
                 tarjetaControl AS (
-                    SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                    SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                     FROM nom10009 AS fi
                     INNER JOIN nom10022 ti
                         ON fi.idtipoincidencia = ti.idtipoincidencia
                     WHERE
-                        ti.TipoImss IN (''I'', ''F'')
+                        ti.mnemonico IN (''INC'', ''FINJ'')
                         AND idperiodo = @idPeriodo
                     UNION ALL
-                    SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                    SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                     FROM NOM10010 AS fi
                     INNER JOIN nom10022 ti
                         ON fi.idtipoincidencia = ti.idtipoincidencia
                     WHERE
-                        ti.TipoImss IN (''I'', ''F'')
+                        ti.mnemonico IN (''INC'', ''FINJ'')
                         AND idperiodo = @idPeriodo
                 ), ' + '
                 TarjetaControlAgrupado AS (
                     SELECT
                         idempleado,
-                        SUM(CASE WHEN TipoImss IN (''I'') THEN valor ELSE 0 END) AS incapacidad,
-                        SUM(CASE WHEN TipoImss IN (''F'') THEN valor ELSE 0 END) AS faltas
+                        SUM(CASE WHEN mnemonico = ''INC'' THEN valor ELSE 0 END) AS incapacidad,
+                        SUM(CASE WHEN mnemonico = ''FINJ'' THEN valor ELSE 0 END) AS faltas
                     FROM tarjetaControl
                     GROUP BY
                         idempleado
@@ -592,7 +592,7 @@ class PrenominaQueryService
                                         - ISNULL(tc.faltas, 0)
 
                                     WHEN empPeriodo.fechaalta > periodo.fechainicio AND empPeriodo.fechaalta <= periodo.fechafin THEN
-                                        DATEDIFF(DAY, empPeriodo.fechaalta, periodo.fechafin) + 1
+                                        DATEDIFF(DAY, empPeriodo.fechaalta, periodo.fechafin)
                                         + ISNULL(SUM(movP.valor), 0)
                                         - ISNULL(tc.incapacidad, 0)
                                         - ISNULL(tc.faltas, 0)
@@ -671,7 +671,7 @@ class PrenominaQueryService
                         (''Bono'',                      ngid.bono,                      ''P''),
                         (''Comisiones'',                ngid.comision,                  ''P''),
                         (''Dia Festivo cantidad'',      ngid.cantidad_dias_festivos,    ''P''),
-                        (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2, ''P''),
+                        (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2 * 2, ''P''),
                         (''Horas Extra Doble cantidad'', ngid.horas_extra_doble_cantidad, ''P''),
                         (''Horas Extra Doble monto'',    ISNULL(ngid.horas_extra_doble_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 2, ''P''),
                         (''Horas Extra Triple cantidad'', ngid.horas_extra_triple_cantidad, ''P''),
@@ -680,7 +680,7 @@ class PrenominaQueryService
                         (''Premio puntualidad'',         ngid.premio_puntualidad, ''P''),
                         (''Prima Dominical cantidad'',   ngid.cantidad_prima_dominical, ''P''),
                         (''Prima Dominical monto'',      ISNULL(ngid.cantidad_prima_dominical, 0) * emp.ccampoextranumerico2 * 0.25, ''P''),
-                        (''Descuentos'',                 ngid.descuento, ''D'')
+                        (''Descuentos'',                 ngid.monto_descuento, ''D'')
                     ) AS x(descripcion, valor, tipoConcepto)
 					WHERE
                         (@idNominaGapeIncidencia IS NULL OR ngi.id = @idNominaGapeIncidencia)
@@ -691,20 +691,10 @@ class PrenominaQueryService
 					SELECT
 						codigoempleado,
 						MAX(sueldo) AS sueldo,
-						SUM(
-                                CASE
-                                    WHEN tipoConcepto = ''P''
-                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
-                                    ELSE 0
-                                END
-                            ) AS total_percepciones_sin_sueldo,
-                            SUM(
-                                CASE
-                                    WHEN tipoConcepto = ''D''
-                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
-                                    ELSE 0
-                                END
-                            ) AS total_deducciones,
+						SUM(CASE WHEN tipoConcepto = ''P'' THEN monto ELSE 0 END)
+						+
+						SUM(CASE WHEN tipoConcepto = ''P'' THEN valor ELSE 0 END) AS total_percepciones_sin_sueldo,
+						SUM(CASE WHEN tipoConcepto = ''D'' THEN monto ELSE 0 END) AS total_deducciones,
 						pension AS porcentajePension
 					FROM (
 						SELECT
@@ -882,24 +872,25 @@ class PrenominaQueryService
                     WHERE
                         importetotal > 0
                         AND idperiodo = @idPeriodo
-                        AND
-                        (
+                        AND (
                         -- (Sueldo, Vacaciones, Prima vacacional, Retroactivos)
-                            (
-                                con.tipoconcepto = 'P'
-                                AND con.numeroconcepto IN (1, 19, 20, 16)
-                                OR p.idconcepto IS NOT NULL
-                            )
-                            OR
-                            (
-                                con.tipoconcepto = 'D'
-                                AND (
-                                    con.imprimir = 1
-                                    AND con.ClaveAgrupadoraSAT != ''
-                                )
-                            )
+                        (con.tipoconcepto = 'P'
+                            AND con.numeroconcepto IN (1, 19, 20, 16)
+                            OR p.idconcepto IS NOT NULL
                         )
+                        OR
+                        (con.tipoconcepto = 'D' AND (
+                                con.descripcion LIKE '%ahorro%' -- caja de ahorro
+                                OR con.descripcion LIKE '%infonavit%'
+                                OR con.descripcion LIKE '%fonacot%'
+                                OR con.descripcion LIKE '%alimenticia%'
+                                OR con.descripcion LIKE '%sindical%'
+                                OR con.numeroconcepto IN (52,35,45) -- Imss, isr
+                                ))
+                        )
+
                     UNION ALL
+
                     SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto
                     FROM Nom10008 AS actual
                     INNER JOIN nom10004 con
@@ -909,22 +900,21 @@ class PrenominaQueryService
                     WHERE
                         importetotal > 0
                         AND idperiodo = @idPeriodo
-                        AND
-                        (
+                        AND (
                         -- (Sueldo, Vacaciones, Prima vacacional, Retroactivos)
-                            (
-                                con.tipoconcepto = 'P'
-                                AND con.numeroconcepto IN (1, 19, 20, 16)
-                                OR p.idconcepto IS NOT NULL
-                            )
-                            OR
-                            (
-                                con.tipoconcepto = 'D'
-                                AND (
-                                    con.imprimir = 1
-                                    AND con.ClaveAgrupadoraSAT != ''
-                                )
-                            )
+                        (con.tipoconcepto = 'P'
+                            AND con.numeroconcepto IN (1, 19, 20, 16)
+                            OR p.idconcepto IS NOT NULL
+                        )
+                        OR
+                        (con.tipoconcepto = 'D' AND (
+                                con.descripcion LIKE '%ahorro%' -- caja de ahorro
+                                OR con.descripcion LIKE '%infonavit%'
+                                OR con.descripcion LIKE '%fonacot%'
+                                OR con.descripcion LIKE '%alimenticia%'
+                                OR con.descripcion LIKE '%sindical%'
+                                OR con.numeroconcepto IN (52,35,45) -- Imss, isr
+                                ))
                         )
                 ),
                 MovimientosFiltrados AS (
@@ -1022,22 +1012,22 @@ class PrenominaQueryService
                         WHERE
                             importetotal > 0
                             AND idperiodo = @idPeriodo
-                            AND
-                            (
-                                (con.tipoconcepto = ''P''
-                                    AND con.numeroconcepto IN (1, 19, 20, 16)
-                                    OR p.idconcepto IS NOT NULL
-                                )
-                                OR
-                                (
-                                    con.tipoconcepto = ''D''
-                                    AND (
-                                        con.imprimir = 1
-                                        AND con.ClaveAgrupadoraSAT != ''''
-                                    )
-                                )
+                            AND (
+                            (con.tipoconcepto = ''P''
+                                AND con.numeroconcepto IN (1, 19, 20, 16)
+                                OR p.idconcepto IS NOT NULL
                             )
-                        UNION ALL ' + '
+                            OR
+                            (con.tipoconcepto = ''D'' AND (
+                                    con.descripcion LIKE ''%ahorro%''
+                                    OR con.descripcion LIKE ''%infonavit%''
+                                    OR con.descripcion LIKE ''%fonacot%''
+                                    OR con.descripcion LIKE ''%alimenticia%''
+                                    OR con.descripcion LIKE ''%sindical%''
+                                    OR con.numeroconcepto IN (52,35,45) -- Imss, isr
+                                    ))
+                            )
+                        UNION ALL
                         SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto
                         FROM Nom10008 AS actual
                         INNER JOIN nom10004 con
@@ -1047,20 +1037,20 @@ class PrenominaQueryService
                         WHERE
                             importetotal > 0
                             AND idperiodo = @idPeriodo
-                            AND
-                            (
-                                (con.tipoconcepto = ''P''
-                                    AND con.numeroconcepto IN (1, 19, 20, 16)
-                                    OR p.idconcepto IS NOT NULL
-                                )
-                                OR
-                                (
-                                    con.tipoconcepto = ''D''
-                                    AND (
-                                        con.imprimir = 1
-                                        AND con.ClaveAgrupadoraSAT != ''''
-                                    )
-                                )
+                            AND (
+                            (con.tipoconcepto = ''P''
+                                AND con.numeroconcepto IN (1, 19, 20, 16)
+                                OR p.idconcepto IS NOT NULL
+                            )
+                            OR
+                            (con.tipoconcepto = ''D'' AND (
+                                    con.descripcion LIKE ''%ahorro%''
+                                    OR con.descripcion LIKE ''%infonavit%''
+                                    OR con.descripcion LIKE ''%fonacot%''
+                                    OR con.descripcion LIKE ''%alimenticia%''
+                                    OR con.descripcion LIKE ''%sindical%''
+                                    OR con.numeroconcepto IN (52,35,45) -- Imss, isr
+                                    ))
                             )
                     ), ' + '
                     MovimientosSuma AS (
@@ -1303,33 +1293,33 @@ class PrenominaQueryService
                             AND con.descripcion LIKE ''%retroactivo%''
                     ), ' + '
                     tarjetaControl AS (
-                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                         FROM nom10009 AS fi
                         INNER JOIN nom10022 ti
                             ON fi.idtipoincidencia = ti.idtipoincidencia
                         WHERE
-                            ti.TipoImss IN (''I'', ''F'')
+                            ti.mnemonico IN (''INC'', ''FINJ'')
                             AND idperiodo = @idPeriodo
                         UNION ALL
-                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                         FROM NOM10010 AS fi
                         INNER JOIN nom10022 ti
                             ON fi.idtipoincidencia = ti.idtipoincidencia
                         WHERE
-                            ti.TipoImss IN (''I'', ''F'')
+                            ti.mnemonico IN (''INC'', ''FINJ'')
                             AND idperiodo = @idPeriodo
                     ), ' + '
                     TarjetaControlAgrupado AS (
                         SELECT
                             idempleado,
-                            SUM(CASE WHEN TipoImss IN (''I'') THEN valor ELSE 0 END) AS incapacidad,
-                            SUM(CASE WHEN TipoImss IN (''F'') THEN valor ELSE 0 END) AS faltas
+                            SUM(CASE WHEN mnemonico = ''INC'' THEN valor ELSE 0 END) AS incapacidad,
+                            SUM(CASE WHEN mnemonico = ''FINJ'' THEN valor ELSE 0 END) AS faltas
                         FROM tarjetaControl
                         GROUP BY
                             idempleado
                     ), ' + '
                     Movimientos AS (
-                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto, con.imprimir, con.ClaveAgrupadoraSAT
+                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
                         FROM Nom10007 AS his
                         INNER JOIN nom10004 con
                             ON his.idconcepto = con.idconcepto
@@ -1338,7 +1328,7 @@ class PrenominaQueryService
                             AND idperiodo = @idPeriodo
                             AND con.tipoconcepto IN (''P'',''D'')
                         UNION ALL
-                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto, con.imprimir, con.ClaveAgrupadoraSAT
+                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
                         FROM Nom10008 AS actual
                         INNER JOIN nom10004 con
                             ON actual.idconcepto = con.idconcepto
@@ -1361,7 +1351,7 @@ class PrenominaQueryService
                                             - ISNULL(tc.faltas, 0)
 
                                         WHEN empPeriodo.fechaalta > periodo.fechainicio AND empPeriodo.fechaalta <= periodo.fechafin THEN
-                                            DATEDIFF(DAY, empPeriodo.fechaalta, periodo.fechafin) + 1
+                                            DATEDIFF(DAY, empPeriodo.fechaalta, periodo.fechafin)
                                             + ISNULL(SUM(movP.valor), 0)
                                             - ISNULL(tc.incapacidad, 0)
                                             - ISNULL(tc.faltas, 0)
@@ -1445,7 +1435,7 @@ class PrenominaQueryService
                             (''Bono'',                      ngid.bono,                      ''P''),
                             (''Comisiones'',                ngid.comision,                  ''P''),
                             (''Dia Festivo cantidad'',      ngid.cantidad_dias_festivos,    ''P''),
-                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2, ''P''),
+                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2 * 2, ''P''),
                             (''Horas Extra Doble cantidad'', ngid.horas_extra_doble_cantidad, ''P''),
                             (''Horas Extra Doble monto'',    ISNULL(ngid.horas_extra_doble_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 2, ''P''),
                             (''Horas Extra Triple cantidad'', ngid.horas_extra_triple_cantidad, ''P''),
@@ -1454,7 +1444,7 @@ class PrenominaQueryService
                             (''Premio puntualidad'',         ngid.premio_puntualidad, ''P''),
                             (''Prima Dominical cantidad'',   ngid.cantidad_prima_dominical, ''P''),
                             (''Prima Dominical monto'',      ISNULL(ngid.cantidad_prima_dominical, 0) * emp.ccampoextranumerico2 * 0.25, ''P''),
-                            (''Descuentos'',                 ngid.descuento, ''D'')
+                            (''Descuentos'',                 ngid.monto_descuento, ''D'')
                         ) AS x(descripcion, valor, tipoConcepto)
                         WHERE
                             (@idNominaGapeIncidencia IS NULL OR ngi.id = @idNominaGapeIncidencia)
@@ -1466,20 +1456,10 @@ class PrenominaQueryService
                         SELECT
                             codigoempleado,
                             MAX(sueldo) AS sueldo,
-                            SUM(
-                                CASE
-                                    WHEN tipoConcepto = ''P''
-                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
-                                    ELSE 0
-                                END
-                            ) AS total_percepciones_sin_sueldo,
-                            SUM(
-                                CASE
-                                    WHEN tipoConcepto = ''D''
-                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
-                                    ELSE 0
-                                END
-                            ) AS total_deducciones,
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN monto ELSE 0 END)
+                            +
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN valor ELSE 0 END) AS total_percepciones_sin_sueldo,
+                            SUM(CASE WHEN tipoConcepto = ''D'' THEN monto ELSE 0 END) AS total_deducciones,
                             pension AS porcentajePension
 
                         FROM (
@@ -1555,25 +1535,28 @@ class PrenominaQueryService
                             ON empPeriodo.cidperiodo = pdo.idperiodo
                                 AND emp.idempleado = pdo.idempleado
                                 AND (
-                                    -- (Sueldo, Vacaciones, Prima vacacional, Retroactivos)
-                                    (
-                                        pdo.tipoconcepto = ''P''
-                                        AND pdo.numeroconcepto IN (1, 19, 20, 16)
-                                        OR EXISTS (
-                                            SELECT 1
-                                            FROM Previsiones p
-                                            WHERE p.idconcepto = pdo.idconcepto
+                                        -- (Sueldo, Vacaciones, Prima vacacional, Retroactivos)
+                                        (pdo.tipoconcepto = ''P''
+                                            AND pdo.numeroconcepto IN (1, 19, 20, 16)
+                                            OR EXISTS (
+                                                SELECT 1
+                                                FROM Previsiones p
+                                                WHERE p.idconcepto = pdo.idconcepto
+                                            )
+                                        )
+                                        OR ' + '
+                                        (
+                                            pdo.tipoconcepto = ''D''
+                                            AND (
+                                                pdo.descripcion LIKE ''%ahorro%'' -- caja de ahorro
+                                                OR pdo.descripcion LIKE ''%infonavit%''
+                                                OR pdo.descripcion LIKE ''%fonacot%''
+                                                OR pdo.descripcion LIKE ''%alimenticia%''
+                                                OR pdo.descripcion LIKE ''%sindical%''
+                                                OR pdo.numeroconcepto IN (52,35,45) -- Imss, isr
+                                                )
                                         )
                                     )
-                                    OR ' + '
-                                    (
-                                        pdo.tipoconcepto = ''D''
-                                        AND (
-                                            pdo.imprimir = 1
-                                            AND pdo.ClaveAgrupadoraSAT != ''''
-                                        )
-                                    )
-                                )
                         WHERE
                             empPeriodo.idtipoperiodo = @idTipoPeriodo
                             AND empPeriodo.estadoempleado IN (''A'', ''R'')
@@ -1928,33 +1911,33 @@ class PrenominaQueryService
                             AND con.descripcion LIKE ''%retroactivo%''
                     ), ' + '
                     tarjetaControl AS (
-                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                         FROM nom10009 AS fi
                         INNER JOIN nom10022 ti
                             ON fi.idtipoincidencia = ti.idtipoincidencia
                         WHERE
-                            ti.TipoImss IN (''I'', ''F'')
+                            ti.mnemonico IN (''INC'', ''FINJ'')
                             AND idperiodo = @idPeriodo
                         UNION ALL
-                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                         FROM NOM10010 AS fi
                         INNER JOIN nom10022 ti
                             ON fi.idtipoincidencia = ti.idtipoincidencia
                         WHERE
-                            ti.TipoImss IN (''I'', ''F'')
+                            ti.mnemonico IN (''INC'', ''FINJ'')
                             AND idperiodo = @idPeriodo
                     ), ' + '
                     TarjetaControlAgrupado AS (
                         SELECT
                             idempleado,
-                            SUM(CASE WHEN TipoImss IN (''I'') THEN valor ELSE 0 END) AS incapacidad,
-                            SUM(CASE WHEN TipoImss IN (''F'') THEN valor ELSE 0 END) AS faltas
+                            SUM(CASE WHEN mnemonico = ''INC'' THEN valor ELSE 0 END) AS incapacidad,
+                            SUM(CASE WHEN mnemonico = ''FINJ'' THEN valor ELSE 0 END) AS faltas
                         FROM tarjetaControl
                         GROUP BY
                             idempleado
                     ), ' + '
                     Movimientos AS (
-                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto, con.imprimir, con.ClaveAgrupadoraSAT
+                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
                         FROM Nom10007 AS his
                         INNER JOIN nom10004 con
                             ON his.idconcepto = con.idconcepto
@@ -1963,7 +1946,7 @@ class PrenominaQueryService
                             AND idperiodo = @idPeriodo
                             AND con.tipoconcepto IN (''P'',''D'')
                         UNION ALL
-                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto, con.imprimir, con.ClaveAgrupadoraSAT
+                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
                         FROM Nom10008 AS actual
                         INNER JOIN nom10004 con
                             ON actual.idconcepto = con.idconcepto
@@ -1986,7 +1969,7 @@ class PrenominaQueryService
                                             - ISNULL(tc.faltas, 0)
 
                                         WHEN empPeriodo.fechaalta > periodo.fechainicio AND empPeriodo.fechaalta <= periodo.fechafin THEN
-                                            DATEDIFF(DAY, empPeriodo.fechaalta, periodo.fechafin) + 1
+                                            DATEDIFF(DAY, empPeriodo.fechaalta, periodo.fechafin)
                                             + ISNULL(SUM(movP.valor), 0)
                                             - ISNULL(tc.incapacidad, 0)
                                             - ISNULL(tc.faltas, 0)
@@ -2070,7 +2053,7 @@ class PrenominaQueryService
                             (''Bono'',                      ngid.bono,                      ''P''),
                             (''Comisiones'',                ngid.comision,                  ''P''),
                             (''Dia Festivo cantidad'',      ngid.cantidad_dias_festivos,    ''P''),
-                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2, ''P''),
+                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2 * 2, ''P''),
                             (''Horas Extra Doble cantidad'', ngid.horas_extra_doble_cantidad, ''P''),
                             (''Horas Extra Doble monto'',    ISNULL(ngid.horas_extra_doble_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 2, ''P''),
                             (''Horas Extra Triple cantidad'', ngid.horas_extra_triple_cantidad, ''P''),
@@ -2079,7 +2062,7 @@ class PrenominaQueryService
                             (''Premio puntualidad'',         ngid.premio_puntualidad, ''P''),
                             (''Prima Dominical cantidad'',   ngid.cantidad_prima_dominical, ''P''),
                             (''Prima Dominical monto'',      ISNULL(ngid.cantidad_prima_dominical, 0) * emp.ccampoextranumerico2 * 0.25, ''P''),
-                            (''Descuentos'',                 ngid.descuento, ''D'')
+                            (''Descuentos'',                 ngid.monto_descuento, ''D'')
                         ) AS x(descripcion, valor, tipoConcepto)
                         WHERE
                             (@idNominaGapeIncidencia IS NULL OR ngi.id = @idNominaGapeIncidencia)
@@ -2091,20 +2074,10 @@ class PrenominaQueryService
                         SELECT
                             codigoempleado,
                             MAX(sueldo) AS sueldo,
-                            SUM(
-                                CASE
-                                    WHEN tipoConcepto = ''P''
-                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
-                                    ELSE 0
-                                END
-                            ) AS total_percepciones_sin_sueldo,
-                            SUM(
-                                CASE
-                                    WHEN tipoConcepto = ''D''
-                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
-                                    ELSE 0
-                                END
-                            ) AS total_deducciones,
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN monto ELSE 0 END)
+                            +
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN valor ELSE 0 END) AS total_percepciones_sin_sueldo,
+                            SUM(CASE WHEN tipoConcepto = ''D'' THEN monto ELSE 0 END) AS total_deducciones,
                             pension AS porcentajePension
 
                         FROM (
@@ -2179,25 +2152,28 @@ class PrenominaQueryService
                                 ON empPeriodo.cidperiodo = pdo.idperiodo
                                 AND emp.idempleado = pdo.idempleado
                                 AND (
-                                    -- (Sueldo, Vacaciones, Prima vacacional, Retroactivos)
-                                    (
-                                        pdo.tipoconcepto = ''P''
-                                        AND pdo.numeroconcepto IN (1, 19, 20, 16)
-                                        OR EXISTS (
-                                            SELECT 1
-                                            FROM Previsiones p
-                                            WHERE p.idconcepto = pdo.idconcepto
+                                        -- (Sueldo, Vacaciones, Prima vacacional, Retroactivos)
+                                        (pdo.tipoconcepto = ''P''
+                                            AND pdo.numeroconcepto IN (1, 19, 20, 16)
+                                            OR EXISTS (
+                                                SELECT 1
+                                                FROM Previsiones p
+                                                WHERE p.idconcepto = pdo.idconcepto
+                                            )
+                                        )
+                                        OR ' + '
+                                        (
+                                            pdo.tipoconcepto = ''D''
+                                            AND (
+                                                pdo.descripcion LIKE ''%ahorro%'' -- caja de ahorro
+                                                OR pdo.descripcion LIKE ''%infonavit%''
+                                                OR pdo.descripcion LIKE ''%fonacot%''
+                                                OR pdo.descripcion LIKE ''%alimenticia%''
+                                                OR pdo.descripcion LIKE ''%sindical%''
+                                                OR pdo.numeroconcepto IN (52,35,45) -- Imss, isr
+                                                )
                                         )
                                     )
-                                    OR ' + '
-                                    (
-                                        pdo.tipoconcepto = ''D''
-                                        AND (
-                                            pdo.imprimir = 1
-                                            AND pdo.ClaveAgrupadoraSAT != ''''
-                                        )
-                                    )
-                                )
                             WHERE
                                 empPeriodo.idtipoperiodo = @idTipoPeriodo
                                 AND empPeriodo.estadoempleado IN (''A'', ''R'')
@@ -2516,15 +2492,23 @@ class PrenominaQueryService
                 Obligaciones AS (
                     SELECT
                         descripcion,
-                        1 AS orden
+                        numeroconcepto,
+                        CASE numeroconcepto
+                            WHEN 90 THEN 1
+                            WHEN 89 THEN 2
+                            WHEN 93 THEN 3
+                            WHEN 96 THEN 4
+                            WHEN 97 THEN 5
+                            WHEN 98 THEN 6
+                        END AS orden
                     FROM nom10004
                     WHERE numeroconcepto IN (90, 970, 8000, 8001, 8002)
                 ),
                 titulos AS (
                     SELECT * FROM (VALUES
-                        ('Comision Servicios', 20000),
-                        ('Costo Total',  20001)
-                    ) AS X(descripcion, orden)
+                        ('Comision Servicios', 'N', 1000, 100),
+                        ('Costo Total',  'N', 2000, 299)
+                    ) AS X(descripcion, tipoconcepto, numeroconcepto, orden)
                 ),
                 TitulosFinales AS (
                     SELECT descripcion, orden
@@ -2572,8 +2556,7 @@ class PrenominaQueryService
 
 				SET @idNominaGapeIncidencia = $idNominaGapeIncidencia;
 
-                ;WITH
-                    MovimientosRetro AS (
+                ;WITH MovimientosRetro AS (
                         SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto
                         FROM Nom10007 AS his
                         INNER JOIN nom10004 con
@@ -2595,33 +2578,33 @@ class PrenominaQueryService
                             AND con.descripcion LIKE ''%retroactivo%''
                     ), ' + '
                     tarjetaControl AS (
-                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                         FROM nom10009 AS fi
                         INNER JOIN nom10022 ti
                             ON fi.idtipoincidencia = ti.idtipoincidencia
                         WHERE
-                            ti.TipoImss IN (''I'', ''F'')
+                            ti.mnemonico IN (''INC'', ''FINJ'')
                             AND idperiodo = @idPeriodo
                         UNION ALL
-                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                         FROM NOM10010 AS fi
                         INNER JOIN nom10022 ti
                             ON fi.idtipoincidencia = ti.idtipoincidencia
                         WHERE
-                            ti.TipoImss IN (''I'', ''F'')
+                            ti.mnemonico IN (''INC'', ''FINJ'')
                             AND idperiodo = @idPeriodo
                     ), ' + '
                     TarjetaControlAgrupado AS (
                         SELECT
                             idempleado,
-                            SUM(CASE WHEN TipoImss IN (''I'') THEN valor ELSE 0 END) AS incapacidad,
-                            SUM(CASE WHEN TipoImss IN (''F'') THEN valor ELSE 0 END) AS faltas
+                            SUM(CASE WHEN mnemonico = ''INC'' THEN valor ELSE 0 END) AS incapacidad,
+                            SUM(CASE WHEN mnemonico = ''FINJ'' THEN valor ELSE 0 END) AS faltas
                         FROM tarjetaControl
                         GROUP BY
                             idempleado
                     ), ' + '
                     Movimientos AS (
-                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto, con.imprimir, con.ClaveAgrupadoraSAT
+                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
                         FROM Nom10007 AS his
                         INNER JOIN nom10004 con
                             ON his.idconcepto = con.idconcepto
@@ -2630,7 +2613,7 @@ class PrenominaQueryService
                             AND idperiodo = @idPeriodo
                             AND con.tipoconcepto IN (''P'',''D'', ''O'')
                         UNION ALL
-                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto, con.imprimir, con.ClaveAgrupadoraSAT
+                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
                         FROM Nom10008 AS actual
                         INNER JOIN nom10004 con
                             ON actual.idconcepto = con.idconcepto
@@ -2653,7 +2636,7 @@ class PrenominaQueryService
                                             - ISNULL(tc.faltas, 0)
 
                                         WHEN empPeriodo.fechaalta > periodo.fechainicio AND empPeriodo.fechaalta <= periodo.fechafin THEN
-                                            DATEDIFF(DAY, empPeriodo.fechaalta, periodo.fechafin) + 1
+                                            DATEDIFF(DAY, empPeriodo.fechaalta, periodo.fechafin)
                                             + ISNULL(SUM(movP.valor), 0)
                                             - ISNULL(tc.incapacidad, 0)
                                             - ISNULL(tc.faltas, 0)
@@ -2737,7 +2720,7 @@ class PrenominaQueryService
                             (''Bono'',                      ngid.bono,                      ''P''),
                             (''Comisiones'',                ngid.comision,                  ''P''),
                             (''Dia Festivo cantidad'',      ngid.cantidad_dias_festivos,    ''P''),
-                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2, ''P''),
+                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2 * 2, ''P''),
                             (''Horas Extra Doble cantidad'', ngid.horas_extra_doble_cantidad, ''P''),
                             (''Horas Extra Doble monto'',    ISNULL(ngid.horas_extra_doble_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 2, ''P''),
                             (''Horas Extra Triple cantidad'', ngid.horas_extra_triple_cantidad, ''P''),
@@ -2746,7 +2729,7 @@ class PrenominaQueryService
                             (''Premio puntualidad'',         ngid.premio_puntualidad, ''P''),
                             (''Prima Dominical cantidad'',   ngid.cantidad_prima_dominical, ''P''),
                             (''Prima Dominical monto'',      ISNULL(ngid.cantidad_prima_dominical, 0) * emp.ccampoextranumerico2 * 0.25, ''P''),
-                            (''Descuentos'',                 ngid.descuento, ''D'')
+                            (''Descuentos'',                 ngid.monto_descuento, ''D'')
                         ) AS x(descripcion, valor, tipoConcepto)
                         WHERE
                             (@idNominaGapeIncidencia IS NULL OR ngi.id = @idNominaGapeIncidencia)
@@ -2758,20 +2741,10 @@ class PrenominaQueryService
                         SELECT
                             codigoempleado,
                             MAX(sueldo) AS sueldo,
-                            SUM(
-                                CASE
-                                    WHEN tipoConcepto = ''P''
-                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
-                                    ELSE 0
-                                END
-                            ) AS total_percepciones_sin_sueldo,
-                            SUM(
-                                CASE
-                                    WHEN tipoConcepto = ''D''
-                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
-                                    ELSE 0
-                                END
-                            ) AS total_deducciones,
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN monto ELSE 0 END)
+                            +
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN valor ELSE 0 END) AS total_percepciones_sin_sueldo,
+                            SUM(CASE WHEN tipoConcepto = ''D'' THEN monto ELSE 0 END) AS total_deducciones,
                             pension AS porcentajePension
 
                         FROM (
@@ -2847,25 +2820,28 @@ class PrenominaQueryService
                                 ON empPeriodo.cidperiodo = pdo.idperiodo
                                     AND emp.idempleado = pdo.idempleado
                                     AND (
-                                        -- (Sueldo, Vacaciones, Prima vacacional, Retroactivos)
-                                        (
-                                            pdo.tipoconcepto = ''P''
-                                            AND pdo.numeroconcepto IN (1, 19, 20, 16)
-                                            OR EXISTS (
-                                                SELECT 1
-                                                FROM Previsiones p
-                                                WHERE p.idconcepto = pdo.idconcepto
+                                            -- (Sueldo, Vacaciones, Prima vacacional, Retroactivos)
+                                            (pdo.tipoconcepto = ''P''
+                                                AND pdo.numeroconcepto IN (1, 19, 20, 16)
+                                                OR EXISTS (
+                                                    SELECT 1
+                                                    FROM Previsiones p
+                                                    WHERE p.idconcepto = pdo.idconcepto
+                                                )
+                                            )
+                                            OR ' + '
+                                            (
+                                                pdo.tipoconcepto = ''D''
+                                                AND (
+                                                    pdo.descripcion LIKE ''%ahorro%'' -- caja de ahorro
+                                                    OR pdo.descripcion LIKE ''%infonavit%''
+                                                    OR pdo.descripcion LIKE ''%fonacot%''
+                                                    OR pdo.descripcion LIKE ''%alimenticia%''
+                                                    OR pdo.descripcion LIKE ''%sindical%''
+                                                    OR pdo.numeroconcepto IN (52,35,45) -- Imss, isr
+                                                    )
                                             )
                                         )
-                                        OR ' + '
-                                        (
-                                            pdo.tipoconcepto = ''D''
-                                            AND (
-                                                pdo.imprimir = 1
-                                                AND pdo.ClaveAgrupadoraSAT != ''''
-                                            )
-                                        )
-                                    )
                             WHERE
                                 empPeriodo.idtipoperiodo = @idTipoPeriodo
                                 AND empPeriodo.estadoempleado IN (''A'', ''R'')
@@ -3268,33 +3244,33 @@ class PrenominaQueryService
                         AND con.descripcion LIKE ''%retroactivo%''
                     ), ' + '
                     tarjetaControl AS (
-                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                         FROM nom10009 AS fi
                         INNER JOIN nom10022 ti
                             ON fi.idtipoincidencia = ti.idtipoincidencia
                         WHERE
-                            ti.TipoImss IN (''I'', ''F'')
+                            ti.mnemonico IN (''INC'', ''FINJ'')
                             AND idperiodo = @idPeriodo
                         UNION ALL
-                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                         FROM NOM10010 AS fi
                         INNER JOIN nom10022 ti
                             ON fi.idtipoincidencia = ti.idtipoincidencia
                         WHERE
-                            ti.TipoImss IN (''I'', ''F'')
+                            ti.mnemonico IN (''INC'', ''FINJ'')
                             AND idperiodo = @idPeriodo
                     ), ' + '
                     TarjetaControlAgrupado AS (
                         SELECT
                             idempleado,
-                            SUM(CASE WHEN TipoImss IN (''I'') THEN valor ELSE 0 END) AS incapacidad,
-                            SUM(CASE WHEN TipoImss IN (''F'') THEN valor ELSE 0 END) AS faltas
+                            SUM(CASE WHEN mnemonico = ''INC'' THEN valor ELSE 0 END) AS incapacidad,
+                            SUM(CASE WHEN mnemonico = ''FINJ'' THEN valor ELSE 0 END) AS faltas
                         FROM tarjetaControl
                         GROUP BY
                             idempleado
                     ), ' + '
                     Movimientos AS (
-                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto, con.imprimir, con.ClaveAgrupadoraSAT
+                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
                         FROM Nom10007 AS his
                         INNER JOIN nom10004 con
                             ON his.idconcepto = con.idconcepto
@@ -3303,7 +3279,7 @@ class PrenominaQueryService
                             AND idperiodo = @idPeriodo
                             AND con.tipoconcepto IN (''P'',''D'')
                         UNION ALL
-                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto, con.imprimir, con.ClaveAgrupadoraSAT
+                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
                         FROM Nom10008 AS actual
                         INNER JOIN nom10004 con
                             ON actual.idconcepto = con.idconcepto
@@ -3326,7 +3302,7 @@ class PrenominaQueryService
                                             - ISNULL(tc.faltas, 0)
 
                                         WHEN empPeriodo.fechaalta > periodo.fechainicio AND empPeriodo.fechaalta <= periodo.fechafin THEN
-                                            DATEDIFF(DAY, empPeriodo.fechaalta, periodo.fechafin) + 1
+                                            DATEDIFF(DAY, empPeriodo.fechaalta, periodo.fechafin)
                                             + ISNULL(SUM(movP.valor), 0)
                                             - ISNULL(tc.incapacidad, 0)
                                             - ISNULL(tc.faltas, 0)
@@ -3412,7 +3388,7 @@ class PrenominaQueryService
                             (''Bono'',                      ngid.bono,                      ''P''),
                             (''Comisiones'',                ngid.comision,                  ''P''),
                             (''Dia Festivo cantidad'',      ngid.cantidad_dias_festivos,    ''P''),
-                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2, ''P''),
+                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2 * 2, ''P''),
                             (''Horas Extra Doble cantidad'', ngid.horas_extra_doble_cantidad, ''P''),
                             (''Horas Extra Doble monto'',    ISNULL(ngid.horas_extra_doble_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 2, ''P''),
                             (''Horas Extra Triple cantidad'', ngid.horas_extra_triple_cantidad, ''P''),
@@ -3421,7 +3397,7 @@ class PrenominaQueryService
                             (''Premio puntualidad'',         ngid.premio_puntualidad, ''P''),
                             (''Prima Dominical cantidad'',   ngid.cantidad_prima_dominical, ''P''),
                             (''Prima Dominical monto'',      ISNULL(ngid.cantidad_prima_dominical, 0) * emp.ccampoextranumerico2 * 0.25, ''P''),
-                            (''Descuentos'',                 ngid.descuento, ''D'')
+                            (''Descuentos'',                 ngid.monto_descuento, ''D'')
                         ) AS x(descripcion, valor, tipoConcepto)
                         WHERE
                             (@idNominaGapeIncidencia IS NULL OR ngi.id = @idNominaGapeIncidencia)
@@ -3433,20 +3409,10 @@ class PrenominaQueryService
                         SELECT
                             codigoempleado,
                             MAX(sueldo) AS sueldo,
-                            SUM(
-                                CASE
-                                    WHEN tipoConcepto = ''P''
-                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
-                                    ELSE 0
-                                END
-                            ) AS total_percepciones_sin_sueldo,
-                            SUM(
-                                CASE
-                                    WHEN tipoConcepto = ''D''
-                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
-                                    ELSE 0
-                                END
-                            ) AS total_deducciones,
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN monto ELSE 0 END)
+                            +
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN valor ELSE 0 END) AS total_percepciones_sin_sueldo,
+                            SUM(CASE WHEN tipoConcepto = ''D'' THEN monto ELSE 0 END) AS total_deducciones,
                             pension AS porcentajePension
 
                         FROM (
@@ -3597,33 +3563,33 @@ class PrenominaQueryService
                         AND con.descripcion LIKE ''%retroactivo%''
                     ), ' + '
                     tarjetaControl AS (
-                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                         FROM nom10009 AS fi
                         INNER JOIN nom10022 ti
                             ON fi.idtipoincidencia = ti.idtipoincidencia
                         WHERE
-                            ti.TipoImss IN (''I'', ''F'')
+                            ti.mnemonico IN (''INC'', ''FINJ'')
                             AND idperiodo = @idPeriodo
                         UNION ALL
-                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                         FROM NOM10010 AS fi
                         INNER JOIN nom10022 ti
                             ON fi.idtipoincidencia = ti.idtipoincidencia
                         WHERE
-                            ti.TipoImss IN (''I'', ''F'')
+                            ti.mnemonico IN (''INC'', ''FINJ'')
                             AND idperiodo = @idPeriodo
                     ), ' + '
                     TarjetaControlAgrupado AS (
                         SELECT
                             idempleado,
-                            SUM(CASE WHEN TipoImss IN (''I'') THEN valor ELSE 0 END) AS incapacidad,
-                            SUM(CASE WHEN TipoImss IN (''F'') THEN valor ELSE 0 END) AS faltas
+                            SUM(CASE WHEN mnemonico = ''INC'' THEN valor ELSE 0 END) AS incapacidad,
+                            SUM(CASE WHEN mnemonico = ''FINJ'' THEN valor ELSE 0 END) AS faltas
                         FROM tarjetaControl
                         GROUP BY
                             idempleado
                     ), ' + '
                     Movimientos AS (
-                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto, con.imprimir, con.ClaveAgrupadoraSAT
+                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
                         FROM Nom10007 AS his
                         INNER JOIN nom10004 con
                             ON his.idconcepto = con.idconcepto
@@ -3632,7 +3598,7 @@ class PrenominaQueryService
                             AND idperiodo = @idPeriodo
                             AND con.tipoconcepto IN (''P'',''D'')
                         UNION ALL
-                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto, con.imprimir, con.ClaveAgrupadoraSAT
+                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
                         FROM Nom10008 AS actual
                         INNER JOIN nom10004 con
                             ON actual.idconcepto = con.idconcepto
@@ -3655,7 +3621,7 @@ class PrenominaQueryService
                                             - ISNULL(tc.faltas, 0)
 
                                         WHEN empPeriodo.fechaalta > periodo.fechainicio AND empPeriodo.fechaalta <= periodo.fechafin THEN
-                                            DATEDIFF(DAY, empPeriodo.fechaalta, periodo.fechafin) + 1
+                                            DATEDIFF(DAY, empPeriodo.fechaalta, periodo.fechafin)
                                             + ISNULL(SUM(movP.valor), 0)
                                             - ISNULL(tc.incapacidad, 0)
                                             - ISNULL(tc.faltas, 0)
@@ -3741,7 +3707,7 @@ class PrenominaQueryService
                             (''Bono'',                      ngid.bono,                      ''P''),
                             (''Comisiones'',                ngid.comision,                  ''P''),
                             (''Dia Festivo cantidad'',      ngid.cantidad_dias_festivos,    ''P''),
-                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2, ''P''),
+                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2 * 2, ''P''),
                             (''Horas Extra Doble cantidad'', ngid.horas_extra_doble_cantidad, ''P''),
                             (''Horas Extra Doble monto'',    ISNULL(ngid.horas_extra_doble_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 2, ''P''),
                             (''Horas Extra Triple cantidad'', ngid.horas_extra_triple_cantidad, ''P''),
@@ -3750,7 +3716,7 @@ class PrenominaQueryService
                             (''Premio puntualidad'',         ngid.premio_puntualidad, ''P''),
                             (''Prima Dominical cantidad'',   ngid.cantidad_prima_dominical, ''P''),
                             (''Prima Dominical monto'',      ISNULL(ngid.cantidad_prima_dominical, 0) * emp.ccampoextranumerico2 * 0.25, ''P''),
-                            (''Descuentos'',                 ngid.descuento, ''D'')
+                            (''Descuentos'',                 ngid.monto_descuento, ''D'')
                         ) AS x(descripcion, valor, tipoConcepto)
                         WHERE
                             (@idNominaGapeIncidencia IS NULL OR ngi.id = @idNominaGapeIncidencia)
@@ -3762,20 +3728,10 @@ class PrenominaQueryService
                         SELECT
                             codigoempleado,
                             MAX(sueldo) AS sueldo,
-                            SUM(
-                                CASE
-                                    WHEN tipoConcepto = ''P''
-                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
-                                    ELSE 0
-                                END
-                            ) AS total_percepciones_sin_sueldo,
-                            SUM(
-                                CASE
-                                    WHEN tipoConcepto = ''D''
-                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
-                                    ELSE 0
-                                END
-                            ) AS total_deducciones,
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN monto ELSE 0 END)
+                            +
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN valor ELSE 0 END) AS total_percepciones_sin_sueldo,
+                            SUM(CASE WHEN tipoConcepto = ''D'' THEN monto ELSE 0 END) AS total_deducciones,
                             pension AS porcentajePension
 
                         FROM (
@@ -3835,7 +3791,7 @@ class PrenominaQueryService
                             importetotal > 0
                             AND idperiodo = @idPeriodo
                             AND con.tipoconcepto IN (''O'')
-                            AND con.numeroconcepto IN (90, 970, 8000, 8001, 8002)
+                            AND con.numeroconcepto IN (90,89, 93, 96, 97, 98)
                         UNION ALL
                         SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
                         FROM Nom10008 AS actual
@@ -3845,7 +3801,7 @@ class PrenominaQueryService
                             importetotal > 0
                             AND idperiodo = @idPeriodo
                             AND con.tipoconcepto IN (''O'')
-                            AND con.numeroconcepto IN (90, 970, 8000, 8001, 8002)
+                            AND con.numeroconcepto IN (90,89, 93, 96, 97, 98)
                     ), ' + '
                     TotalesPorEmpleadoObligacion AS (
                         SELECT
@@ -3895,11 +3851,7 @@ class PrenominaQueryService
                     EXEC(@sql);
             ";
             //return $sql;
-            /*
-            dd([
-                'row' => $sql,
-            ]);
-            */
+
             $result = collect(DB::connection('sqlsrv_dynamic')->select($sql))->first();
 
             return $result;
@@ -3982,33 +3934,33 @@ class PrenominaQueryService
                             AND con.descripcion LIKE ''%retroactivo%''
                     ), ' + '
                     tarjetaControl AS (
-                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                         FROM nom10009 AS fi
                         INNER JOIN nom10022 ti
                             ON fi.idtipoincidencia = ti.idtipoincidencia
                         WHERE
-                            ti.TipoImss IN (''I'', ''F'')
+                            ti.mnemonico IN (''INC'', ''FINJ'')
                             AND idperiodo = @idPeriodo
                         UNION ALL
-                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                         FROM NOM10010 AS fi
                         INNER JOIN nom10022 ti
                             ON fi.idtipoincidencia = ti.idtipoincidencia
                         WHERE
-                            ti.TipoImss IN (''I'', ''F'')
+                            ti.mnemonico IN (''INC'', ''FINJ'')
                             AND idperiodo = @idPeriodo
                     ), ' + '
                     TarjetaControlAgrupado AS (
                         SELECT
                             idempleado,
-                            SUM(CASE WHEN TipoImss IN (''I'') THEN valor ELSE 0 END) AS incapacidad,
-                            SUM(CASE WHEN TipoImss IN (''F'') THEN valor ELSE 0 END) AS faltas
+                            SUM(CASE WHEN mnemonico = ''INC'' THEN valor ELSE 0 END) AS incapacidad,
+                            SUM(CASE WHEN mnemonico = ''FINJ'' THEN valor ELSE 0 END) AS faltas
                         FROM tarjetaControl
                         GROUP BY
                             idempleado
                     ), ' + '
                     Movimientos AS (
-                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto, con.imprimir, con.ClaveAgrupadoraSAT
+                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
                         FROM Nom10007 AS his
                         INNER JOIN nom10004 con
                             ON his.idconcepto = con.idconcepto
@@ -4017,7 +3969,7 @@ class PrenominaQueryService
                             AND idperiodo = @idPeriodo
                             AND con.tipoconcepto IN (''P'',''D'')
                         UNION ALL
-                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto, con.imprimir, con.ClaveAgrupadoraSAT
+                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
                         FROM Nom10008 AS actual
                         INNER JOIN nom10004 con
                             ON actual.idconcepto = con.idconcepto
@@ -4040,7 +3992,7 @@ class PrenominaQueryService
                                             - ISNULL(tc.faltas, 0)
 
                                         WHEN empPeriodo.fechaalta > periodo.fechainicio AND empPeriodo.fechaalta <= periodo.fechafin THEN
-                                            DATEDIFF(DAY, empPeriodo.fechaalta, periodo.fechafin) + 1
+                                            DATEDIFF(DAY, empPeriodo.fechaalta, periodo.fechafin)
                                             + ISNULL(SUM(movP.valor), 0)
                                             - ISNULL(tc.incapacidad, 0)
                                             - ISNULL(tc.faltas, 0)
@@ -4124,7 +4076,7 @@ class PrenominaQueryService
                             (''Bono'',                      ngid.bono,                      ''P''),
                             (''Comisiones'',                ngid.comision,                  ''P''),
                             (''Dia Festivo cantidad'',      ngid.cantidad_dias_festivos,    ''P''),
-                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2, ''P''),
+                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2 * 2, ''P''),
                             (''Horas Extra Doble cantidad'', ngid.horas_extra_doble_cantidad, ''P''),
                             (''Horas Extra Doble monto'',    ISNULL(ngid.horas_extra_doble_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 2, ''P''),
                             (''Horas Extra Triple cantidad'', ngid.horas_extra_triple_cantidad, ''P''),
@@ -4133,7 +4085,7 @@ class PrenominaQueryService
                             (''Premio puntualidad'',         ngid.premio_puntualidad, ''P''),
                             (''Prima Dominical cantidad'',   ngid.cantidad_prima_dominical, ''P''),
                             (''Prima Dominical monto'',      ISNULL(ngid.cantidad_prima_dominical, 0) * emp.ccampoextranumerico2 * 0.25, ''P''),
-                            (''Descuentos'',                 ngid.descuento, ''D'')
+                            (''Descuentos'',                 ngid.monto_descuento, ''D'')
                         ) AS x(descripcion, valor, tipoConcepto)
                         WHERE
                             (@idNominaGapeIncidencia IS NULL OR ngi.id = @idNominaGapeIncidencia)
@@ -4145,20 +4097,10 @@ class PrenominaQueryService
                         SELECT
                             codigoempleado,
                             MAX(sueldo) AS sueldo,
-                            SUM(
-                                CASE
-                                    WHEN tipoConcepto = ''P''
-                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
-                                    ELSE 0
-                                END
-                            ) AS total_percepciones_sin_sueldo,
-                            SUM(
-                                CASE
-                                    WHEN tipoConcepto = ''D''
-                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
-                                    ELSE 0
-                                END
-                            ) AS total_deducciones,
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN monto ELSE 0 END)
+                            +
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN valor ELSE 0 END) AS total_percepciones_sin_sueldo,
+                            SUM(CASE WHEN tipoConcepto = ''D'' THEN monto ELSE 0 END) AS total_deducciones,
                             pension AS porcentajePension
 
                         FROM (
@@ -4233,25 +4175,28 @@ class PrenominaQueryService
                                 ON empPeriodo.cidperiodo = pdo.idperiodo
                                     AND emp.idempleado = pdo.idempleado
                                     AND (
-                                        -- (Sueldo, Vacaciones, Prima vacacional, Retroactivos)
-                                        (
-                                            pdo.tipoconcepto = ''P''
-                                            AND pdo.numeroconcepto IN (1, 19, 20, 16)
-                                            OR EXISTS (
-                                                SELECT 1
-                                                FROM Previsiones p
-                                                WHERE p.idconcepto = pdo.idconcepto
+                                            -- (Sueldo, Vacaciones, Prima vacacional, Retroactivos)
+                                            (pdo.tipoconcepto = ''P''
+                                                AND pdo.numeroconcepto IN (1, 19, 20, 16)
+                                                OR EXISTS (
+                                                    SELECT 1
+                                                    FROM Previsiones p
+                                                    WHERE p.idconcepto = pdo.idconcepto
+                                                )
+                                            )
+                                            OR ' + '
+                                            (
+                                                pdo.tipoconcepto = ''D''
+                                                AND (
+                                                    pdo.descripcion LIKE ''%ahorro%'' -- caja de ahorro
+                                                    OR pdo.descripcion LIKE ''%infonavit%''
+                                                    OR pdo.descripcion LIKE ''%fonacot%''
+                                                    OR pdo.descripcion LIKE ''%alimenticia%''
+                                                    OR pdo.descripcion LIKE ''%sindical%''
+                                                    OR pdo.numeroconcepto IN (52,35,45) -- Imss, isr
+                                                    )
                                             )
                                         )
-                                        OR ' + '
-                                        (
-                                            pdo.tipoconcepto = ''D''
-                                            AND (
-                                                pdo.imprimir = 1
-                                                AND pdo.ClaveAgrupadoraSAT != ''''
-                                            )
-                                        )
-                                    )
                             WHERE
                                 empPeriodo.idtipoperiodo = @idTipoPeriodo
                                 AND empPeriodo.estadoempleado IN (''A'', ''R'')
@@ -4511,7 +4456,7 @@ class PrenominaQueryService
                             importetotal > 0
                             AND idperiodo = @idPeriodo
                             AND con.tipoconcepto IN (''O'')
-                            AND con.numeroconcepto IN (90, 970, 8000, 8001, 8002)
+                            AND con.numeroconcepto IN (90,89, 93, 96, 97, 98)
                         UNION ALL
                         SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
                         FROM Nom10008 AS actual
@@ -4521,11 +4466,18 @@ class PrenominaQueryService
                             importetotal > 0
                             AND idperiodo = @idPeriodo
                             AND con.tipoconcepto IN (''O'')
-                            AND con.numeroconcepto IN (90, 970, 8000, 8001, 8002)
+                            AND con.numeroconcepto IN (90,89, 93, 96, 97, 98)
                     ), ' + '
                     MovimientosObligaciones AS (
 						SELECT
 							emp.codigoempleado AS codigoempleado,
+							CASE
+								WHEN pdo.numeroconcepto = 90
+									THEN ''ISN''
+								WHEN pdo.numeroconcepto IN (89, 93, 96, 97, 98)
+									THEN ''IMSS Patronal''
+							END AS concepto,
+							''O'' AS tipoConcepto,
 							SUM(pdo.importetotal) AS monto
 						FROM nom10001 emp
 						INNER JOIN nom10034 empPeriodo
@@ -4540,7 +4492,13 @@ class PrenominaQueryService
 							AND empPeriodo.estadoempleado IN (''A'', ''R'')
                             AND emp.TipoRegimen IN (''02'', ''03'', ''04'')
 						GROUP BY
-							emp.codigoempleado
+							emp.codigoempleado,
+							CASE
+								WHEN pdo.numeroconcepto = 90
+									THEN ''ISN''
+								WHEN pdo.numeroconcepto IN (89, 93, 96, 97, 98)
+									THEN ''IMSS Patronal''
+							END
 					),
                     TotalesPorEmpleadoObligacion AS (
                         SELECT
@@ -4674,33 +4632,33 @@ class PrenominaQueryService
                             AND con.descripcion LIKE ''%retroactivo%''
                     ), ' + '
                     tarjetaControl AS (
-                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                         FROM nom10009 AS fi
                         INNER JOIN nom10022 ti
                             ON fi.idtipoincidencia = ti.idtipoincidencia
                         WHERE
-                            ti.TipoImss IN (''I'', ''F'')
+                            ti.mnemonico IN (''INC'', ''FINJ'')
                             AND idperiodo = @idPeriodo
                         UNION ALL
-                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                         FROM NOM10010 AS fi
                         INNER JOIN nom10022 ti
                             ON fi.idtipoincidencia = ti.idtipoincidencia
                         WHERE
-                            ti.TipoImss IN (''I'', ''F'')
+                            ti.mnemonico IN (''INC'', ''FINJ'')
                             AND idperiodo = @idPeriodo
                     ), ' + '
                     TarjetaControlAgrupado AS (
                         SELECT
                             idempleado,
-                            SUM(CASE WHEN TipoImss IN (''I'') THEN valor ELSE 0 END) AS incapacidad,
-                            SUM(CASE WHEN TipoImss IN (''F'') THEN valor ELSE 0 END) AS faltas
+                            SUM(CASE WHEN mnemonico = ''INC'' THEN valor ELSE 0 END) AS incapacidad,
+                            SUM(CASE WHEN mnemonico = ''FINJ'' THEN valor ELSE 0 END) AS faltas
                         FROM tarjetaControl
                         GROUP BY
                             idempleado
                     ), ' + '
                     Movimientos AS (
-                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto, con.tipoconcepto, con.ClaveAgrupadoraSAT
+                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
                         FROM Nom10007 AS his
                         INNER JOIN nom10004 con
                             ON his.idconcepto = con.idconcepto
@@ -4709,7 +4667,7 @@ class PrenominaQueryService
                             AND idperiodo = @idPeriodo
                             AND con.tipoconcepto IN (''P'',''D'')
                         UNION ALL
-                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto, con.tipoconcepto, con.ClaveAgrupadoraSAT
+                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
                         FROM Nom10008 AS actual
                         INNER JOIN nom10004 con
                             ON actual.idconcepto = con.idconcepto
@@ -4732,7 +4690,7 @@ class PrenominaQueryService
                                             - ISNULL(tc.faltas, 0)
 
                                         WHEN empPeriodo.fechaalta > periodo.fechainicio AND empPeriodo.fechaalta <= periodo.fechafin THEN
-                                            DATEDIFF(DAY, empPeriodo.fechaalta, periodo.fechafin) + 1
+                                            DATEDIFF(DAY, empPeriodo.fechaalta, periodo.fechafin)
                                             + ISNULL(SUM(movP.valor), 0)
                                             - ISNULL(tc.incapacidad, 0)
                                             - ISNULL(tc.faltas, 0)
@@ -4816,7 +4774,7 @@ class PrenominaQueryService
                             (''Bono'',                      ngid.bono,                      ''P''),
                             (''Comisiones'',                ngid.comision,                  ''P''),
                             (''Dia Festivo cantidad'',      ngid.cantidad_dias_festivos,    ''P''),
-                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2, ''P''),
+                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2 * 2, ''P''),
                             (''Horas Extra Doble cantidad'', ngid.horas_extra_doble_cantidad, ''P''),
                             (''Horas Extra Doble monto'',    ISNULL(ngid.horas_extra_doble_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 2, ''P''),
                             (''Horas Extra Triple cantidad'', ngid.horas_extra_triple_cantidad, ''P''),
@@ -4825,7 +4783,7 @@ class PrenominaQueryService
                             (''Premio puntualidad'',         ngid.premio_puntualidad, ''P''),
                             (''Prima Dominical cantidad'',   ngid.cantidad_prima_dominical, ''P''),
                             (''Prima Dominical monto'',      ISNULL(ngid.cantidad_prima_dominical, 0) * emp.ccampoextranumerico2 * 0.25, ''P''),
-                            (''Descuentos'',                 ngid.descuento, ''D'')
+                            (''Descuentos'',                 ngid.monto_descuento, ''D'')
                         ) AS x(descripcion, valor, tipoConcepto)
                         WHERE
                             (@idNominaGapeIncidencia IS NULL OR ngi.id = @idNominaGapeIncidencia)
@@ -4837,20 +4795,10 @@ class PrenominaQueryService
                         SELECT
                             codigoempleado,
                             MAX(sueldo) AS sueldo,
-                            SUM(
-                                CASE
-                                    WHEN tipoConcepto = ''P''
-                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
-                                    ELSE 0
-                                END
-                            ) AS total_percepciones_sin_sueldo,
-                            SUM(
-                                CASE
-                                    WHEN tipoConcepto = ''D''
-                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
-                                    ELSE 0
-                                END
-                            ) AS total_deducciones,
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN monto ELSE 0 END)
+                            +
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN valor ELSE 0 END) AS total_percepciones_sin_sueldo,
+                            SUM(CASE WHEN tipoConcepto = ''D'' THEN monto ELSE 0 END) AS total_deducciones,
                             pension AS porcentajePension
 
                         FROM (
@@ -4925,24 +4873,28 @@ class PrenominaQueryService
                                 ON empPeriodo.cidperiodo = pdo.idperiodo
                                     AND emp.idempleado = pdo.idempleado
                                     AND (
-                                        -- (Sueldo, Vacaciones, Prima vacacional, Retroactivos)
-                                        (pdo.tipoconcepto = ''P''
-                                            AND pdo.numeroconcepto IN (1, 19, 20, 16)
-                                            OR EXISTS (
-                                                SELECT 1
-                                                FROM Previsiones p
-                                                WHERE p.idconcepto = pdo.idconcepto
+                                            -- (Sueldo, Vacaciones, Prima vacacional, Retroactivos)
+                                            (pdo.tipoconcepto = ''P''
+                                                AND pdo.numeroconcepto IN (1, 19, 20, 16)
+                                                OR EXISTS (
+                                                    SELECT 1
+                                                    FROM Previsiones p
+                                                    WHERE p.idconcepto = pdo.idconcepto
+                                                )
+                                            )
+                                            OR ' + '
+                                            (
+                                                pdo.tipoconcepto = ''D''
+                                                AND (
+                                                    pdo.descripcion LIKE ''%ahorro%'' -- caja de ahorro
+                                                    OR pdo.descripcion LIKE ''%infonavit%''
+                                                    OR pdo.descripcion LIKE ''%fonacot%''
+                                                    OR pdo.descripcion LIKE ''%alimenticia%''
+                                                    OR pdo.descripcion LIKE ''%sindical%''
+                                                    OR pdo.numeroconcepto IN (52,35,45) -- Imss, isr
+                                                    )
                                             )
                                         )
-                                        OR ' + '
-                                        (
-                                            pdo.tipoconcepto = ''D''
-                                            AND (
-                                                pdo.imprimir = 1
-                                                AND pdo.ClaveAgrupadoraSAT != ''''
-                                            )
-                                        )
-                                    )
                             WHERE
                                 empPeriodo.idtipoperiodo = @idTipoPeriodo
                                 AND empPeriodo.estadoempleado IN (''A'', ''R'')
@@ -5203,7 +5155,7 @@ class PrenominaQueryService
                             importetotal > 0
                             AND idperiodo = @idPeriodo
                             AND con.tipoconcepto IN (''O'')
-                            AND con.numeroconcepto IN (90, 970, 8000, 8001, 8002)
+                            AND con.numeroconcepto IN (90,89, 93, 96, 97, 98)
                         UNION ALL
                         SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
                         FROM Nom10008 AS actual
@@ -5213,11 +5165,18 @@ class PrenominaQueryService
                             importetotal > 0
                             AND idperiodo = @idPeriodo
                             AND con.tipoconcepto IN (''O'')
-                            AND con.numeroconcepto IN (90, 970, 8000, 8001, 8002)
+                            AND con.numeroconcepto IN (90,89, 93, 96, 97, 98)
                     ), ' + '
                     MovimientosObligaciones AS (
 						SELECT
 							emp.codigoempleado AS codigoempleado,
+							CASE
+								WHEN pdo.numeroconcepto = 90
+									THEN ''ISN''
+								WHEN pdo.numeroconcepto IN (89, 93, 96, 97, 98)
+									THEN ''IMSS Patronal''
+							END AS concepto,
+							''O'' AS tipoConcepto,
 							SUM(pdo.importetotal) AS monto
 						FROM nom10001 emp
 						INNER JOIN nom10034 empPeriodo
@@ -5232,7 +5191,13 @@ class PrenominaQueryService
 							AND empPeriodo.estadoempleado IN (''A'', ''R'')
                             AND emp.TipoRegimen IN (''02'', ''03'', ''04'')
 						GROUP BY
-							emp.codigoempleado
+							emp.codigoempleado,
+							CASE
+								WHEN pdo.numeroconcepto = 90
+									THEN ''ISN''
+								WHEN pdo.numeroconcepto IN (89, 93, 96, 97, 98)
+									THEN ''IMSS Patronal''
+							END
 					),
                     TotalesPorEmpleadoObligacion AS (
                         SELECT
@@ -5345,27 +5310,27 @@ class PrenominaQueryService
                             OR con.descripcion LIKE '%Neto%')
                 ),
                 tarjetaControl AS (
-                    SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                    SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                     FROM nom10009 AS fi
                         INNER JOIN nom10022 ti
                             ON fi.idtipoincidencia = ti.idtipoincidencia
                     WHERE
-                        ti.TipoImss IN ('I', 'F')
+                        ti.mnemonico IN ('INC', 'FINJ')
                         AND idperiodo = @idPeriodo
                     UNION ALL
-                    SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                    SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                     FROM NOM10010 AS fi
                         INNER JOIN nom10022 ti
                             ON fi.idtipoincidencia = ti.idtipoincidencia
                     WHERE
-                        ti.TipoImss IN ('I', 'F')
+                        ti.mnemonico IN ('INC', 'FINJ')
                         AND idperiodo = @idPeriodo
                 ),
                 TarjetaControlAgrupado AS (
                     SELECT
                         idempleado,
-                        SUM(CASE WHEN TipoImss IN ('I') THEN valor ELSE 0 END) AS incapacidad,
-                        SUM(CASE WHEN TipoImss IN ('F')  THEN valor ELSE 0 END) AS faltas
+                        SUM(CASE WHEN mnemonico = 'INC' THEN valor ELSE 0 END) AS incapacidad,
+                        SUM(CASE WHEN mnemonico = 'FINJ' THEN valor ELSE 0 END) AS faltas
                     FROM tarjetaControl
                     GROUP BY
                         idempleado
@@ -5386,7 +5351,7 @@ class PrenominaQueryService
 						WHEN empPeriodo.fechaalta <= periodo.fechainicio
 							THEN (periodo.diasdepago)
 						WHEN empPeriodo.fechaalta > periodo.fechainicio AND empPeriodo.fechaalta <= periodo.fechafin
-							THEN (DATEDIFF(DAY, empPeriodo.fechaalta, periodo.fechafin) + 1)
+							THEN (DATEDIFF(DAY, empPeriodo.fechaalta, periodo.fechafin))
 						ELSE 0
 					  END AS diasPeriodo
                     , ISNULL(SUM(movP.valor), 0) AS diasRetroactivos
@@ -5400,7 +5365,7 @@ class PrenominaQueryService
                             - ISNULL(tc.faltas, 0)
 
                         WHEN empPeriodo.fechaalta > periodo.fechainicio AND empPeriodo.fechaalta <= periodo.fechafin THEN
-                            DATEDIFF(DAY, empPeriodo.fechaalta, periodo.fechafin) + 1
+                            DATEDIFF(DAY, empPeriodo.fechaalta, periodo.fechafin)
                             + ISNULL(SUM(movP.valor), 0)
                             - ISNULL(tc.incapacidad, 0)
                             - ISNULL(tc.faltas, 0)
@@ -5642,27 +5607,27 @@ class PrenominaQueryService
                             OR con.descripcion LIKE ''%Neto%'')
                 ), ' + '
                 tarjetaControl AS (
-                    SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                    SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                     FROM nom10009 AS fi
                     INNER JOIN nom10022 ti
                         ON fi.idtipoincidencia = ti.idtipoincidencia
                     WHERE
-                        ti.TipoImss IN (''I'', ''F'')
+                        ti.mnemonico IN (''INC'', ''FINJ'')
                         AND idperiodo = @idPeriodo
                     UNION ALL
-                    SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                    SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                     FROM NOM10010 AS fi
                     INNER JOIN nom10022 ti
                         ON fi.idtipoincidencia = ti.idtipoincidencia
                     WHERE
-                        ti.TipoImss IN (''I'', ''F'')
+                        ti.mnemonico IN (''INC'', ''FINJ'')
                         AND idperiodo = @idPeriodo
                 ), ' + '
                 TarjetaControlAgrupado AS (
                     SELECT
                         idempleado,
-                        SUM(CASE WHEN TipoImss IN (''I'') THEN valor ELSE 0 END) AS incapacidad,
-                        SUM(CASE WHEN TipoImss IN (''F'') THEN valor ELSE 0 END) AS faltas
+                        SUM(CASE WHEN mnemonico = ''INC'' THEN valor ELSE 0 END) AS incapacidad,
+                        SUM(CASE WHEN mnemonico = ''FINJ'' THEN valor ELSE 0 END) AS faltas
                     FROM tarjetaControl
                     GROUP BY
                         idempleado
@@ -5776,7 +5741,7 @@ class PrenominaQueryService
                         (''Bono'',                      ngid.bono,                      ''P''),
                         (''Comisiones'',                ngid.comision,                  ''P''),
                         (''Dia Festivo cantidad'',      ngid.cantidad_dias_festivos,    ''P''),
-                        (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2, ''P''),
+                        (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2 * 2, ''P''),
                         (''Horas Extra Doble cantidad'', ngid.horas_extra_doble_cantidad, ''P''),
                         (''Horas Extra Doble monto'',    ISNULL(ngid.horas_extra_doble_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 2, ''P''),
                         (''Horas Extra Triple cantidad'', ngid.horas_extra_triple_cantidad, ''P''),
@@ -5785,7 +5750,7 @@ class PrenominaQueryService
                         (''Premio puntualidad'',         ngid.premio_puntualidad, ''P''),
                         (''Prima Dominical cantidad'',   ngid.cantidad_prima_dominical, ''P''),
                         (''Prima Dominical monto'',      ISNULL(ngid.cantidad_prima_dominical, 0) * emp.ccampoextranumerico2 * 0.25, ''P''),
-                        (''Descuentos'',                 ngid.descuento, ''D'')
+                        (''Descuentos'',                 ngid.monto_descuento, ''D'')
                     ) AS x(descripcion, valor, tipoConcepto)
 					WHERE
                         (@idNominaGapeIncidencia IS NULL OR ngi.id = @idNominaGapeIncidencia)
@@ -5796,20 +5761,10 @@ class PrenominaQueryService
 					SELECT
 						codigoempleado,
 						MAX(sueldo) AS sueldo,
-						SUM(
-                                CASE
-                                    WHEN tipoConcepto = ''P''
-                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
-                                    ELSE 0
-                                END
-                            ) AS total_percepciones_sin_sueldo,
-                            SUM(
-                                CASE
-                                    WHEN tipoConcepto = ''D''
-                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
-                                    ELSE 0
-                                END
-                            ) AS total_deducciones,
+						SUM(CASE WHEN tipoConcepto = ''P'' THEN monto ELSE 0 END)
+						+
+						SUM(CASE WHEN tipoConcepto = ''P'' THEN valor ELSE 0 END) AS total_percepciones_sin_sueldo,
+						SUM(CASE WHEN tipoConcepto = ''D'' THEN monto ELSE 0 END) AS total_deducciones,
 						pension AS porcentajePension
 
 					FROM (
@@ -5986,26 +5941,25 @@ class PrenominaQueryService
                         ON his.idconcepto = con.idconcepto
                     LEFT JOIN Previsiones p
 		                ON con.idconcepto = p.idconcepto
-                    WHERE
-                        importetotal > 0
+                    WHERE importetotal > 0
                         AND idperiodo = @idPeriodo
-                        AND (
-                        -- (Sueldo, Vacaciones, Prima vacacional, Retroactivos)
+                        AND
                         (
-                            con.tipoconcepto = 'P' AND (
+                        -- (Sueldo, Vacaciones, Prima vacacional, Retroactivos)
+                        (con.tipoconcepto = 'P' AND (
                                 con.numeroconcepto IN (19, 20, 16)
                                 OR con.descripcion LIKE '%asimilados%'
                                 OR p.idconcepto IS NOT NULL
-                            )
-                        )
+                            ))
                         OR
-                        (
-                            con.tipoconcepto = 'D'
-                            AND (
-                                con.imprimir = 1
-                                AND con.ClaveAgrupadoraSAT != ''
-                            )
-                        )
+                        (con.tipoconcepto = 'D' AND (
+                                con.descripcion LIKE '%ahorro%' -- caja de ahorro
+                                OR con.descripcion LIKE '%infonavit%'
+                                OR con.descripcion LIKE '%fonacot%'
+                                OR con.descripcion LIKE '%alimenticia%'
+                                OR con.descripcion LIKE '%sindical%'
+                                OR con.numeroconcepto IN (52,35,45) -- Imss, isr
+                                ))
                         )
                     UNION ALL
                     SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto
@@ -6019,21 +5973,20 @@ class PrenominaQueryService
                         AND idperiodo = @idPeriodo
                         AND (
                         -- (Sueldo, Vacaciones, Prima vacacional, Retroactivos)
-                        (
-                            con.tipoconcepto = 'P' AND (
+                        (con.tipoconcepto = 'P' AND (
                                 con.numeroconcepto IN (19, 20, 16)
                                 OR con.descripcion LIKE '%asimilados%'
                                 OR p.idconcepto IS NOT NULL
-                            )
-                        )
+                            ))
                         OR
-                        (
-                            con.tipoconcepto = 'D'
-                            AND (
-                                con.imprimir = 1
-                                AND con.ClaveAgrupadoraSAT != ''
-                            )
-                        )
+                        (con.tipoconcepto = 'D' AND (
+                                con.descripcion LIKE '%ahorro%' -- caja de ahorro
+                                OR con.descripcion LIKE '%infonavit%'
+                                OR con.descripcion LIKE '%fonacot%'
+                                OR con.descripcion LIKE '%alimenticia%'
+                                OR con.descripcion LIKE '%sindical%'
+                                OR con.numeroconcepto IN (52,35,45) -- Imss, isr
+                                ))
                         )
                 ),
                 MovimientosFiltrados AS (
@@ -6133,21 +6086,20 @@ class PrenominaQueryService
                             AND idperiodo = @idPeriodo
                             AND (
                             -- (Sueldo, Vacaciones, Prima vacacional, Retroactivos)
-                            (
-                                con.tipoconcepto = ''P'' AND (
+                            (con.tipoconcepto = ''P'' AND (
                                     con.numeroconcepto IN (19, 20, 16)
                                     OR con.descripcion LIKE ''%asimilados%''
                                     OR p.idconcepto IS NOT NULL
-                                )
-                            )
+                                ))
                             OR
-                            (
-                                con.tipoconcepto = ''D''
-                                AND (
-                                    con.imprimir = 1
-                                    AND con.ClaveAgrupadoraSAT != ''''
-                                )
-                            )
+                            (con.tipoconcepto = ''D'' AND (
+                                    con.descripcion LIKE ''%ahorro%''
+                                    OR con.descripcion LIKE ''%infonavit%''
+                                    OR con.descripcion LIKE ''%fonacot%''
+                                    OR con.descripcion LIKE ''%alimenticia%''
+                                    OR con.descripcion LIKE ''%sindical%''
+                                    OR con.numeroconcepto IN (52,35,45) -- Imss, isr
+                                    ))
                             )
                         UNION ALL ' + '
                         SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto
@@ -6161,21 +6113,20 @@ class PrenominaQueryService
                             AND idperiodo = @idPeriodo
                             AND (
                             -- (Sueldo, Vacaciones, Prima vacacional, Retroactivos)
-                            (
-                                con.tipoconcepto = ''P'' AND (
+                            (con.tipoconcepto = ''P'' AND (
                                     con.numeroconcepto IN (19, 20, 16)
                                     OR con.descripcion LIKE ''%asimilados%''
                                     OR p.idconcepto IS NOT NULL
-                                )
-                            )
+                                ))
                             OR
-                            (
-                                con.tipoconcepto = ''D''
-                                AND (
-                                    con.imprimir = 1
-                                    AND con.ClaveAgrupadoraSAT != ''''
-                                )
-                            )
+                            (con.tipoconcepto = ''D'' AND (
+                                    con.descripcion LIKE ''%ahorro%''
+                                    OR con.descripcion LIKE ''%infonavit%''
+                                    OR con.descripcion LIKE ''%fonacot%''
+                                    OR con.descripcion LIKE ''%alimenticia%''
+                                    OR con.descripcion LIKE ''%sindical%''
+                                    OR con.numeroconcepto IN (52,35,45) -- Imss, isr
+                                    ))
                             )
                     ), ' + '
                     MovimientosSuma AS (
@@ -6412,33 +6363,33 @@ class PrenominaQueryService
                                 OR con.descripcion LIKE ''%Neto%'')
                     ), ' + '
                     tarjetaControl AS (
-                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                         FROM nom10009 AS fi
                         INNER JOIN nom10022 ti
                             ON fi.idtipoincidencia = ti.idtipoincidencia
                         WHERE
-                            ti.TipoImss IN (''I'', ''F'')
+                            ti.mnemonico IN (''INC'', ''FINJ'')
                             AND idperiodo = @idPeriodo
                         UNION ALL
-                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                         FROM NOM10010 AS fi
                         INNER JOIN nom10022 ti
                             ON fi.idtipoincidencia = ti.idtipoincidencia
                         WHERE
-                            ti.TipoImss IN (''I'', ''F'')
+                            ti.mnemonico IN (''INC'', ''FINJ'')
                             AND idperiodo = @idPeriodo
                     ), ' + '
                     TarjetaControlAgrupado AS (
                         SELECT
                             idempleado,
-                            SUM(CASE WHEN TipoImss IN (''I'') THEN valor ELSE 0 END) AS incapacidad,
-                            SUM(CASE WHEN TipoImss IN (''F'') THEN valor ELSE 0 END) AS faltas
+                            SUM(CASE WHEN mnemonico = ''INC'' THEN valor ELSE 0 END) AS incapacidad,
+                            SUM(CASE WHEN mnemonico = ''FINJ'' THEN valor ELSE 0 END) AS faltas
                         FROM tarjetaControl
                         GROUP BY
                             idempleado
                     ), ' + '
                     Movimientos AS (
-                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto, con.imprimir, con.ClaveAgrupadoraSAT
+                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
                         FROM Nom10007 AS his
                         INNER JOIN nom10004 con
                             ON his.idconcepto = con.idconcepto
@@ -6447,7 +6398,7 @@ class PrenominaQueryService
                             AND idperiodo = @idPeriodo
                             AND con.tipoconcepto IN (''P'',''D'')
                         UNION ALL
-                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto, con.imprimir, con.ClaveAgrupadoraSAT
+                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
                         FROM Nom10008 AS actual
                         INNER JOIN nom10004 con
                             ON actual.idconcepto = con.idconcepto
@@ -6539,7 +6490,7 @@ class PrenominaQueryService
                             (''Bono'',                      ngid.bono,                      ''P''),
                             (''Comisiones'',                ngid.comision,                  ''P''),
                             (''Dia Festivo cantidad'',      ngid.cantidad_dias_festivos,    ''P''),
-                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2, ''P''),
+                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2 * 2, ''P''),
                             (''Horas Extra Doble cantidad'', ngid.horas_extra_doble_cantidad, ''P''),
                             (''Horas Extra Doble monto'',    ISNULL(ngid.horas_extra_doble_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 2, ''P''),
                             (''Horas Extra Triple cantidad'', ngid.horas_extra_triple_cantidad, ''P''),
@@ -6548,7 +6499,7 @@ class PrenominaQueryService
                             (''Premio puntualidad'',         ngid.premio_puntualidad, ''P''),
                             (''Prima Dominical cantidad'',   ngid.cantidad_prima_dominical, ''P''),
                             (''Prima Dominical monto'',      ISNULL(ngid.cantidad_prima_dominical, 0) * emp.ccampoextranumerico2 * 0.25, ''P''),
-                            (''Descuentos'',                 ngid.descuento, ''D'')
+                            (''Descuentos'',                 ngid.monto_descuento, ''D'')
                         ) AS x(descripcion, valor, tipoConcepto)
                         WHERE
                             (@idNominaGapeIncidencia IS NULL OR ngi.id = @idNominaGapeIncidencia)
@@ -6560,20 +6511,10 @@ class PrenominaQueryService
                         SELECT
                             codigoempleado,
                             MAX(sueldo) AS sueldo,
-                            SUM(
-                                CASE
-                                    WHEN tipoConcepto = ''P''
-                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
-                                    ELSE 0
-                                END
-                            ) AS total_percepciones_sin_sueldo,
-                            SUM(
-                                CASE
-                                    WHEN tipoConcepto = ''D''
-                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
-                                    ELSE 0
-                                END
-                            ) AS total_deducciones,
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN monto ELSE 0 END)
+                            +
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN valor ELSE 0 END) AS total_percepciones_sin_sueldo,
+                            SUM(CASE WHEN tipoConcepto = ''D'' THEN monto ELSE 0 END) AS total_deducciones,
                             pension AS porcentajePension
 
                         FROM (
@@ -6661,13 +6602,17 @@ class PrenominaQueryService
                                                 )
                                             )
                                         )
-                                    OR ' + '
+                                    OR
                                     (
                                         pdo.tipoconcepto = ''D''
                                         AND (
-                                            pdo.imprimir = 1
-                                            AND pdo.ClaveAgrupadoraSAT != ''''
-                                        )
+                                            pdo.descripcion LIKE ''%ahorro%'' -- caja de ahorro
+                                            OR pdo.descripcion LIKE ''%infonavit%''
+                                            OR pdo.descripcion LIKE ''%fonacot%''
+                                            OR pdo.descripcion LIKE ''%alimenticia%''
+                                            OR pdo.descripcion LIKE ''%sindical%''
+                                            OR pdo.numeroconcepto IN (52,35,45) -- Imss, isr
+                                            )
                                     )
                                 )
                             WHERE
@@ -7021,33 +6966,33 @@ class PrenominaQueryService
                                 OR con.descripcion LIKE ''%Neto%'')
                     ), ' + '
                     tarjetaControl AS (
-                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                         FROM nom10009 AS fi
                         INNER JOIN nom10022 ti
                             ON fi.idtipoincidencia = ti.idtipoincidencia
                         WHERE
-                            ti.TipoImss IN (''I'', ''F'')
+                            ti.mnemonico IN (''INC'', ''FINJ'')
                             AND idperiodo = @idPeriodo
                         UNION ALL
-                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                         FROM NOM10010 AS fi
                         INNER JOIN nom10022 ti
                             ON fi.idtipoincidencia = ti.idtipoincidencia
                         WHERE
-                            ti.TipoImss IN (''I'', ''F'')
+                            ti.mnemonico IN (''INC'', ''FINJ'')
                             AND idperiodo = @idPeriodo
                     ), ' + '
                     TarjetaControlAgrupado AS (
                         SELECT
                             idempleado,
-                            SUM(CASE WHEN TipoImss IN (''I'') THEN valor ELSE 0 END) AS incapacidad,
-                            SUM(CASE WHEN TipoImss IN (''F'') THEN valor ELSE 0 END) AS faltas
+                            SUM(CASE WHEN mnemonico = ''INC'' THEN valor ELSE 0 END) AS incapacidad,
+                            SUM(CASE WHEN mnemonico = ''FINJ'' THEN valor ELSE 0 END) AS faltas
                         FROM tarjetaControl
                         GROUP BY
                             idempleado
                     ), ' + '
                     Movimientos AS (
-                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto, con.imprimir, con.ClaveAgrupadoraSAT
+                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
                         FROM Nom10007 AS his
                         INNER JOIN nom10004 con
                             ON his.idconcepto = con.idconcepto
@@ -7056,7 +7001,7 @@ class PrenominaQueryService
                             AND idperiodo = @idPeriodo
                             AND con.tipoconcepto IN (''P'',''D'')
                         UNION ALL
-                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto, con.imprimir, con.ClaveAgrupadoraSAT
+                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
                         FROM Nom10008 AS actual
                         INNER JOIN nom10004 con
                             ON actual.idconcepto = con.idconcepto
@@ -7148,7 +7093,7 @@ class PrenominaQueryService
                             (''Bono'',                      ngid.bono,                      ''P''),
                             (''Comisiones'',                ngid.comision,                  ''P''),
                             (''Dia Festivo cantidad'',      ngid.cantidad_dias_festivos,    ''P''),
-                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2, ''P''),
+                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2 * 2, ''P''),
                             (''Horas Extra Doble cantidad'', ngid.horas_extra_doble_cantidad, ''P''),
                             (''Horas Extra Doble monto'',    ISNULL(ngid.horas_extra_doble_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 2, ''P''),
                             (''Horas Extra Triple cantidad'', ngid.horas_extra_triple_cantidad, ''P''),
@@ -7157,7 +7102,7 @@ class PrenominaQueryService
                             (''Premio puntualidad'',         ngid.premio_puntualidad, ''P''),
                             (''Prima Dominical cantidad'',   ngid.cantidad_prima_dominical, ''P''),
                             (''Prima Dominical monto'',      ISNULL(ngid.cantidad_prima_dominical, 0) * emp.ccampoextranumerico2 * 0.25, ''P''),
-                            (''Descuentos'',                 ngid.descuento, ''D'')
+                            (''Descuentos'',                 ngid.monto_descuento, ''D'')
                         ) AS x(descripcion, valor, tipoConcepto)
                         WHERE
                             (@idNominaGapeIncidencia IS NULL OR ngi.id = @idNominaGapeIncidencia)
@@ -7169,20 +7114,10 @@ class PrenominaQueryService
                         SELECT
                             codigoempleado,
                             MAX(sueldo) AS sueldo,
-                            SUM(
-                                CASE
-                                    WHEN tipoConcepto = ''P''
-                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
-                                    ELSE 0
-                                END
-                            ) AS total_percepciones_sin_sueldo,
-                            SUM(
-                                CASE
-                                    WHEN tipoConcepto = ''D''
-                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
-                                    ELSE 0
-                                END
-                            ) AS total_deducciones,
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN monto ELSE 0 END)
+                            +
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN valor ELSE 0 END) AS total_percepciones_sin_sueldo,
+                            SUM(CASE WHEN tipoConcepto = ''D'' THEN monto ELSE 0 END) AS total_deducciones,
                             pension AS porcentajePension
 
                         FROM (
@@ -7269,12 +7204,17 @@ class PrenominaQueryService
                                                 )
                                             )
                                         )
-                                    OR ' + '
-                                    (
-                                        pdo.tipoconcepto = ''D''
-                                        AND (
-                                            pdo.imprimir = 1
-                                            AND pdo.ClaveAgrupadoraSAT != ''''
+                                    OR
+                                        (
+                                            pdo.tipoconcepto = ''D''
+                                            AND (
+                                                pdo.descripcion LIKE ''%ahorro%'' -- caja de ahorro
+                                                OR pdo.descripcion LIKE ''%infonavit%''
+                                                OR pdo.descripcion LIKE ''%fonacot%''
+                                                OR pdo.descripcion LIKE ''%alimenticia%''
+                                                OR pdo.descripcion LIKE ''%sindical%''
+                                                OR pdo.numeroconcepto IN (52,35,45) -- Imss, isr
+                                                )
                                         )
                                     )
                             WHERE
@@ -7593,15 +7533,23 @@ class PrenominaQueryService
                     Obligaciones AS (
                         SELECT
                             descripcion,
-                            1 AS orden
+                            numeroconcepto,
+                            CASE numeroconcepto
+                                WHEN 90 THEN 1
+                                WHEN 89 THEN 2
+                                WHEN 93 THEN 3
+                                WHEN 96 THEN 4
+                                WHEN 97 THEN 5
+                                WHEN 98 THEN 6
+                            END AS orden
                         FROM nom10004
                         WHERE numeroconcepto IN (90, 970, 8000, 8001, 8002)
                     ),
                     titulos AS (
                         SELECT * FROM (VALUES
-                            ('Comision Servicios', 20000),
-                            ('Costo Total',  20001)
-                        ) AS X(descripcion, orden)
+                            ('Comision Servicios', 'N', 1000, 100),
+                            ('Costo Total',  'N', 2000, 299)
+                        ) AS X(descripcion, tipoconcepto, numeroconcepto, orden)
                     ),
                     TitulosFinales AS (
                         SELECT descripcion, orden
@@ -7673,33 +7621,33 @@ class PrenominaQueryService
                                 OR con.descripcion LIKE ''%Neto%'')
                     ), ' + '
                     tarjetaControl AS (
-                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                         FROM nom10009 AS fi
                         INNER JOIN nom10022 ti
                             ON fi.idtipoincidencia = ti.idtipoincidencia
                         WHERE
-                            ti.TipoImss IN (''I'', ''F'')
+                            ti.mnemonico IN (''INC'', ''FINJ'')
                             AND idperiodo = @idPeriodo
                         UNION ALL
-                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                         FROM NOM10010 AS fi
                         INNER JOIN nom10022 ti
                             ON fi.idtipoincidencia = ti.idtipoincidencia
                         WHERE
-                            ti.TipoImss IN (''I'', ''F'')
+                            ti.mnemonico IN (''INC'', ''FINJ'')
                             AND idperiodo = @idPeriodo
                     ), ' + '
                     TarjetaControlAgrupado AS (
                         SELECT
                             idempleado,
-                            SUM(CASE WHEN TipoImss IN (''I'') THEN valor ELSE 0 END) AS incapacidad,
-                            SUM(CASE WHEN TipoImss IN (''F'') THEN valor ELSE 0 END) AS faltas
+                            SUM(CASE WHEN mnemonico = ''INC'' THEN valor ELSE 0 END) AS incapacidad,
+                            SUM(CASE WHEN mnemonico = ''FINJ'' THEN valor ELSE 0 END) AS faltas
                         FROM tarjetaControl
                         GROUP BY
                             idempleado
                     ), ' + '
                     Movimientos AS (
-                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto, con.imprimir, con.ClaveAgrupadoraSAT
+                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
                         FROM Nom10007 AS his
                         INNER JOIN nom10004 con
                             ON his.idconcepto = con.idconcepto
@@ -7708,7 +7656,7 @@ class PrenominaQueryService
                             AND idperiodo = @idPeriodo
                             AND con.tipoconcepto IN (''P'',''D'', ''O'')
                         UNION ALL
-                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto, con.imprimir, con.ClaveAgrupadoraSAT
+                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
                         FROM Nom10008 AS actual
                         INNER JOIN nom10004 con
                             ON actual.idconcepto = con.idconcepto
@@ -7801,7 +7749,7 @@ class PrenominaQueryService
                             (''Bono'',                      ngid.bono,                      ''P''),
                             (''Comisiones'',                ngid.comision,                  ''P''),
                             (''Dia Festivo cantidad'',      ngid.cantidad_dias_festivos,    ''P''),
-                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2, ''P''),
+                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2 * 2, ''P''),
                             (''Horas Extra Doble cantidad'', ngid.horas_extra_doble_cantidad, ''P''),
                             (''Horas Extra Doble monto'',    ISNULL(ngid.horas_extra_doble_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 2, ''P''),
                             (''Horas Extra Triple cantidad'', ngid.horas_extra_triple_cantidad, ''P''),
@@ -7810,7 +7758,7 @@ class PrenominaQueryService
                             (''Premio puntualidad'',         ngid.premio_puntualidad, ''P''),
                             (''Prima Dominical cantidad'',   ngid.cantidad_prima_dominical, ''P''),
                             (''Prima Dominical monto'',      ISNULL(ngid.cantidad_prima_dominical, 0) * emp.ccampoextranumerico2 * 0.25, ''P''),
-                            (''Descuentos'',                 ngid.descuento, ''D'')
+                            (''Descuentos'',                 ngid.monto_descuento, ''D'')
                         ) AS x(descripcion, valor, tipoConcepto)
                         WHERE
                             (@idNominaGapeIncidencia IS NULL OR ngi.id = @idNominaGapeIncidencia)
@@ -7822,20 +7770,10 @@ class PrenominaQueryService
                         SELECT
                             codigoempleado,
                             MAX(sueldo) AS sueldo,
-                            SUM(
-                                CASE
-                                    WHEN tipoConcepto = ''P''
-                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
-                                    ELSE 0
-                                END
-                            ) AS total_percepciones_sin_sueldo,
-                            SUM(
-                                CASE
-                                    WHEN tipoConcepto = ''D''
-                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
-                                    ELSE 0
-                                END
-                            ) AS total_deducciones,
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN monto ELSE 0 END)
+                            +
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN valor ELSE 0 END) AS total_percepciones_sin_sueldo,
+                            SUM(CASE WHEN tipoConcepto = ''D'' THEN monto ELSE 0 END) AS total_deducciones,
                             pension AS porcentajePension
 
                         FROM (
@@ -7923,15 +7861,19 @@ class PrenominaQueryService
                                                 )
                                             )
                                         )
-                                OR ' + '
-                                    (
-                                        pdo.tipoconcepto = ''D''
-                                        AND (
-                                            pdo.imprimir = 1
-                                            AND pdo.ClaveAgrupadoraSAT != ''''
+                                    OR
+                                        (
+                                            pdo.tipoconcepto = ''D''
+                                            AND (
+                                                pdo.descripcion LIKE ''%ahorro%'' -- caja de ahorro
+                                                OR pdo.descripcion LIKE ''%infonavit%''
+                                                OR pdo.descripcion LIKE ''%fonacot%''
+                                                OR pdo.descripcion LIKE ''%alimenticia%''
+                                                OR pdo.descripcion LIKE ''%sindical%''
+                                                OR pdo.numeroconcepto IN (52,35,45) -- Imss, isr
+                                                )
                                         )
                                     )
-                                )
                             WHERE
                                 empPeriodo.idtipoperiodo = @idTipoPeriodo
                                 AND empPeriodo.estadoempleado IN (''A'', ''R'')
@@ -8334,33 +8276,33 @@ class PrenominaQueryService
                             OR con.descripcion LIKE ''%Neto%'')
                     ), ' + '
                     tarjetaControl AS (
-                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                         FROM nom10009 AS fi
                         INNER JOIN nom10022 ti
                             ON fi.idtipoincidencia = ti.idtipoincidencia
                         WHERE
-                            ti.TipoImss IN (''I'', ''F'')
+                            ti.mnemonico IN (''INC'', ''FINJ'')
                             AND idperiodo = @idPeriodo
                         UNION ALL
-                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                         FROM NOM10010 AS fi
                         INNER JOIN nom10022 ti
                             ON fi.idtipoincidencia = ti.idtipoincidencia
                         WHERE
-                            ti.TipoImss IN (''I'', ''F'')
+                            ti.mnemonico IN (''INC'', ''FINJ'')
                             AND idperiodo = @idPeriodo
                     ), ' + '
                     TarjetaControlAgrupado AS (
                         SELECT
                             idempleado,
-                            SUM(CASE WHEN TipoImss IN (''I'') THEN valor ELSE 0 END) AS incapacidad,
-                            SUM(CASE WHEN TipoImss IN (''F'') THEN valor ELSE 0 END) AS faltas
+                            SUM(CASE WHEN mnemonico = ''INC'' THEN valor ELSE 0 END) AS incapacidad,
+                            SUM(CASE WHEN mnemonico = ''FINJ'' THEN valor ELSE 0 END) AS faltas
                         FROM tarjetaControl
                         GROUP BY
                             idempleado
                     ), ' + '
                     Movimientos AS (
-                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto, con.imprimir, con.ClaveAgrupadoraSAT
+                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
                         FROM Nom10007 AS his
                         INNER JOIN nom10004 con
                             ON his.idconcepto = con.idconcepto
@@ -8369,7 +8311,7 @@ class PrenominaQueryService
                             AND idperiodo = @idPeriodo
                             AND con.tipoconcepto IN (''P'',''D'')
                         UNION ALL
-                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto, con.imprimir, con.ClaveAgrupadoraSAT
+                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
                         FROM Nom10008 AS actual
                         INNER JOIN nom10004 con
                             ON actual.idconcepto = con.idconcepto
@@ -8461,7 +8403,7 @@ class PrenominaQueryService
                             (''Bono'',                      ngid.bono,                      ''P''),
                             (''Comisiones'',                ngid.comision,                  ''P''),
                             (''Dia Festivo cantidad'',      ngid.cantidad_dias_festivos,    ''P''),
-                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2, ''P''),
+                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2 * 2, ''P''),
                             (''Horas Extra Doble cantidad'', ngid.horas_extra_doble_cantidad, ''P''),
                             (''Horas Extra Doble monto'',    ISNULL(ngid.horas_extra_doble_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 2, ''P''),
                             (''Horas Extra Triple cantidad'', ngid.horas_extra_triple_cantidad, ''P''),
@@ -8470,7 +8412,7 @@ class PrenominaQueryService
                             (''Premio puntualidad'',         ngid.premio_puntualidad, ''P''),
                             (''Prima Dominical cantidad'',   ngid.cantidad_prima_dominical, ''P''),
                             (''Prima Dominical monto'',      ISNULL(ngid.cantidad_prima_dominical, 0) * emp.ccampoextranumerico2 * 0.25, ''P''),
-                            (''Descuentos'',                 ngid.descuento, ''D'')
+                            (''Descuentos'',                 ngid.monto_descuento, ''D'')
                         ) AS x(descripcion, valor, tipoConcepto)
                         WHERE
                             (@idNominaGapeIncidencia IS NULL OR ngi.id = @idNominaGapeIncidencia)
@@ -8482,20 +8424,10 @@ class PrenominaQueryService
                         SELECT
                             codigoempleado,
                             MAX(sueldo) AS sueldo,
-                            SUM(
-                                CASE
-                                    WHEN tipoConcepto = ''P''
-                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
-                                    ELSE 0
-                                END
-                            ) AS total_percepciones_sin_sueldo,
-                            SUM(
-                                CASE
-                                    WHEN tipoConcepto = ''D''
-                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
-                                    ELSE 0
-                                END
-                            ) AS total_deducciones,
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN monto ELSE 0 END)
+                            +
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN valor ELSE 0 END) AS total_percepciones_sin_sueldo,
+                            SUM(CASE WHEN tipoConcepto = ''D'' THEN monto ELSE 0 END) AS total_deducciones,
                             pension AS porcentajePension
 
                         FROM (
@@ -8646,33 +8578,33 @@ class PrenominaQueryService
                             OR con.descripcion LIKE ''%Neto%'')
                     ), ' + '
                     tarjetaControl AS (
-                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                         FROM nom10009 AS fi
                         INNER JOIN nom10022 ti
                             ON fi.idtipoincidencia = ti.idtipoincidencia
                         WHERE
-                            ti.TipoImss IN (''I'', ''F'')
+                            ti.mnemonico IN (''INC'', ''FINJ'')
                             AND idperiodo = @idPeriodo
                         UNION ALL
-                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                         FROM NOM10010 AS fi
                         INNER JOIN nom10022 ti
                             ON fi.idtipoincidencia = ti.idtipoincidencia
                         WHERE
-                            ti.TipoImss IN (''I'', ''F'')
+                            ti.mnemonico IN (''INC'', ''FINJ'')
                             AND idperiodo = @idPeriodo
                     ), ' + '
                     TarjetaControlAgrupado AS (
                         SELECT
                             idempleado,
-                            SUM(CASE WHEN TipoImss IN (''I'') THEN valor ELSE 0 END) AS incapacidad,
-                            SUM(CASE WHEN TipoImss IN (''F'') THEN valor ELSE 0 END) AS faltas
+                            SUM(CASE WHEN mnemonico = ''INC'' THEN valor ELSE 0 END) AS incapacidad,
+                            SUM(CASE WHEN mnemonico = ''FINJ'' THEN valor ELSE 0 END) AS faltas
                         FROM tarjetaControl
                         GROUP BY
                             idempleado
                     ), ' + '
                     Movimientos AS (
-                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto, con.imprimir, con.ClaveAgrupadoraSAT
+                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
                         FROM Nom10007 AS his
                         INNER JOIN nom10004 con
                             ON his.idconcepto = con.idconcepto
@@ -8681,7 +8613,7 @@ class PrenominaQueryService
                             AND idperiodo = @idPeriodo
                             AND con.tipoconcepto IN (''P'',''D'')
                         UNION ALL
-                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto, con.imprimir, con.ClaveAgrupadoraSAT
+                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
                         FROM Nom10008 AS actual
                         INNER JOIN nom10004 con
                             ON actual.idconcepto = con.idconcepto
@@ -8708,7 +8640,7 @@ class PrenominaQueryService
                                     SUM(pdo.importetotal)
                             END AS monto,
                             emp.ccampoextranumerico3 AS pension
-                        FROM nom10001 emp ' + '
+                        FROM nom10001 emp
                         INNER JOIN nom10034 empPeriodo
                             ON emp.idempleado = empPeriodo.idempleado
                                 AND empPeriodo.cidperiodo = @idPeriodo
@@ -8773,7 +8705,7 @@ class PrenominaQueryService
                             (''Bono'',                      ngid.bono,                      ''P''),
                             (''Comisiones'',                ngid.comision,                  ''P''),
                             (''Dia Festivo cantidad'',      ngid.cantidad_dias_festivos,    ''P''),
-                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2, ''P''),
+                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2 * 2, ''P''),
                             (''Horas Extra Doble cantidad'', ngid.horas_extra_doble_cantidad, ''P''),
                             (''Horas Extra Doble monto'',    ISNULL(ngid.horas_extra_doble_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 2, ''P''),
                             (''Horas Extra Triple cantidad'', ngid.horas_extra_triple_cantidad, ''P''),
@@ -8782,7 +8714,7 @@ class PrenominaQueryService
                             (''Premio puntualidad'',         ngid.premio_puntualidad, ''P''),
                             (''Prima Dominical cantidad'',   ngid.cantidad_prima_dominical, ''P''),
                             (''Prima Dominical monto'',      ISNULL(ngid.cantidad_prima_dominical, 0) * emp.ccampoextranumerico2 * 0.25, ''P''),
-                            (''Descuentos'',                 ngid.descuento, ''D'')
+                            (''Descuentos'',                 ngid.monto_descuento, ''D'')
                         ) AS x(descripcion, valor, tipoConcepto)
                         WHERE
                             (@idNominaGapeIncidencia IS NULL OR ngi.id = @idNominaGapeIncidencia)
@@ -8794,20 +8726,10 @@ class PrenominaQueryService
                         SELECT
                             codigoempleado,
                             MAX(sueldo) AS sueldo,
-                            SUM(
-                                CASE
-                                    WHEN tipoConcepto = ''P''
-                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
-                                    ELSE 0
-                                END
-                            ) AS total_percepciones_sin_sueldo,
-                            SUM(
-                                CASE
-                                    WHEN tipoConcepto = ''D''
-                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
-                                    ELSE 0
-                                END
-                            ) AS total_deducciones,
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN monto ELSE 0 END)
+                            +
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN valor ELSE 0 END) AS total_percepciones_sin_sueldo,
+                            SUM(CASE WHEN tipoConcepto = ''D'' THEN monto ELSE 0 END) AS total_deducciones,
                             pension AS porcentajePension
 
                         FROM (
@@ -8867,7 +8789,7 @@ class PrenominaQueryService
                             importetotal > 0
                             AND idperiodo = @idPeriodo
                             AND con.tipoconcepto IN (''O'')
-                            AND con.numeroconcepto IN (90, 970, 8000, 8001, 8002)
+                            AND con.numeroconcepto IN (90,89, 93, 96, 97, 98)
                         UNION ALL
                         SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
                         FROM Nom10008 AS actual
@@ -8877,7 +8799,7 @@ class PrenominaQueryService
                             importetotal > 0
                             AND idperiodo = @idPeriodo
                             AND con.tipoconcepto IN (''O'')
-                            AND con.numeroconcepto IN (90, 970, 8000, 8001, 8002)
+                            AND con.numeroconcepto IN (90,89, 93, 96, 97, 98)
                     ), ' + '
                     TotalesPorEmpleadoObligacion AS (
                         SELECT
@@ -9008,33 +8930,33 @@ class PrenominaQueryService
                                 OR con.descripcion LIKE ''%Neto%'')
                     ), ' + '
                     tarjetaControl AS (
-                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                         FROM nom10009 AS fi
                         INNER JOIN nom10022 ti
                             ON fi.idtipoincidencia = ti.idtipoincidencia
                         WHERE
-                            ti.TipoImss IN (''I'', ''F'')
+                            ti.mnemonico IN (''INC'', ''FINJ'')
                             AND idperiodo = @idPeriodo
                         UNION ALL
-                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                         FROM NOM10010 AS fi
                         INNER JOIN nom10022 ti
                             ON fi.idtipoincidencia = ti.idtipoincidencia
                         WHERE
-                            ti.TipoImss IN (''I'', ''F'')
+                            ti.mnemonico IN (''INC'', ''FINJ'')
                             AND idperiodo = @idPeriodo
                     ), ' + '
                     TarjetaControlAgrupado AS (
                         SELECT
                             idempleado,
-                            SUM(CASE WHEN TipoImss IN (''I'') THEN valor ELSE 0 END) AS incapacidad,
-                            SUM(CASE WHEN TipoImss IN (''F'') THEN valor ELSE 0 END) AS faltas
+                            SUM(CASE WHEN mnemonico = ''INC'' THEN valor ELSE 0 END) AS incapacidad,
+                            SUM(CASE WHEN mnemonico = ''FINJ'' THEN valor ELSE 0 END) AS faltas
                         FROM tarjetaControl
                         GROUP BY
                             idempleado
                     ), ' + '
                     Movimientos AS (
-                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto, con.imprimir, con.ClaveAgrupadoraSAT
+                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
                         FROM Nom10007 AS his
                         INNER JOIN nom10004 con
                             ON his.idconcepto = con.idconcepto
@@ -9043,7 +8965,7 @@ class PrenominaQueryService
                             AND idperiodo = @idPeriodo
                             AND con.tipoconcepto IN (''P'',''D'')
                         UNION ALL
-                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto, con.imprimir, con.ClaveAgrupadoraSAT
+                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
                         FROM Nom10008 AS actual
                         INNER JOIN nom10004 con
                             ON actual.idconcepto = con.idconcepto
@@ -9135,7 +9057,7 @@ class PrenominaQueryService
                             (''Bono'',                      ngid.bono,                      ''P''),
                             (''Comisiones'',                ngid.comision,                  ''P''),
                             (''Dia Festivo cantidad'',      ngid.cantidad_dias_festivos,    ''P''),
-                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2, ''P''),
+                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2 * 2, ''P''),
                             (''Horas Extra Doble cantidad'', ngid.horas_extra_doble_cantidad, ''P''),
                             (''Horas Extra Doble monto'',    ISNULL(ngid.horas_extra_doble_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 2, ''P''),
                             (''Horas Extra Triple cantidad'', ngid.horas_extra_triple_cantidad, ''P''),
@@ -9144,7 +9066,7 @@ class PrenominaQueryService
                             (''Premio puntualidad'',         ngid.premio_puntualidad, ''P''),
                             (''Prima Dominical cantidad'',   ngid.cantidad_prima_dominical, ''P''),
                             (''Prima Dominical monto'',      ISNULL(ngid.cantidad_prima_dominical, 0) * emp.ccampoextranumerico2 * 0.25, ''P''),
-                            (''Descuentos'',                 ngid.descuento, ''D'')
+                            (''Descuentos'',                 ngid.monto_descuento, ''D'')
                         ) AS x(descripcion, valor, tipoConcepto)
                         WHERE
                             (@idNominaGapeIncidencia IS NULL OR ngi.id = @idNominaGapeIncidencia)
@@ -9156,20 +9078,10 @@ class PrenominaQueryService
                         SELECT
                             codigoempleado,
                             MAX(sueldo) AS sueldo,
-                            SUM(
-                                CASE
-                                    WHEN tipoConcepto = ''P''
-                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
-                                    ELSE 0
-                                END
-                            ) AS total_percepciones_sin_sueldo,
-                            SUM(
-                                CASE
-                                    WHEN tipoConcepto = ''D''
-                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
-                                    ELSE 0
-                                END
-                            ) AS total_deducciones,
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN monto ELSE 0 END)
+                            +
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN valor ELSE 0 END) AS total_percepciones_sin_sueldo,
+                            SUM(CASE WHEN tipoConcepto = ''D'' THEN monto ELSE 0 END) AS total_deducciones,
                             pension AS porcentajePension
 
                         FROM (
@@ -9258,13 +9170,17 @@ class PrenominaQueryService
                                                 )
                                             )
                                         )
-                                    OR ' + '
+                                    OR
                                         (
                                             pdo.tipoconcepto = ''D''
                                             AND (
-                                                pdo.imprimir = 1
-                                                AND pdo.ClaveAgrupadoraSAT != ''''
-                                            )
+                                                pdo.descripcion LIKE ''%ahorro%'' -- caja de ahorro
+                                                OR pdo.descripcion LIKE ''%infonavit%''
+                                                OR pdo.descripcion LIKE ''%fonacot%''
+                                                OR pdo.descripcion LIKE ''%alimenticia%''
+                                                OR pdo.descripcion LIKE ''%sindical%''
+                                                OR pdo.numeroconcepto IN (52,35,45) -- Imss, isr
+                                                )
                                         )
                                     )
                             WHERE
@@ -9526,7 +9442,7 @@ class PrenominaQueryService
                             importetotal > 0
                             AND idperiodo = @idPeriodo
                             AND con.tipoconcepto IN (''O'')
-                            AND con.numeroconcepto IN (90, 970, 8000, 8001, 8002)
+                            AND con.numeroconcepto IN (90,89, 93, 96, 97, 98)
                         UNION ALL
                         SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
                         FROM Nom10008 AS actual
@@ -9536,11 +9452,18 @@ class PrenominaQueryService
                             importetotal > 0
                             AND idperiodo = @idPeriodo
                             AND con.tipoconcepto IN (''O'')
-                            AND con.numeroconcepto IN (90, 970, 8000, 8001, 8002)
+                            AND con.numeroconcepto IN (90,89, 93, 96, 97, 98)
                     ), ' + '
                     MovimientosObligaciones AS (
 						SELECT
 							emp.codigoempleado AS codigoempleado,
+							CASE
+								WHEN pdo.numeroconcepto = 90
+									THEN ''ISN''
+								WHEN pdo.numeroconcepto IN (89, 93, 96, 97, 98)
+									THEN ''IMSS Patronal''
+							END AS concepto,
+							''O'' AS tipoConcepto,
 							SUM(pdo.importetotal) AS monto
 						FROM nom10001 emp
 						INNER JOIN nom10034 empPeriodo
@@ -9555,7 +9478,13 @@ class PrenominaQueryService
 							AND empPeriodo.estadoempleado IN (''A'', ''R'')
                             AND emp.TipoRegimen IN (''05'', ''06'', ''07'', ''08'', ''09'', ''10'', ''11'')
 						GROUP BY
-							emp.codigoempleado
+							emp.codigoempleado,
+							CASE
+								WHEN pdo.numeroconcepto = 90
+									THEN ''ISN''
+								WHEN pdo.numeroconcepto IN (89, 93, 96, 97, 98)
+									THEN ''IMSS Patronal''
+							END
 					), ' + '
                     TotalesPorEmpleadoObligacion AS (
                         SELECT
@@ -9688,33 +9617,33 @@ class PrenominaQueryService
                                 OR con.descripcion LIKE ''%Neto%'')
                     ), ' + '
                     tarjetaControl AS (
-                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                         FROM nom10009 AS fi
                         INNER JOIN nom10022 ti
                             ON fi.idtipoincidencia = ti.idtipoincidencia
                         WHERE
-                            ti.TipoImss IN (''I'', ''F'')
+                            ti.mnemonico IN (''INC'', ''FINJ'')
                             AND idperiodo = @idPeriodo
                         UNION ALL
-                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico, ti.TipoImss AS TipoImss
+                        SELECT idempleado, idperiodo, valor, idtarjetaincapacidad, ti.mnemonico AS mnemonico
                         FROM NOM10010 AS fi
                         INNER JOIN nom10022 ti
                             ON fi.idtipoincidencia = ti.idtipoincidencia
                         WHERE
-                            ti.TipoImss IN (''I'', ''F'')
+                            ti.mnemonico IN (''INC'', ''FINJ'')
                             AND idperiodo = @idPeriodo
                     ), ' + '
                     TarjetaControlAgrupado AS (
                         SELECT
                             idempleado,
-                            SUM(CASE WHEN TipoImss IN (''I'') THEN valor ELSE 0 END) AS incapacidad,
-                            SUM(CASE WHEN TipoImss IN (''F'') THEN valor ELSE 0 END) AS faltas
+                            SUM(CASE WHEN mnemonico = ''INC'' THEN valor ELSE 0 END) AS incapacidad,
+                            SUM(CASE WHEN mnemonico = ''FINJ'' THEN valor ELSE 0 END) AS faltas
                         FROM tarjetaControl
                         GROUP BY
                             idempleado
                     ), ' + '
                     Movimientos AS (
-                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto, con.tipoconcepto, con.ClaveAgrupadoraSAT
+                        SELECT idempleado, idperiodo, his.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
                         FROM Nom10007 AS his
                         INNER JOIN nom10004 con
                             ON his.idconcepto = con.idconcepto
@@ -9723,7 +9652,7 @@ class PrenominaQueryService
                             AND idperiodo = @idPeriodo
                             AND con.tipoconcepto IN (''P'',''D'')
                         UNION ALL
-                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto, con.tipoconcepto, con.ClaveAgrupadoraSAT
+                        SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
                         FROM Nom10008 AS actual
                         INNER JOIN nom10004 con
                             ON actual.idconcepto = con.idconcepto
@@ -9815,7 +9744,7 @@ class PrenominaQueryService
                             (''Bono'',                      ngid.bono,                      ''P''),
                             (''Comisiones'',                ngid.comision,                  ''P''),
                             (''Dia Festivo cantidad'',      ngid.cantidad_dias_festivos,    ''P''),
-                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2, ''P''),
+                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2 * 2, ''P''),
                             (''Horas Extra Doble cantidad'', ngid.horas_extra_doble_cantidad, ''P''),
                             (''Horas Extra Doble monto'',    ISNULL(ngid.horas_extra_doble_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 2, ''P''),
                             (''Horas Extra Triple cantidad'', ngid.horas_extra_triple_cantidad, ''P''),
@@ -9824,7 +9753,7 @@ class PrenominaQueryService
                             (''Premio puntualidad'',         ngid.premio_puntualidad, ''P''),
                             (''Prima Dominical cantidad'',   ngid.cantidad_prima_dominical, ''P''),
                             (''Prima Dominical monto'',      ISNULL(ngid.cantidad_prima_dominical, 0) * emp.ccampoextranumerico2 * 0.25, ''P''),
-                            (''Descuentos'',                 ngid.descuento, ''D'')
+                            (''Descuentos'',                 ngid.monto_descuento, ''D'')
                         ) AS x(descripcion, valor, tipoConcepto)
                         WHERE
                             (@idNominaGapeIncidencia IS NULL OR ngi.id = @idNominaGapeIncidencia)
@@ -9836,20 +9765,10 @@ class PrenominaQueryService
                         SELECT
                             codigoempleado,
                             MAX(sueldo) AS sueldo,
-                            SUM(
-                                CASE
-                                    WHEN tipoConcepto = ''P''
-                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
-                                    ELSE 0
-                                END
-                            ) AS total_percepciones_sin_sueldo,
-                            SUM(
-                                CASE
-                                    WHEN tipoConcepto = ''D''
-                                    THEN ISNULL(monto,0) + ISNULL(valor,0)
-                                    ELSE 0
-                                END
-                            ) AS total_deducciones,
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN monto ELSE 0 END)
+                            +
+                            SUM(CASE WHEN tipoConcepto = ''P'' THEN valor ELSE 0 END) AS total_percepciones_sin_sueldo,
+                            SUM(CASE WHEN tipoConcepto = ''D'' THEN monto ELSE 0 END) AS total_deducciones,
                             pension AS porcentajePension
 
                         FROM (
@@ -9926,27 +9845,31 @@ class PrenominaQueryService
                                 ON empPeriodo.cidperiodo = pdo.idperiodo
                                 AND emp.idempleado = pdo.idempleado
                                 AND (
-                                -- (Sueldo, Vacaciones, Prima vacacional, Retroactivos)
-                                    (pdo.tipoconcepto = ''P''
-                                    AND (
-                                        pdo.numeroconcepto IN (19, 20, 16)
-                                        OR pdo.descripcion LIKE ''%asimilados%''
-                                        OR EXISTS (
-                                                SELECT 1
-                                                FROM Previsiones p
-                                                WHERE p.idconcepto = pdo.idconcepto
+                                    -- (Sueldo, Vacaciones, Prima vacacional, Retroactivos)
+                                        (pdo.tipoconcepto = ''P''
+                                        AND (
+                                            pdo.numeroconcepto IN (19, 20, 16)
+                                            OR pdo.descripcion LIKE ''%asimilados%''
+                                            OR EXISTS (
+                                                    SELECT 1
+                                                    FROM Previsiones p
+                                                    WHERE p.idconcepto = pdo.idconcepto
+                                                )
                                             )
                                         )
-                                    )
-                                    OR ' + '
-                                    (
-                                        pdo.tipoconcepto = ''D''
-                                        AND (
-                                            pdo.imprimir = 1
-                                            AND pdo.ClaveAgrupadoraSAT != ''''
+                                    OR
+                                        (
+                                            pdo.tipoconcepto = ''D''
+                                            AND (
+                                                pdo.descripcion LIKE ''%ahorro%'' -- caja de ahorro
+                                                OR pdo.descripcion LIKE ''%infonavit%''
+                                                OR pdo.descripcion LIKE ''%fonacot%''
+                                                OR pdo.descripcion LIKE ''%alimenticia%''
+                                                OR pdo.descripcion LIKE ''%sindical%''
+                                                OR pdo.numeroconcepto IN (52,35,45) -- Imss, isr
+                                                )
                                         )
                                     )
-                                )
                             WHERE
                                 empPeriodo.idtipoperiodo = @idTipoPeriodo
                                 AND empPeriodo.estadoempleado IN (''A'', ''R'')
@@ -10206,7 +10129,7 @@ class PrenominaQueryService
                             importetotal > 0
                             AND idperiodo = @idPeriodo
                             AND con.tipoconcepto IN (''O'')
-                            AND con.numeroconcepto IN (90, 970, 8000, 8001, 8002)
+                            AND con.numeroconcepto IN (90,89, 93, 96, 97, 98)
                         UNION ALL
                         SELECT idempleado, idperiodo, actual.idconcepto, valor, importetotal, con.descripcion, con.tipoconcepto, con.numeroconcepto
                         FROM Nom10008 AS actual
@@ -10216,11 +10139,18 @@ class PrenominaQueryService
                             importetotal > 0
                             AND idperiodo = @idPeriodo
                             AND con.tipoconcepto IN (''O'')
-                            AND con.numeroconcepto IN (90, 970, 8000, 8001, 8002)
+                            AND con.numeroconcepto IN (90,89, 93, 96, 97, 98)
                     ), ' + '
                     MovimientosObligaciones AS (
 						SELECT
 							emp.codigoempleado AS codigoempleado,
+							CASE
+								WHEN pdo.numeroconcepto = 90
+									THEN ''ISN''
+								WHEN pdo.numeroconcepto IN (89, 93, 96, 97, 98)
+									THEN ''IMSS Patronal''
+							END AS concepto,
+							''O'' AS tipoConcepto,
 							SUM(pdo.importetotal) AS monto
 						FROM nom10001 emp
 						INNER JOIN nom10034 empPeriodo
@@ -10235,7 +10165,13 @@ class PrenominaQueryService
 							AND empPeriodo.estadoempleado IN (''A'', ''R'')
                             AND emp.TipoRegimen IN (''05'', ''06'', ''07'', ''08'', ''09'', ''10'', ''11'')
 						GROUP BY
-							emp.codigoempleado
+							emp.codigoempleado,
+							CASE
+								WHEN pdo.numeroconcepto = 90
+									THEN ''ISN''
+								WHEN pdo.numeroconcepto IN (89, 93, 96, 97, 98)
+									THEN ''IMSS Patronal''
+							END
 					), ' + '
                     TotalesPorEmpleadoObligacion AS (
                         SELECT
@@ -10481,7 +10417,7 @@ class PrenominaQueryService
                             (''Bono'',                      ngid.bono),
                             (''Comisiones'',                ngid.comision),
                             (''Dia Festivo cantidad'',      ngid.cantidad_dias_festivos),
-                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2),
+                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2 * 2),
                             (''Horas Extra Doble cantidad'', ngid.horas_extra_doble_cantidad),
                             (''Horas Extra Doble monto'',    ISNULL(ngid.horas_extra_doble_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 2),
                             (''Horas Extra Triple cantidad'', ngid.horas_extra_triple_cantidad),
@@ -10688,7 +10624,7 @@ class PrenominaQueryService
                             (''Bono'',                      ngid.bono),
                             (''Comisiones'',                ngid.comision),
                             (''Dia Festivo cantidad'',      ngid.cantidad_dias_festivos),
-                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2),
+                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2 * 2),
                             (''Horas Extra Doble cantidad'', ngid.horas_extra_doble_cantidad),
                             (''Horas Extra Doble monto'',    ISNULL(ngid.horas_extra_doble_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 2),
                             (''Horas Extra Triple cantidad'', ngid.horas_extra_triple_cantidad),
@@ -10926,7 +10862,7 @@ class PrenominaQueryService
                             (''Bono'',                      ngid.bono),
                             (''Comisiones'',                ngid.comision),
                             (''Dia Festivo cantidad'',      ngid.cantidad_dias_festivos),
-                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2),
+                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2 * 2),
                             (''Horas Extra Doble cantidad'', ngid.horas_extra_doble_cantidad),
                             (''Horas Extra Doble monto'',    ISNULL(ngid.horas_extra_doble_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 2),
                             (''Horas Extra Triple cantidad'', ngid.horas_extra_triple_cantidad),
@@ -11211,7 +11147,7 @@ class PrenominaQueryService
                             (''Bono'',                      ngid.bono),
                             (''Comisiones'',                ngid.comision),
                             (''Dia Festivo cantidad'',      ngid.cantidad_dias_festivos),
-                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2),
+                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2 * 2),
                             (''Horas Extra Doble cantidad'', ngid.horas_extra_doble_cantidad),
                             (''Horas Extra Doble monto'',    ISNULL(ngid.horas_extra_doble_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 2),
                             (''Horas Extra Triple cantidad'', ngid.horas_extra_triple_cantidad),
@@ -11421,7 +11357,7 @@ class PrenominaQueryService
                             (''Bono'',                      ngid.bono),
                             (''Comisiones'',                ngid.comision),
                             (''Dia Festivo cantidad'',      ngid.cantidad_dias_festivos),
-                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2),
+                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2 * 2),
                             (''Horas Extra Doble cantidad'', ngid.horas_extra_doble_cantidad),
                             (''Horas Extra Doble monto'',    ISNULL(ngid.horas_extra_doble_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 2),
                             (''Horas Extra Triple cantidad'', ngid.horas_extra_triple_cantidad),
@@ -11664,7 +11600,7 @@ class PrenominaQueryService
                             (''Bono'',                      ngid.bono),
                             (''Comisiones'',                ngid.comision),
                             (''Dia Festivo cantidad'',      ngid.cantidad_dias_festivos),
-                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2),
+                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2 * 2),
                             (''Horas Extra Doble cantidad'', ngid.horas_extra_doble_cantidad),
                             (''Horas Extra Doble monto'',    ISNULL(ngid.horas_extra_doble_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 2),
                             (''Horas Extra Triple cantidad'', ngid.horas_extra_triple_cantidad),
@@ -11945,7 +11881,7 @@ class PrenominaQueryService
                             (''Bono'',                      ngid.bono),
                             (''Comisiones'',                ngid.comision),
                             (''Dia Festivo cantidad'',      ngid.cantidad_dias_festivos),
-                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2),
+                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2 * 2),
                             (''Horas Extra Doble cantidad'', ngid.horas_extra_doble_cantidad),
                             (''Horas Extra Doble monto'',    ISNULL(ngid.horas_extra_doble_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 2),
                             (''Horas Extra Triple cantidad'', ngid.horas_extra_triple_cantidad),
@@ -12155,7 +12091,7 @@ class PrenominaQueryService
                             (''Bono'',                      ngid.bono),
                             (''Comisiones'',                ngid.comision),
                             (''Dia Festivo cantidad'',      ngid.cantidad_dias_festivos),
-                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2),
+                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2 * 2),
                             (''Horas Extra Doble cantidad'', ngid.horas_extra_doble_cantidad),
                             (''Horas Extra Doble monto'',    ISNULL(ngid.horas_extra_doble_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 2),
                             (''Horas Extra Triple cantidad'', ngid.horas_extra_triple_cantidad),
@@ -12399,7 +12335,7 @@ class PrenominaQueryService
                             (''Bono'',                      ngid.bono),
                             (''Comisiones'',                ngid.comision),
                             (''Dia Festivo cantidad'',      ngid.cantidad_dias_festivos),
-                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2),
+                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2 * 2),
                             (''Horas Extra Doble cantidad'', ngid.horas_extra_doble_cantidad),
                             (''Horas Extra Doble monto'',    ISNULL(ngid.horas_extra_doble_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 2),
                             (''Horas Extra Triple cantidad'', ngid.horas_extra_triple_cantidad),

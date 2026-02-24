@@ -31,6 +31,95 @@ class IncidenciasQueryService
 
         return $this->{$queryName}($request);
     }
+    private function datosEncabezadoQueryContpaq(Request $request)
+    {
+        try {
+            $idNominaGapeEmpresa = $request->id_nomina_gape_empresa;
+            $idTipoPeriodo = $request->id_tipo_periodo;
+            $idPeriodo = $request->periodo_inicial;
+
+            $conexion = $this->helper->getConexionDatabaseNGE($idNominaGapeEmpresa, 'Nom');
+
+            $this->helper->setDatabaseConnection($conexion, $conexion->nombre_base);
+
+            $sql = "
+                DECLARE @idNominaGapeEmpresa INT;
+                DECLARE @idPeriodo INT;
+                DECLARE @idTipoPeriodo INT;
+
+                SET @idNominaGapeEmpresa = $idNominaGapeEmpresa;
+                SET @idPeriodo = $idPeriodo;
+                SET @idTipoPeriodo = $idTipoPeriodo;
+
+                SELECT
+                    per.ejercicio,
+                    per.tipoPeriodo,
+                    per.periodo,
+                    cli.nombre        AS cliente,
+                    cli.razon_social  AS empresa
+                FROM (
+                    SELECT
+                        p.ejercicio,
+                        tp.nombretipoperiodo AS tipoPeriodo,
+                        p.numeroperiodo     AS periodo
+                    FROM nom10002 p
+                    INNER JOIN nom10023 tp
+                        ON p.idtipoperiodo = tp.idtipoperiodo
+                    WHERE p.idperiodo = @idPeriodo
+                ) per
+                CROSS JOIN (
+                    SELECT
+                        cliente.nombre,
+                        empresa.razon_social AS razon_social
+                    FROM [becma-core2].dbo.nomina_gape_cliente AS cliente
+                    INNER JOIN [becma-core2].dbo.nomina_gape_empresa AS empresa
+                        ON cliente.id = empresa.id_nomina_gape_cliente
+                    WHERE empresa.id = @idNominaGapeEmpresa
+                ) cli;
+            ";
+
+            //return $sql;
+
+            $result = collect(DB::connection('sqlsrv_dynamic')->select($sql))
+                ->map(fn($row) => (array) $row)
+                ->first();
+
+
+            return $result;
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
+    private function datosEncabezadoQueryExcedente(Request $request)
+    {
+        try {
+            $idNominaGapeEmpresa = $request->id_nomina_gape_empresa;
+
+            $sql = "
+                DECLARE @idNominaGapeEmpresa INT;
+
+                SET @idNominaGapeEmpresa = $idNominaGapeEmpresa;
+
+                SELECT
+                    cliente.nombre AS cliente
+                    , empresa.razon_social AS empresa
+                FROM nomina_gape_cliente AS cliente
+                INNER JOIN nomina_gape_empresa AS empresa
+                    ON cliente.id = empresa.id_nomina_gape_cliente
+                WHERE empresa.id = @idNominaGapeEmpresa
+            ";
+
+            $result = collect(DB::select($sql))
+                ->map(fn($row) => (array) $row)
+                ->first();
+
+
+            return $result;
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
 
     /**
      * Consulta para formato fiscal/mixto.

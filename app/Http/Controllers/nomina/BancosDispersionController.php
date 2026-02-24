@@ -26,11 +26,11 @@ use App\Models\nomina\default\Empresa;
 use Maatwebsite\Excel\Facades\Excel;
 
 use App\Exports\FondeadoraExport;
-use App\Exports\AztecaBancarioExport;
+use App\Exports\AztecaTerceroExport;
 use App\Exports\AztecaInterbancarioExport;
 use App\Exports\BanorteTerceroExport;
 use App\Exports\BanorteInterbancarioExport;
-
+use App\Exports\TarjetaFacilExport;
 use App\Http\Services\Core\HelperService;
 
 use App\Http\Services\Nomina\Export\Dispersion\ConfigDispersionService;
@@ -49,6 +49,9 @@ class BancosDispersionController extends Controller
         $columnasFijas = [
             'codigoempleado',
             'nombre',
+            'ap',
+            'am',
+            'nombreCompleto',
             'rfc',
             'claveBanco',
             'cuentaPagoElectronico',
@@ -80,6 +83,9 @@ class BancosDispersionController extends Controller
             $resultado[] = [
                 'codigoempleado'            => $row['codigoempleado'],
                 'nombre'                    => $row['nombre'],
+                'ap'                        => $row['ap'],
+                'am'                        => $row['am'],
+                'nombreCompleto'            => $row['nombreCompleto'],
                 'rfc'                       => $row['rfc'],
                 'claveBanco'                => $row['claveBanco'],
                 'cuentaPagoElectronico'     => $row['cuentaPagoElectronico'],
@@ -284,7 +290,7 @@ class BancosDispersionController extends Controller
 
                         // Terceros 02
 
-                        $filenameTerceros = "{$baseName}_terceros.xlsx";
+                        $filenameTerceros = "{$baseName}_terceros.csv";
                         $relativeTmpTerceros = "{$tmpDir}/{$filenameTerceros}";
 
                         $ordenante = $this->datosEmpresaNomina();
@@ -306,7 +312,7 @@ class BancosDispersionController extends Controller
 
                         // Interbancarios 04
 
-                        $filenameInter = "{$baseName}_interbancarios.xlsx";
+                        $filenameInter = "{$baseName}_interbancarios.csv";
                         $relativeTmpInter = "{$tmpDir}/{$filenameInter}";
 
                         Excel::store(
@@ -325,77 +331,76 @@ class BancosDispersionController extends Controller
                         $zip->addFile($absoluteTmpInter, $filenameInter);
 
                         break;
-                    case 'Azteca Bancario':
-                        $filename = "AZTECA_BANCARIO_{$esquemaBanco}.xlsx";
+                    case 'Azteca':
+                        // Terceros 02
+                        $filenameTerceros = "{$baseName}_terceros.xlsx";
+                        $relativeTmpTerceros = "{$tmpDir}/{$filenameTerceros}";
+                        $ordenante = $this->datosEmpresaNomina();
 
                         Excel::store(
-                            new AztecaBancarioExport(
+                            new AztecaTerceroExport(
                                 collect($detalleFiltrado),
                                 $configBanco->azteca_cuenta_origen,
-                                'ordenanteNombreEmpresaFiscal',
-                                'ordenanteRFC'
+                                $ordenante->NombreEmpresaFiscal,
+                                $ordenante->rfc,
+                                $concepto
                             ),
-                            "public/{$filename}",
-                            null,
-                            \Maatwebsite\Excel\Excel::XLSX
+                            $relativeTmpTerceros,
+                            'public'
                         );
 
-                        $zip->addFile(storage_path("app/public/{$filename}"), $filename);
+                        $absoluteTmpTercero = storage_path("app/public/{$relativeTmpTerceros}");
 
-                        /*
-                        return Excel::download(
-                            new AztecaBancarioExport(collect($detalleFiltrado), $configBanco->azteca_cuenta_origen, "ordenanteNombreEmpresaFiscal", "ordenanteRFC"),
-                            'dispersion_bancaria.xlsx',
-                            \Maatwebsite\Excel\Excel::XLSX
-                        );
-                        */
-                        break;
-                    case 'Azteca Interbancario':
-                        $filename = "AZTECA_INTERBANCARIO_{$esquemaBanco}.xlsx";
+                        $zip->addFile($absoluteTmpTercero, $filenameTerceros);
+
+                        // Interbancarios 04
+
+                        $filenameInter = "{$baseName}_interbancarios.xlsx";
+                        $relativeTmpInter = "{$tmpDir}/{$filenameInter}";
 
                         Excel::store(
                             new AztecaInterbancarioExport(
                                 collect($detalleFiltrado),
                                 $configBanco->azteca_cuenta_origen,
-                                'ordenanteNombreEmpresaFiscal',
-                                'ordenanteRFC'
+                                $ordenante->NombreEmpresaFiscal,
+                                $ordenante->rfc,
+                                $concepto
                             ),
-                            "public/{$filename}",
-                            null,
-                            \Maatwebsite\Excel\Excel::XLSX
+                            $relativeTmpInter,
+                            'public'
                         );
 
-                        $zip->addFile(storage_path("app/public/{$filename}"), $filename);
+                        $absoluteTmpInter = storage_path("app/public/{$relativeTmpInter}");
 
-                        /*
-                        return Excel::download(
-                            new AztecaInterbancarioExport(collect($detalleFiltrado), $configBanco->azteca_cuenta_origen, "ordenanteNombreEmpresaFiscal", "ordenanteRFC"),
-                            'dispersion_interbancaria.xlsx',
-                            \Maatwebsite\Excel\Excel::XLSX
-                        );
-                        */
+                        $zip->addFile($absoluteTmpInter, $filenameInter);
+
                         break;
                     case 'Tarjeta facil':
-                        /*
-                        return Excel::download(
-                            new AztecaInterbancarioExport(collect($detalleFiltrado), $configBanco->azteca_cuenta_origen, "ordenanteNombreEmpresaFiscal", "ordenanteRFC"),
-                            'dispersion_interbancaria.xlsx',
-                            \Maatwebsite\Excel\Excel::XLSX
+                        $filename = "{$baseName}.xlsx";
+                        $relativeTmp = "{$tmpDir}/{$filename}";
+                        $ordenante = $this->datosEmpresaNomina();
+                        Excel::store(
+                            new TarjetaFacilExport(collect($detalleFiltrado), $ordenante->NombreEmpresaFiscal),
+                            $relativeTmp,
+                            'public'
                         );
-                        break;
-                        */
+
+                        $absoluteTmp = storage_path("app/public/{$relativeTmp}");
+
+                        $zip->addFile($absoluteTmp, $filename);
                 }
             }
         }
 
         $zip->close();
 
-        // borra SOLO la carpeta de esta petición
-        // Storage::disk('public')->deleteDirectory("dispersion_tmp/{$requestId}");
+        register_shutdown_function(function () use ($tmpDir) {
+            Storage::disk('public')->deleteDirectory($tmpDir);
+        });
 
-        /*return response()
-            ->download($zipPath);
-            */
+        return response()
+            ->download($zipPath)
+            ->deleteFileAfterSend(true);
     }
 
     private function getIndices(array $data): array
@@ -476,8 +481,7 @@ class BancosDispersionController extends Controller
                             ' : ',
                             ngb.banco,
                             nomina_gape_banco_configuracion_esquema.azteca_cuenta_origen,
-                            nomina_gape_banco_configuracion_esquema.banorte_cuenta_origen,
-                            nomina_gape_banco_configuracion_esquema.banorte_clave_banco
+                            nomina_gape_banco_configuracion_esquema.banorte_cuenta_origen
                         ) as descripcion
                     "),
                 ])

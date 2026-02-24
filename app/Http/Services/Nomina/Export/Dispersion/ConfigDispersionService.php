@@ -22,17 +22,17 @@ class ConfigDispersionService
             ],
             'SINDICATO' => [
                 'queries' => [
-                    'detalle'       => 'datosSindicato_1',
+                    'detalle'       => 'detalle_sindicato',
                 ],
             ],
             'TARJETA_FACIL' => [
                 'queries' => [
-                    'detalle'       => 'datosTarjetaFacil_1',
+                    'detalle'       => 'detalle_tarjeta_facil',
                 ],
             ],
             'GASTOS_POR_COMPROBAR' => [
                 'queries' => [
-                    'detalle'       => 'datosGastosPorComprobar_1',
+                    'detalle'       => 'detalle_gastos_por_comprobar',
                 ],
             ],
         ];

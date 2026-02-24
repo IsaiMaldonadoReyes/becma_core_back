@@ -13,24 +13,19 @@ class NominaGapeBancoConfiguracionEsquema extends Model
     protected $primaryKey = 'id';
     protected $table = 'nomina_gape_banco_configuracion_esquema';
 
+    protected $fillable = [
+        'estado',
+        'id_nomina_gape_banco',
+        'id_nomina_gape_cliente',
+        'id_nomina_gape_empresa',
+        'id_nomina_gape_esquema',
+        'activo_dispersion',
+        'azteca_cuenta_origen',
+        'banorte_cuenta_origen',
+    ];
+
     protected $casts = [
         'id' => 'integer',
         'activo_dispersion' => 'boolean',
     ];
-
-    public function banco()
-    {
-        return $this->belongsTo(
-            NominaGapeBanco::class,
-            'id_nomina_gape_banco'
-        );
-    }
-
-    public function esquema()
-    {
-        return $this->belongsTo(
-            NominaGapeEsquema::class,
-            'id_nomina_gape_esquema'
-        );
-    }
 }

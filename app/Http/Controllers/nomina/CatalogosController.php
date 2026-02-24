@@ -805,6 +805,29 @@ class CatalogosController extends Controller
             $conexion = $this->helperController->getConexionDatabaseNGE($idNominaGapeEmpresa, 'Nom');
             $this->helperController->setDatabaseConnection($conexion, $conexion->nombre_base);
 
+
+            $ejercicio = Periodo::from('nom10008 AS mact')
+                ->join('nom10002 as periodo', function ($join) use ($idTipoPeriodo) {
+                    $join->on('mact.idperiodo', '=', 'periodo.idperiodo')
+                        ->where('periodo.idtipoperiodo', $idTipoPeriodo);
+                })
+                ->select([
+                    'periodo.ejercicio'
+                ])
+                ->groupBy('periodo.ejercicio')
+                ->get();
+
+            $ejercicioActivo = Periodo::from('nom10008 AS mact')
+                ->join('nom10002 as periodo', function ($join) use ($idTipoPeriodo) {
+                    $join->on('mact.idperiodo', '=', 'periodo.idperiodo')
+                        ->where('periodo.idtipoperiodo', $idTipoPeriodo);
+                })
+                ->select([
+                    'periodo.idperiodo'
+                ])
+                ->groupBy('periodo.idperiodo')
+                ->first();
+            /*
             $ejercicio = Periodo::select('ejercicio')
                 ->where('idtipoperiodo', $idTipoPeriodo)
                 ->where('afectado', 0)
@@ -819,6 +842,7 @@ class CatalogosController extends Controller
                 ->orderBy('ejercicio')
                 ->orderBy('numeroperiodo')
                 ->first();
+            */
 
             // 6️⃣ Estructurar respuesta
             return response()->json([

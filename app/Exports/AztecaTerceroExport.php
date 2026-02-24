@@ -9,7 +9,7 @@ use Maatwebsite\Excel\Concerns\WithCustomCsvSettings;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Excel;
 
-class AztecaInterbancarioExport implements FromCollection, WithHeadings
+class AztecaTerceroExport implements FromCollection, WithHeadings
 {
     use Exportable;
 
@@ -31,7 +31,7 @@ class AztecaInterbancarioExport implements FromCollection, WithHeadings
     public function collection(): Collection
     {
         return $this->data
-            ->filter(fn($row) => ($row['claveBanco'] ?? null) !== '127')
+            ->filter(fn($row) => ($row['claveBanco'] ?? null) === '127')
             ->map(fn($row) => $this->buildRow($row))
             ->values(); // 🔑 reindexa
     }
@@ -45,7 +45,7 @@ class AztecaInterbancarioExport implements FromCollection, WithHeadings
             $this->concepto,
             $this->formatAmount($row['importe'] ?? 0),
             'MXP',
-            $row['claveBanco'],
+            '127',
             '40',
             "'" . $row['clabeInterbancaria'],
             $this->cleanText($row['nombreCompleto'], 40),
@@ -53,7 +53,7 @@ class AztecaInterbancarioExport implements FromCollection, WithHeadings
             $row['rfc'],
             '0.00',
             '',
-            '01'
+            '03'
         ];
     }
 
@@ -95,6 +95,7 @@ class AztecaInterbancarioExport implements FromCollection, WithHeadings
             'Tipo de Pago',
         ];
     }
+
     /*
     public function getCsvSettings(): array
     {
@@ -104,9 +105,8 @@ class AztecaInterbancarioExport implements FromCollection, WithHeadings
         ];
     }
     */
-
     public function title(): string
     {
-        return 'Azteca interbancario';
+        return 'Azteca Terceros';
     }
 }
