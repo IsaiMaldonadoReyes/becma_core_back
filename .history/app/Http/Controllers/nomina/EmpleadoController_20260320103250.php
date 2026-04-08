@@ -5,7 +5,6 @@ namespace App\Http\Controllers\nomina;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\nomina\gape\Empleado\StoreEmpleadoRequest;
 use App\Http\Requests\nomina\gape\Empleado\StoreNoFiscalRequest;
-use App\Http\Requests\nomina\gape\Empleado\DescargarFormatoRequest;
 use Illuminate\Http\Request;
 
 // Importar modelos necesarios
@@ -1388,10 +1387,12 @@ class EmpleadoController extends Controller
         $comentario->setHeight('100pt');
 
         $validation->setPromptTitle('Seleccione turno de trabajo');
-        $validation->setPrompt("Seleccione el turno");
+        //$validation->setPrompt("Seleccione el turno");
         $validation->setShowInputMessage(true);
 
-
+        $validation = new \PhpOffice\PhpSpreadsheet\Cell\DataValidation();
+        $validation->setType(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::TYPE_LIST);
+        $validation->setFormula1('"Sí,No"');
 
         $sheet->setDataValidation('E2:E1000', $validation);
 
@@ -1417,23 +1418,6 @@ class EmpleadoController extends Controller
         $response->headers->set('Pragma', 'public');
 
         return $response;
-    }
-
-    public function descargarFormato1(DescargarFormatoRequest $request)
-    {
-        $empresaId = $request->empresa_id;
-
-        $config = ConfigFormatoEmpleadosService::getConfig($request->fiscal);
-
-        $spreadsheet = $this->loadTemplate($config['path']);
-
-        $catalogos = CatalogosBuilderService::build($spreadsheet, $empresaId);
-
-        $spreadsheet = ExcelLayoutBuilderService::build($config, $catalogos);
-
-        return response()->streamDownload(function () use ($spreadsheet) {
-            IOFactory::createWriter($spreadsheet, 'Xlsx')->save('php://output');
-        }, 'formato_empleados.xlsx');
     }
 
 

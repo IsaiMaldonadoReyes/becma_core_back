@@ -5,7 +5,6 @@ namespace App\Http\Controllers\nomina;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\nomina\gape\Empleado\StoreEmpleadoRequest;
 use App\Http\Requests\nomina\gape\Empleado\StoreNoFiscalRequest;
-use App\Http\Requests\nomina\gape\Empleado\DescargarFormatoRequest;
 use Illuminate\Http\Request;
 
 // Importar modelos necesarios
@@ -1340,7 +1339,7 @@ class EmpleadoController extends Controller
         // ...
 
         // 3.1 LISTA DESPLEGABLE COLUMNA R (Matutino / Vespertino)
-        $validation = new DataValidation();
+        /*$validation = new DataValidation();
         $validation->setType(DataValidation::TYPE_LIST);
         $validation->setErrorStyle(DataValidation::STYLE_STOP);
         $validation->setAllowBlank(true);
@@ -1351,11 +1350,10 @@ class EmpleadoController extends Controller
         $validation->setFormula1('"Semanal,Catorcenal,Quincenal,Mensual"');
 
         // Aplica desde R2 hasta R1000 (ajusta según tu layout)
-        $sheet->setDataValidation('R1:R1000', $validation);
+        $sheet->setDataValidation('I1:I1000', $validation);*/
 
 
-        // Validar que el formato de la fecha sea correcto
-        /*$validation = new DataValidation();
+        $validation = new DataValidation();
         $validation->setType(DataValidation::TYPE_DATE);
         $validation->setOperator(DataValidation::OPERATOR_GREATERTHAN);
         $validation->setFormula1('DATE(2000,1,1)');
@@ -1373,7 +1371,7 @@ class EmpleadoController extends Controller
 
         $sheet->getStyle('D2:D1000')
             ->getNumberFormat()
-            ->setFormatCode('dd/mm/yyyy');*/
+            ->setFormatCode('dd/mm/yyyy');
 
         $comentario = $sheet->getComment('R1');
 
@@ -1386,14 +1384,6 @@ class EmpleadoController extends Controller
 
         $comentario->setWidth('200pt');
         $comentario->setHeight('100pt');
-
-        $validation->setPromptTitle('Seleccione turno de trabajo');
-        $validation->setPrompt("Seleccione el turno");
-        $validation->setShowInputMessage(true);
-
-
-
-        $sheet->setDataValidation('E2:E1000', $validation);
 
 
         // 4. DESCARGA
@@ -1417,23 +1407,6 @@ class EmpleadoController extends Controller
         $response->headers->set('Pragma', 'public');
 
         return $response;
-    }
-
-    public function descargarFormato1(DescargarFormatoRequest $request)
-    {
-        $empresaId = $request->empresa_id;
-
-        $config = ConfigFormatoEmpleadosService::getConfig($request->fiscal);
-
-        $spreadsheet = $this->loadTemplate($config['path']);
-
-        $catalogos = CatalogosBuilderService::build($spreadsheet, $empresaId);
-
-        $spreadsheet = ExcelLayoutBuilderService::build($config, $catalogos);
-
-        return response()->streamDownload(function () use ($spreadsheet) {
-            IOFactory::createWriter($spreadsheet, 'Xlsx')->save('php://output');
-        }, 'formato_empleados.xlsx');
     }
 
 

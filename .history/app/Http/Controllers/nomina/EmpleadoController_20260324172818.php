@@ -1311,7 +1311,7 @@ class EmpleadoController extends Controller
     /**
      * Descargar formato base para importación masiva de empleados
      */
-    public function descargaFormato(
+    public function descargaFormato1(
         Request $request,
         //IncidenciasQueryService $queryService,
         //ExportIncidenciasService $exporter
@@ -1388,7 +1388,7 @@ class EmpleadoController extends Controller
         $comentario->setHeight('100pt');
 
         $validation->setPromptTitle('Seleccione turno de trabajo');
-        $validation->setPrompt("Seleccione el turno");
+        //$validation->setPrompt("Seleccione el turno");
         $validation->setShowInputMessage(true);
 
 
@@ -1419,13 +1419,13 @@ class EmpleadoController extends Controller
         return $response;
     }
 
-    public function descargarFormato1(DescargarFormatoRequest $request)
+    public function descargarFormato(DescargarFormatoRequest $request)
     {
         $empresaId = $request->empresa_id;
 
         $config = ConfigFormatoEmpleadosService::getConfig($request->fiscal);
 
-        $spreadsheet = $this->loadTemplate($config['path']);
+        $spreadsheet = new Spreadsheet();
 
         $catalogos = CatalogosBuilderService::build($spreadsheet, $empresaId);
 

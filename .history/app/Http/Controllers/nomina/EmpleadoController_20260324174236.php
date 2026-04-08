@@ -1388,7 +1388,7 @@ class EmpleadoController extends Controller
         $comentario->setHeight('100pt');
 
         $validation->setPromptTitle('Seleccione turno de trabajo');
-        $validation->setPrompt("Seleccione el turno");
+        //$validation->setPrompt("Seleccione el turno");
         $validation->setShowInputMessage(true);
 
 

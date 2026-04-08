@@ -57,21 +57,16 @@ class ConfigFormatoEmpleadosService
                 'tipoDeColumna'                 => 'texto',
                 'validacion'                    => [
                     'esRequerido'                   => true,
-                    'valorMinimoRequerido'          => '6',
-                    'valorMaximoRequerido'          => '6',
-                    'formatoEnExcel'                => '@',
-                    'ayudaCeldaTitulo'              => 'Formato requerido',
-                    'ayudaCeldaTexto'               => 'El código debe llevar 6 caracteres',
-                    'comentarioTexto'               => 'Ingresa un código valido',
+                    'formato'                       => '@',
+                    'ayudaCeldaTitulo'              => 'Ingresa el código a partir del último generado',
+                    'ayudaCeldaTexto'               => 'Ingresa el código a partir del último generado',
+                    'comentarioTexto'               => 'Ingresa el código a partir del último generado',
                 ],
-                'mapeoOrigenBD'                       => [
-                    'mapeoTabla'                        => '',
-                    'mapeoCampo'                        => '',
+                'fuente'                        => [
+                    'tipo'                          => 'catalogo',
+                    'origen'                        => 'departamentos',
                 ],
-                'mapeoDestinoBD'                      => [
-                    'mapeoTabla'                        => 'adEmpleado',
-                    'mapeoCampo'                        => 'codigo',
-                ],
+                'mapeoBD'                       => 'id_departamento',
             ],
             [
                 'key'                           => 'fechaAlta',
@@ -82,21 +77,16 @@ class ConfigFormatoEmpleadosService
                 'tipoDeColumna'                 => 'fecha',
                 'validacion'                    => [
                     'esRequerido'                   => true,
-                    'valorMinimoRequerido'          => '01/01/2000',
-                    'valorMaximoRequerido'          => '01/04/2026',
-                    'formatoEnExcel'                => 'dd/mm/yyyy',
-                    'ayudaCeldaTitulo'              => 'Formato requerido',
-                    'ayudaCeldaTexto'               => 'Ingrese una fecha válida en formato dd/mm/yyyy',
-                    'comentarioTexto'               => 'Ingresa la fecha de alta valida',
+                    'formato'                       => '@',
+                    'ayudaCeldaTitulo'              => 'Ingresa el código a partir del último generado',
+                    'ayudaCeldaTexto'               => 'Ingresa el código a partir del último generado',
+                    'comentarioTexto'               => 'Ingresa el código a partir del último generado',
                 ],
-                'mapeoOrigenBD'                       => [
-                    'mapeoTabla'                        => '',
-                    'mapeoCampo'                        => '',
+                'fuente'                        => [
+                    'tipo'                          => 'catalogo',
+                    'origen'                        => 'departamentos',
                 ],
-                'mapeoDestinoBD'                      => [
-                    'mapeoTabla'                        => 'adEmpleado',
-                    'mapeoCampo'                        => 'codigo',
-                ],
+                'mapeoBD'                       => 'id_departamento',
             ],
         ];
     }
