@@ -22,6 +22,7 @@ class NominaGapeEmpresa extends Model
         'mascara_codigo',
         'codigo_inicial',
         'codigo_actual',
+        'formula_con_falta',
     ];
 
     public $timestamps = true;
@@ -31,5 +32,6 @@ class NominaGapeEmpresa extends Model
         'fiscal' => 'boolean',
         'id_nomina_gape_cliente' => 'integer',
         'id_empresa_database' => 'integer',
+        'formula_con_falta' => 'boolean',
     ];
 }

@@ -493,6 +493,7 @@ class CatalogosController extends Controller
                 )
                 ->where('ngepcp.id_nomina_gape_cliente', $idCliente)
                 ->where('ngepcp.id_nomina_gape_empresa', $idEmpresa)
+                ->where('ngcec.id_nomina_gape_empresa', $idEmpresa)
                 ->where('ngcec.id_nomina_gape_cliente', $idCliente)
                 // 🔥 AQUÍ VA EL OR
                 ->where(function ($q) use ($idTipoPeriodo) {

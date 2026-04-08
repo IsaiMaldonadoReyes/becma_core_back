@@ -140,7 +140,7 @@ class EmpresaController extends Controller
 
     public function store(Request $request, HelperService $helper)
     {
-
+        //return true;
         DB::beginTransaction();
 
         try {
@@ -154,34 +154,36 @@ class EmpresaController extends Controller
             $empresa = NominaGapeEmpresa::create($empresaData);
             $idEmpresa = $empresa->id;
 
+            $formulaFalta = $empresaData['formula_con_falta'] ?? false;
+
             $conexion = $helper->getConexionDatabaseNGE($idEmpresa, 'Nom');
 
-            if (!empty($conexion)) {
-                $helper->setDatabaseConnection($conexion, $conexion->nombre_base);
+            $helper->setDatabaseConnection($conexion, $conexion->nombre_base);
 
-                // 1️⃣ Obtener conceptos tipo obligación existentes
+            if (!empty($conexion)) {
+                // 1️⃣ Conceptos existentes tipo obligación
                 $conceptosExistentes = Conceptos::where('tipoconcepto', 'O')
                     ->pluck('numeroconcepto')
                     ->toArray();
 
-                // 2️⃣ Obtener fórmulas configuradas
-                $formulasContpaq = NominaGapeFormulasContpaq::all();
+                // 2️⃣ Fórmulas configuradas
+                $formulasContpaq = NominaGapeFormulasContpaq::all()->sortBy('numeroconcepto');
 
-                // 3️⃣ Filtrar solo los que NO existan
+                // 3️⃣ Insertar conceptos que no existan (sin reemplazos aún)
                 $conceptosParaInsertar = $formulasContpaq
                     ->whereNotIn('numeroconcepto', $conceptosExistentes)
-                    ->map(function ($item) {
+                    ->map(function ($item) use ($formulaFalta) {
 
                         return [
-                            'numeroconcepto'      => $item->numeroconcepto,
-                            'tipoconcepto'        => 'O',
-                            'descripcion'         => $item->titulo,
-                            'especie'             => 0,
-                            'automaticoglobal'    => 1,
+                            'numeroconcepto' => $item->numeroconcepto,
+                            'tipoconcepto'   => 'O',
+                            'descripcion'    => $item->titulo,
+                            'especie'        => 0,
+                            'automaticoglobal' => 1,
                             'automaticoliquidacion' => 0,
-                            'imprimir'            => 1,
-                            'articulo86'          => 0,
-                            'leyendaimporte1'     => $item->descripcion,
+                            'imprimir'       => 1,
+                            'articulo86'     => 0,
+                            'leyendaimporte1' => $item->descripcion,
                             'leyendaimporte2'     => '',
                             'leyendaimporte3'     => '',
                             'leyendaimporte4'     => '',
@@ -191,13 +193,15 @@ class EmpresaController extends Controller
                             'contabcuentacw'      => 'G',
                             'contabcontracuentacw' => 'G',
                             'leyendavalor'        => '',
-                            'formulaimportetotal' => $item->formulaimportetotal,
-                            'formulaimporte1'     => '0',
-                            'formulaimporte2'     => '0',
-                            'formulaimporte3'     => '0',
-                            'formulaimporte4'     => '0',
-                            'timestamp'           => now(),
-                            'FormulaValor'        => '0',
+                            'formulaimportetotal' => $formulaFalta
+                                ? $item->formula_sin_faltas
+                                : $item->formulaimportetotal,
+                            'formulaimporte1' => '0',
+                            'formulaimporte2' => '0',
+                            'formulaimporte3' => '0',
+                            'formulaimporte4' => '0',
+                            'timestamp'      => now(),
+                            'FormulaValor'   => '0',
                             'CuentaGravado'       => '',
                             'CuentaExentoDeduc'   => '',
                             'CuentaExentoNoDeduc' => '',
@@ -210,10 +214,75 @@ class EmpresaController extends Controller
                     ->values()
                     ->toArray();
 
-                // 4️⃣ Insert masivo si hay registros
                 if (!empty($conceptosParaInsertar)) {
                     Conceptos::insert($conceptosParaInsertar);
                 }
+
+                // 4️⃣ Volver a cargar TODOS los conceptos ya con IDs reales
+                $conceptos = Conceptos::get()->keyBy('numeroconcepto');
+
+                // 5️⃣ Definir reglas de reemplazo centralizadas
+                $reemplazos = [
+                    '8000' => [
+                        '165' => '6001',
+                        '160' => '4000',
+                    ],
+                    '8001' => [
+                        '162' => '5000',
+                        '164' => '6000',
+                        '166' => '7000',
+                        '169' => '7003',
+                    ],
+                    '8002' => [
+                        '163' => '5001',
+                        '167' => '7001',
+                        '168' => '7002',
+                        '170' => '7004',
+                        '161' => '4001',
+                        '158' => '4003',
+                        '171' => '7005',
+                    ],
+                ];
+
+                // 6️⃣ Actualizar fórmulas con IDs reales
+                foreach ($reemplazos as $conceptoPadre => $dependencias) {
+
+                    if (!isset($conceptos[$conceptoPadre])) {
+                        continue;
+                    }
+
+                    $concepto = $conceptos[$conceptoPadre];
+                    $formula = $concepto->formulaimportetotal;
+
+                    foreach ($dependencias as $placeholder => $numeroConcepto) {
+
+                        if (isset($conceptos[$numeroConcepto])) {
+                            $formula = str_replace(
+                                $placeholder,
+                                $conceptos[$numeroConcepto]->idconcepto,
+                                $formula
+                            );
+                        }
+                    }
+
+                    $concepto->update([
+                        'formulaimportetotal' => $formula
+                    ]);
+                }
+
+                DB::connection('sqlsrv_dynamic')->statement("
+                    INSERT INTO nom10005 (
+                        idempleado,
+                        idconcepto
+                    )
+                    SELECT
+                        e.idempleado,
+                        c.idconcepto
+                    FROM nom10001 e
+                    CROSS JOIN nom10004 c
+                    WHERE c.numeroconcepto >= 4000 AND c.numeroconcepto <= 8002
+                    AND c.tipoconcepto = 'O'
+                ");
             }
 
             /* =========================================================
@@ -920,7 +989,11 @@ class EmpresaController extends Controller
     public function tipoPeriodo(Request $request, HelperService $helper)
     {
         try {
-            $idEmpresaDatabase = $request->input('idEmpresaDatabase');
+            $validated = $request->validate([
+                'idEmpresaDatabase'     => 'nullable',
+            ]);
+
+            $idEmpresaDatabase = $validated['idEmpresaDatabase'];
 
             $tipoPeriodo = null;
             if (empty($idEmpresaDatabase)) {
@@ -1070,6 +1143,7 @@ class EmpresaController extends Controller
                     '170' => '7004',
                     '161' => '4001',
                     '158' => '4003',
+                    '171' => '7005',
                 ],
             ];
 

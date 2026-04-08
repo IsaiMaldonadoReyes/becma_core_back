@@ -73,6 +73,7 @@ class IncidenciaController extends Controller
             )
             ->where('ngepcp.id_nomina_gape_cliente', $idCliente)
             ->where('ngepcp.id_nomina_gape_empresa', $idEmpresa)
+            ->where('ngcec.id_nomina_gape_empresa', $idEmpresa)
             ->where('ngcec.id_nomina_gape_cliente', $idCliente)
             ->where('ngepcp.idtipoperiodo', $idTipoPeriodo)
             ->whereIn('ngcec.combinacion', $idEsquemas)
