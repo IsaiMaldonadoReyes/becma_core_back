@@ -7,10 +7,6 @@ use App\Http\Controllers\core\SistemaController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\core\EmpresaController;
 
-use App\Http\Controllers\comercial\Rpt2VentasPorMarcaController;
-use App\Http\Controllers\comercial\RptPresupuestoController;
-use App\Http\Controllers\comercial\RptVentasPorConceptoController;
-
 use App\Http\Controllers\nomina\CatalogosController;
 use App\Http\Controllers\nomina\DispersionController;
 use App\Http\Controllers\nomina\EmpleadoController;
@@ -22,8 +18,6 @@ use App\Http\Controllers\nomina\BancosDispersionController;
 use App\Http\Controllers\nomina\ParametrizacionController;
 use App\Http\Controllers\nomina\PrenominaController;
 
-
-use App\Http\Controllers\comercial\KioscoController;
 use App\Http\Controllers\nomina\IncidenciaController;
 
 Route::get('/', function () {
@@ -36,27 +30,6 @@ Route::post('login', [AuthController::class, 'login'])->middleware('web');
 Route::post('logout', [AuthController::class, 'logout'])->middleware('web');
 
 //Route::post('register', [AuthController::class, 'register']);
-
-
-
-
-// kiosco
-
-Route::post('empresas', [KioscoController::class, 'empresas']);
-Route::post('catalogos', [KioscoController::class, 'catalogos']);
-Route::post('listaCodigoPostal', [KioscoController::class, 'listaCodigoPostal']);
-Route::post('direccion', [KioscoController::class, 'direccion']);
-Route::post('cliente', [KioscoController::class, 'getCliente']);
-
-Route::post('validarTicket', [KioscoController::class, 'validarTicket']);
-Route::post('estatusTicket', [KioscoController::class, 'getEstatusTicket']);
-
-Route::post('upsetTicket', [KioscoController::class, 'upsetTicket']);
-Route::post('eliminarTicket', [KioscoController::class, 'deleteTicket']);
-
-Route::post('descargarPdf', [KioscoController::class, 'descargarPdf']);
-Route::post('descargarXml', [KioscoController::class, 'descargarXml']);
-
 
 
 Route::get('/user', function (Request $request) {
@@ -78,26 +51,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 
     // empresas
-
-    Route::post('rptEmpresas', [EmpresaController::class, 'rptEmpresas']);
-
-    // Rpt2 = Ventas por marcas
-    Route::post('labelRpt2', [Rpt2VentasPorMarcaController::class, 'label']);
-    Route::post('dataRpt2', [Rpt2VentasPorMarcaController::class, 'dataset']);
-    Route::post('marcasRpt2', [Rpt2VentasPorMarcaController::class, 'marcas']);
-
-    // Rpt3 = Ventas por conceptos
-    Route::post('conceptosRpt3', [RptVentasPorConceptoController::class, 'conceptosFacturaComercial']);
-    Route::post('labelRpt3', [RptVentasPorConceptoController::class, 'label']);
-    Route::post('dataRpt3', [RptVentasPorConceptoController::class, 'dataset']);
-
-    // Rpt5 = Presupuestos
-    Route::post('ejerciciosRpt5', [RptPresupuestoController::class, 'ejercicios']);
-    Route::post('marcasRpt5', [RptPresupuestoController::class, 'marcas']);
-    Route::post('agentesRpt5', [RptPresupuestoController::class, 'agentes']);
-    Route::post('dataRpt5', [RptPresupuestoController::class, 'dataset']);
-    Route::post('dataRpt5Individual', [RptPresupuestoController::class, 'presupuestoIndividual']);
-
 
     Route::post('exportExcel', [ExportController::class, 'exportExcel']);
 
@@ -122,7 +75,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::prefix('nominaGapeEmpresa')->group(function () {
         Route::get('index', [NominaEmpresaController::class, 'index']);
         Route::post('store', [NominaEmpresaController::class, 'store']);
+        Route::post('crearFormulasContpaq', [NominaEmpresaController::class, 'crearFormulasContpaq']);
         Route::put('update/{id}', [NominaEmpresaController::class, 'update']);
+        Route::post('show/{id}', [NominaEmpresaController::class, 'show']);
 
         Route::post('sinAsignar', [NominaEmpresaController::class, 'empresasNominasSinAsginar']);
         Route::post('asignadasACliente', [NominaEmpresaController::class, 'asignadasACliente']);
@@ -130,6 +85,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
         Route::post('datosNominasPorCliente', [NominaEmpresaController::class, 'empresaDatosNominaPorCliente']);
         Route::post('datosNominasPorClienteId', [NominaEmpresaController::class, 'empresaDatosNominaPorClienteId']);
+
+        Route::post('tipoPeriodo', [NominaEmpresaController::class, 'tipoPeriodo']);
+        Route::post('conceptoPrevision', [NominaEmpresaController::class, 'conceptoPrevision']);
     });
 
 

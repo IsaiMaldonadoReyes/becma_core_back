@@ -34,6 +34,12 @@ class NominaGapeEmpleado extends Model
         'idturno' => 'integer',
         'cidregistropatronal' => 'integer',
         'id_nomina_gape_esquema' => 'integer',
+
+        'ccampoextranumerico1' => 'float',
+        'ccampoextranumerico2' => 'float',
+        'ccampoextranumerico3' => 'float',
+        'ccampoextranumerico4' => 'float',
+        'ccampoextranumerico5' => 'float',
     ];
 
     protected $fillable = [

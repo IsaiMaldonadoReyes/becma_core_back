@@ -7,12 +7,8 @@ use Illuminate\Http\Request;
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 use Illuminate\Support\Facades\DB;
-
-use App\Http\Controllers\core\HelperController;
 
 // refactor
 use App\Http\Services\Core\HelperService;
@@ -23,14 +19,6 @@ use App\Http\Services\Nomina\Export\Prenomina\ExportPrenominaService;
 
 class PrenominaController extends Controller
 {
-
-    protected $helperController;
-
-    public function __construct(helperController $helperController)
-    {
-        $this->helperController = $helperController;
-    }
-
     public function prenomina(
         Request $request,
         HelperService $helper,
@@ -46,8 +34,10 @@ class PrenominaController extends Controller
             'id_nomina_gape_cliente' => 'required',
             'id_nomina_gape_empresa' => 'required',
             'id_esquema'             => 'required|array|min:1',
+            'id_tipo_periodo'        => 'nullable',
         ]);
 
+        $idTipoPeriodo = $validated['id_tipo_periodo'] ?? null;
         $idCliente = $validated['id_nomina_gape_cliente'];
         $idEmpresa = $validated['id_nomina_gape_empresa'];
         $idEsquemas = array_map('intval', $validated['id_esquema']);
@@ -76,6 +66,7 @@ class PrenominaController extends Controller
             ->where('ngepcp.id_nomina_gape_cliente', $idCliente)
             ->where('ngepcp.id_nomina_gape_empresa', $idEmpresa)
             ->where('ngcec.id_nomina_gape_cliente', $idCliente)
+            ->where('ngepcp.idtipoperiodo', $idTipoPeriodo)
             ->whereIn('ngcec.combinacion', $idEsquemas)
             ->where('ngcec.orden', 1)
             ->select('nge.esquema', 'ngcec.combinacion AS id', 'nge.id AS id_nomina_gape_esquema', 'ngepcp.base_fee AS base_fee')

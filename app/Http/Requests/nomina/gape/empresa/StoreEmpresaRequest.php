@@ -47,7 +47,6 @@ class StoreEmpresaRequest extends FormRequest
                     ),
             ],
 
-            'fiscal' => 'required|boolean',
             'estado' => 'required|boolean',
 
             'correo_notificacion' => 'required|email|max:255',
@@ -84,9 +83,6 @@ class StoreEmpresaRequest extends FormRequest
             'codigo_interno.string' => 'El código interno debe ser texto.',
             'codigo_interno.max' => 'El código interno no debe exceder 50 caracteres.',
             'codigo_interno.unique' => 'El código interno ya está registrado para este cliente.',
-
-            'fiscal.required' => 'Debe especificar si la empresa es fiscal o no.',
-            'fiscal.boolean' => 'El campo fiscal debe ser verdadero o falso.',
 
             'estado.required' => 'Debe especificar si la empresa está activa o no.',
             'estado.boolean' => 'El campo estado debe ser verdadero o falso.',

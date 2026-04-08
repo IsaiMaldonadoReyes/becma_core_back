@@ -13,5 +13,22 @@ class NominaGapeEmpresaPeriodoCombinacionParametrizacion extends Model
     protected $primaryKey = 'id';
     protected $table = 'nomina_gape_empresa_periodo_combinacion_parametrizacion';
 
-    protected $casts = [];
+    protected $fillable = [
+        'estado',
+        'id_nomina_gape_cliente',
+        'id_nomina_gape_empresa',
+        'id_nomina_gape_tipo_periodo',
+        'idtipoperiodo',
+        'id_nomina_gape_cliente_esquema_combinacion',
+        'fee',
+        'base_fee',
+        'provisiones',
+    ];
+
+    public $timestamps = true;
+
+
+    protected $casts = [
+        'estado' => 'boolean',
+    ];
 }

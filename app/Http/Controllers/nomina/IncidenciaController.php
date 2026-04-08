@@ -42,6 +42,7 @@ class IncidenciaController extends Controller
             'periodo_inicial'        => 'required_if:fiscal,true',
         ]);
 
+        $idTipoPeriodo  = $validated['id_tipo_periodo'];
         $idCliente  = $validated['id_nomina_gape_cliente'];
         $idEmpresa  = $validated['id_nomina_gape_empresa'];
         $idEsquemas = array_map('intval', $validated['id_esquema']);
@@ -72,7 +73,9 @@ class IncidenciaController extends Controller
             )
             ->where('ngepcp.id_nomina_gape_cliente', $idCliente)
             ->where('ngepcp.id_nomina_gape_empresa', $idEmpresa)
+            ->where('ngcec.id_nomina_gape_empresa', $idEmpresa)
             ->where('ngcec.id_nomina_gape_cliente', $idCliente)
+            ->where('ngepcp.idtipoperiodo', $idTipoPeriodo)
             ->whereIn('ngcec.combinacion', $idEsquemas)
             ->where('ngcec.orden', 1)
             ->select('nge.esquema')
@@ -111,6 +114,8 @@ class IncidenciaController extends Controller
                 ->map(fn($r) => (array)$r)
                 ->toArray();
 
+            $dataHeader = $queryService->getData($configHoja['query_header'], $request);
+
             /*
             dd([
                 'clave' => $dataRaw,
@@ -121,7 +126,7 @@ class IncidenciaController extends Controller
 
             if ($data !== null && count($data) !== 0) {
 
-                $exporter->fillSheetFromConfig($spreadsheet, $configHoja, $data);
+                $exporter->fillSheetFromConfig($spreadsheet, $configHoja, $data, $dataHeader);
 
                 $hojasUsadas[] = $configHoja['sheet_name'];
             }
@@ -369,6 +374,7 @@ class IncidenciaController extends Controller
                     ),
                     DB::raw("CONCAT(COUNT(ngid.id), ' incidencia(s) cargada(s)') AS descripcion_incidencia"),
                 ])
+                ->orderBy('ngi.created_at', 'desc')
                 ->get();
 
             return response()->json([

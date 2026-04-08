@@ -35,6 +35,12 @@ class Empleado extends Model
         'idturno' => 'integer',
         'cidregistropatronal' => 'integer',
         'TipoPrestacion' => 'integer',
+
+        'ccampoextranumerico1' => 'float',
+        'ccampoextranumerico2' => 'float',
+        'ccampoextranumerico3' => 'float',
+        'ccampoextranumerico4' => 'float',
+        'ccampoextranumerico5' => 'float',
     ];
 
     protected $fillable = [
@@ -119,7 +125,12 @@ class Empleado extends Model
         'NumeroFonacot',
         'sueldobaseliquidacion',
         'campoextra1',
+        'campoextra2',
+        'campoextra3',
         'ccampoextranumerico1',
         'ccampoextranumerico2',
+        'ccampoextranumerico3',
+        'ccampoextranumerico4',
+        'ccampoextranumerico5',
     ];
 }

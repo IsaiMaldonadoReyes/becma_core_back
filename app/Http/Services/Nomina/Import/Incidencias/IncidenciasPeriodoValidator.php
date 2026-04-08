@@ -131,7 +131,7 @@ class IncidenciasPeriodoValidator
         // ---------------------------------------------------------
         // 5) Validación: I+J+K > días disponibles del empleado
         // ---------------------------------------------------------
-        if ($sumaDiasExcel > $diasValidos) {
+        if ($sumaDiasExcel > 0 && $sumaDiasExcel > $diasValidos) {
             $issues->add(
                 "La suma ({$sumaDiasExcel}) excede los días disponibles ({$diasValidos}).",
                 $row,

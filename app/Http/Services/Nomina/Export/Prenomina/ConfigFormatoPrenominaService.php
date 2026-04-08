@@ -26,6 +26,7 @@ class ConfigFormatoPrenominaService
                     'totales_04'       => 'totalSueldoImss_04',
                     'totales_05'       => 'totalSueldoImss_05',
                 ],
+                'headers'       => 'datosEncabezadoContpaq',
                 'titulos' => [
                     'ingresos'      => 'NÓMINA EN BASE A INGRESOS REALES',
                     'percepciones'  => 'PERCEPCIONES',
@@ -56,6 +57,7 @@ class ConfigFormatoPrenominaService
                     'totales_04'       => 'totalAsimilados_04',
                     'totales_05'       => 'totalAsimilados_05',
                 ],
+                'headers'       => 'datosEncabezadoContpaq',
                 'titulos' => [
                     'ingresos'      => 'NÓMINA EN BASE A INGRESOS REALES',
                     'percepciones'  => 'PERCEPCIONES',
@@ -78,6 +80,7 @@ class ConfigFormatoPrenominaService
                     'excedente'     => 'datosSindicato_4',
                     'totales_01'    => 'totalSindicato_01',
                 ],
+                'headers'       => 'datosEncabezadoExcedente',
                 'titulos' => [
                     'ingresos'      => 'NÓMINA EN BASE A INGRESOS REALES',
                     'excedente'     => 'ESQUEMAS DE PAGO',
@@ -97,6 +100,7 @@ class ConfigFormatoPrenominaService
                     'excedente'     => 'datosTarjetaFacil_4',
                     'totales_01'    => 'totalTarjetaFacil_01',
                 ],
+                'headers'       => 'datosEncabezadoExcedente',
                 'titulos' => [
                     'ingresos'      => 'NÓMINA EN BASE A INGRESOS REALES',
                     'excedente'     => 'ESQUEMAS DE PAGO',
@@ -116,6 +120,7 @@ class ConfigFormatoPrenominaService
                     'excedente'     => 'datosGastosPorComprobar_4',
                     'totales_01'    => 'totalGastosPorComprobar_01',
                 ],
+                'headers'       => 'datosEncabezadoExcedente',
                 'titulos' => [
                     'ingresos'      => 'NÓMINA EN BASE A INGRESOS REALES',
                     'excedente'     => 'ESQUEMAS DE PAGO',
