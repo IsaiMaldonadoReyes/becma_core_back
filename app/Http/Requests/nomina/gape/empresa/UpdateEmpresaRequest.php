@@ -36,7 +36,7 @@ class UpdateEmpresaRequest extends FormRequest
             'id_nomina_gape_cliente' => 'required|integer|exists:nomina_gape_cliente,id',
 
             // 🔹 Solo obligatorio si fiscal = true
-            'id_empresa_database' => 'required_if:fiscal,true|nullable|integer|exists:empresa_database,id',
+            'id_empresa_database' => 'nullable|integer|exists:empresa_database,id',
 
             // 🔹 Código interno único por cliente, pero ignorando el mismo registro
             'codigo_interno' => [
@@ -50,16 +50,14 @@ class UpdateEmpresaRequest extends FormRequest
                     )
                     ->ignore($empresaId, 'id'),
             ],
-
-            'fiscal' => 'required|boolean',
             'estado' => 'required|boolean',
 
             'correo_notificacion' => 'required|email|max:255',
 
             // 🔹 Solo requeridos si la empresa es no fiscal
-            'mascara_codigo' => 'required_if:fiscal,false|nullable|string',
-            'codigo_inicial' => 'required_if:fiscal,false|nullable|string',
-            'codigo_actual' => 'required_if:fiscal,false|nullable|string',
+            'mascara_codigo' => 'nullable|string',
+            'codigo_inicial' => 'nullable|string',
+            'codigo_actual' => 'nullable|string',
         ];
     }
 
@@ -88,9 +86,6 @@ class UpdateEmpresaRequest extends FormRequest
             'codigo_interno.string' => 'El código interno debe ser texto.',
             'codigo_interno.max' => 'El código interno no debe exceder 50 caracteres.',
             'codigo_interno.unique' => 'El código interno ya está registrado para este cliente.',
-
-            'fiscal.required' => 'Debe especificar si la empresa es fiscal o no.',
-            'fiscal.boolean' => 'El campo fiscal debe ser verdadero o falso.',
 
             'estado.required' => 'Debe especificar si la empresa está activa o no.',
             'estado.boolean' => 'El campo estado debe ser verdadero o falso.',

@@ -44,7 +44,7 @@ class FondeadoraExport implements FromCollection, WithHeadings, WithCustomCsvSet
     {
         return $this->data->map(function ($row) {
 
-            $nombre = $this->cleanText($row['nombre'] ?? '');
+            $nombre = $this->cleanText($row['nombreCompleto'] ?? '');
 
             $clabe  = $this->formatClabe($row['clabeInterbancaria'] ?? '');
 

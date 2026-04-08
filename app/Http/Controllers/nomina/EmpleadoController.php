@@ -385,6 +385,9 @@ class EmpleadoController extends Controller
             'campoextra1' => $empleado->campoextra1 ?? 0,
             'ccampoextranumerico1' => $empleado->ccampoextranumerico1 ?? 0,
             'ccampoextranumerico2' => $empleado->ccampoextranumerico2 ?? 0,
+            'ccampoextranumerico3' => $empleado->ccampoextranumerico3 ?? 0,
+            'ccampoextranumerico4' => $empleado->ccampoextranumerico4 ?? 0,
+            'ccampoextranumerico5' => $empleado->ccampoextranumerico5 ?? 0,
         ];
     }
 
@@ -1153,6 +1156,9 @@ class EmpleadoController extends Controller
                     'sueldobaseliquidacion' => $empleado->sueldobaseliquidacion ?? 0,
                     'ccampoextranumerico1' => $empleado->ccampoextranumerico1  ?? 0,
                     'ccampoextranumerico2' => $empleado->ccampoextranumerico2 ?? 0,
+                    'ccampoextranumerico3' => $empleado->ccampoextranumerico3 ?? 0,
+                    'ccampoextranumerico4' => $empleado->ccampoextranumerico4 ?? 0,
+                    'ccampoextranumerico5' => $empleado->ccampoextranumerico5 ?? 0,
                     'campoextra1' => $empleado->campoextra1 ?? 0,
                 ]);
 
@@ -1233,6 +1239,9 @@ class EmpleadoController extends Controller
                 'campoextra1' => 'required',
                 'ccampoextranumerico1' => 'required|numeric|min:0',
                 'ccampoextranumerico2' => 'required|numeric|min:0',
+                'ccampoextranumerico3' => 'nullable|numeric|min:0',
+                'ccampoextranumerico4' => 'nullable|numeric|min:0',
+                'ccampoextranumerico5' => 'nullable|numeric|min:0',
                 'ClabeInterbancaria' => 'nullable|digits_between:10,30|numeric',
                 'codigopostal' => 'nullable|string|max:10',
             ]);

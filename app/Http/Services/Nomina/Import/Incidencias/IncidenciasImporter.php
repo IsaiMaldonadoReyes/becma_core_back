@@ -201,6 +201,14 @@ class IncidenciasImporter
 
     public function hojasExcel(Request $request): array
     {
+        if (!$request->hasFile('file')) {
+            abort(400, 'No se recibió el archivo');
+        }
+
+        if (!$request->file('file')->isValid()) {
+            abort(400, 'Archivo inválido');
+        }
+
         $path = $request->file('file')->getRealPath();
         $spreadsheet = IOFactory::load($path);
 

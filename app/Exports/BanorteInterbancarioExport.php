@@ -45,7 +45,7 @@ class BanorteInterbancarioExport implements FromCollection, WithHeadings, WithCu
             $this->cleanText($this->rfcOrdenante),
             '0.00',
             now()->format('dmY'),
-            $this->buildDescription($row['nombre'] ?? ''),
+            $this->buildDescription($row['nombreCompleto'] ?? ''),
             '',
         ];
     }
@@ -116,6 +116,6 @@ class BanorteInterbancarioExport implements FromCollection, WithHeadings, WithCu
 
     public function title(): string
     {
-        return 'BanorteTercero';
+        return 'BanorteInterbancario';
     }
 }
