@@ -28,4 +28,20 @@ class NominaGapeBancoConfiguracionEsquema extends Model
         'id' => 'integer',
         'activo_dispersion' => 'boolean',
     ];
+
+    public function datosExtra()
+    {
+        return $this->hasMany(
+            NominaGapeBancoConfiguracionDatosExtra::class,
+            'id_nomina_gape_banco_configuracion'
+        );
+    }
+
+    public function banco()
+    {
+        return $this->belongsTo(
+            NominaGapeBanco::class,
+            'id_nomina_gape_banco'
+        );
+    }
 }

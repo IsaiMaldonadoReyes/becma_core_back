@@ -8,33 +8,35 @@ use ZipArchive;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 
-use App\Models\nomina\GAPE\NominaGapeBancoAzteca;
-use App\Models\nomina\GAPE\NominaGapeBancoBanorte;
-use App\Models\nomina\GAPE\NominaGapeBancoDispersion;
-use App\Models\nomina\GAPE\NominaGapeBancoFondeadora;
-
 use App\Models\nomina\GAPE\NominaGapeBancoConfiguracionEsquema;
-use App\Models\nomina\GAPE\NominaGapeBancoBanco;
+use App\Models\nomina\GAPE\NominaGapeDispersionHistorial;
+use App\Models\nomina\GAPE\NominaGapeConfiguracionGlobal;
 
 use App\Models\nomina\default\Empresa;
 // refactor
 
 use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Excel as ExcelWriter;
 
 use App\Exports\FondeadoraExport;
 use App\Exports\AztecaTerceroExport;
 use App\Exports\AztecaInterbancarioExport;
 use App\Exports\BanorteTerceroExport;
 use App\Exports\BanorteInterbancarioExport;
+use App\Exports\BanorteTerceroTxtExport;
+use App\Exports\BanorteInterbancarioTxtExport;
 use App\Exports\TarjetaFacilExport;
+use App\Exports\BankaoolExcelExport;
+
+use App\Exports\SantanderInterbancariosTxtExport;
+
 use App\Http\Services\Core\HelperService;
 
 use App\Http\Services\Nomina\Export\Dispersion\ConfigDispersionService;
 use App\Http\Services\Nomina\Export\Dispersion\QueryService;
+
 
 
 class BancosDispersionController extends Controller
@@ -58,6 +60,8 @@ class BancosDispersionController extends Controller
             'clabeInterbancaria',
             'campoextra3',
             'tarjetafacil',
+            'bancoDestinoBankaool',
+            'bancoClaveTransferencia',
         ];
 
         $resultado = [];
@@ -93,6 +97,8 @@ class BancosDispersionController extends Controller
                 'campoextra3'               => $row['campoextra3'],
                 'tarjetafacil'              => $row['tarjetafacil'],
                 'importe'                   => $row[$esquema],
+                'bancoDestinoBankaool'      => $row['bancoDestinoBankaool'],
+                'bancoClaveTransferencia'      => $row['bancoClaveTransferencia'],
             ];
         }
 
@@ -237,47 +243,47 @@ class BancosDispersionController extends Controller
                 // 6️⃣ Obtener configuración bancaria
                 $configBanco = NominaGapeBancoConfiguracionEsquema::from('nomina_gape_banco_configuracion_esquema as ngbce')
                     ->join('nomina_gape_banco AS ngb', 'ngbce.id_nomina_gape_banco', '=', 'ngb.id')
+                    ->leftJoin('nomina_gape_banco_configuracion_datos_extra as ngbcde', 'ngbce.id', '=', 'ngbcde.id_nomina_gape_banco_configuracion')
                     ->where('ngbce.id', $bancoSeleccionado['id_nomina_gape_banco'])
+                    ->when(!empty($bancoSeleccionado['id_datos_extra']), function ($query) use ($bancoSeleccionado) {
+                        $query->where('ngbcde.id', $bancoSeleccionado['id_datos_extra']);
+                    })
                     ->select(
+                        'ngbce.id',
                         'ngb.banco',
                         'ngb.clave_banco',
-                        'ngbce.azteca_cuenta_origen',
-                        'ngbce.banorte_cuenta_origen',
-                        'ngbce.banorte_clave_banco'
+                        'ngb.clave_interna',
+                        'ngbcde.cuenta',
                     )
                     ->first();
 
                 if (!$configBanco) continue;
+
+                $camposAdicionales = $bancoSeleccionado['campos_adicionales'] ?? [];
+
+                $cuentaOrigen = $configBanco->cuenta ?? null;
 
                 $safeEsquema = str_replace(' ', '_', strtoupper($esquemaBanco));
                 $baseName = "{$configBanco->banco}_{$safeEsquema}_" . now()->format('His');
 
                 $filename = null;
                 $relativeTmp = null;
-
-                $concepto = "PAGO";
-
-                if (in_array($safeEsquema, $this->hojasFiscal)) {
-                    $concepto = "NOMINA";
-                } else {
-                    $concepto = "PAGO";
-                }
-
                 /*
                 dd([
                     'row' => $concepto,
                 ]);
                 */
 
-                switch ($configBanco->banco) {
-
-                    case 'Fondeadora':
+                switch ($configBanco->clave_interna) {
+                    case 'fondeadora_excel':
 
                         $filename = "{$baseName}.csv";
                         $relativeTmp = "{$tmpDir}/{$filename}";
 
+                        $descripcion = $camposAdicionales['descripcion_layout'] ?? null;
+
                         Excel::store(
-                            new FondeadoraExport(collect($detalleFiltrado), $concepto),
+                            new FondeadoraExport(collect($detalleFiltrado), $descripcion),
                             $relativeTmp,
                             'public'
                         );
@@ -331,6 +337,121 @@ class BancosDispersionController extends Controller
                         $zip->addFile($absoluteTmpInter, $filenameInter);
 
                         break;
+                    case 'banorte_terceros_txt':
+
+                        // Terceros 02
+
+                        $folioManual = $camposAdicionales['folio_layout'] ?? null;
+
+                        $folioConsecutivo = $this->obtenerOGenerarFolioDispersion([
+                            'id_nomina_gape_cliente' => $idCliente,
+                            'id_nomina_gape_empresa' => $idEmpresa,
+                            'id_nomina_gape_banco_configuracion' => $configBanco->id,
+                            'ejercicio' => $row['id_ejercicio'] ?? null,
+                            'periodo' => $row['periodo_inicial'] ?? null,
+                            'folio_manual' => $folioManual,
+                            'monto_nomina' => collect($detalleFiltrado)->sum('importe'),
+                            'total_empleados' => collect($detalleFiltrado)->count(),
+                        ]);
+
+                        $descripcion = $camposAdicionales['descripcion_layout'] ?? null;
+
+                        $filenameTerceros = "{$baseName}_terceros.txt";
+                        $relativeTmpTerceros = "{$tmpDir}/{$filenameTerceros}";
+
+                        $ordenante = $this->datosEmpresaNomina();
+
+                        Excel::store(
+                            new BanorteTerceroTxtExport(
+                                collect($detalleFiltrado),
+                                $cuentaOrigen,
+                                $ordenante->rfc,
+                                $folioConsecutivo,
+                                $descripcion
+                            ),
+                            $relativeTmpTerceros,
+                            'public',
+                            ExcelWriter::CSV
+                        );
+
+                        $absoluteTmpTercero = storage_path("app/public/{$relativeTmpTerceros}");
+
+                        $zip->addFile($absoluteTmpTercero, $filenameTerceros);
+                        break;
+                    case 'banorte_interbancarios_txt':
+                        // Interbancarios 04
+
+                        $folioManual = $camposAdicionales['folio_layout'] ?? null;
+
+                        $folioConsecutivo = $this->obtenerOGenerarFolioDispersion([
+                            'id_nomina_gape_cliente' => $idCliente,
+                            'id_nomina_gape_empresa' => $idEmpresa,
+                            'id_nomina_gape_banco_configuracion' => $configBanco->id,
+                            'ejercicio' => $row['id_ejercicio'] ?? null,
+                            'periodo' => $row['periodo_inicial'] ?? null,
+                            'folio_manual' => $folioManual,
+                            'monto_nomina' => collect($detalleFiltrado)->sum('importe'),
+                            'total_empleados' => collect($detalleFiltrado)->count(),
+                        ]);
+
+                        $descripcion = $camposAdicionales['descripcion_layout'] ?? null;
+
+                        $filenameInter = "{$baseName}_interbancarios.txt";
+                        $relativeTmpInter = "{$tmpDir}/{$filenameInter}";
+
+                        $ordenante = $this->datosEmpresaNomina();
+
+                        Excel::store(
+                            new BanorteInterbancarioTxtExport(
+                                collect($detalleFiltrado),
+                                $cuentaOrigen,
+                                $ordenante->rfc,
+                                $folioConsecutivo,
+                                $descripcion
+                            ),
+                            $relativeTmpInter,
+                            'public',
+                            ExcelWriter::CSV
+                        );
+
+                        $absoluteTmpInter = storage_path("app/public/{$relativeTmpInter}");
+
+                        $zip->addFile($absoluteTmpInter, $filenameInter);
+
+                        break;
+                    case 'bankaool_excel':
+
+                        $folioManual = $camposAdicionales['folio_layout'] ?? null;
+
+                        $folioConsecutivo = $this->obtenerOGenerarFolioDispersion([
+                            'id_nomina_gape_cliente' => $idCliente,
+                            'id_nomina_gape_empresa' => $idEmpresa,
+                            'id_nomina_gape_banco_configuracion' => $configBanco->id,
+                            'ejercicio' => $row['id_ejercicio'] ?? null,
+                            'periodo' => $row['periodo_inicial'] ?? null,
+                            'folio_manual' => $folioManual,
+                            'monto_nomina' => collect($detalleFiltrado)->sum('importe'),
+                            'total_empleados' => collect($detalleFiltrado)->count(),
+                        ]);
+
+
+                        $descripcion = $camposAdicionales['descripcion_layout'] ?? null;
+
+
+                        $filename = "{$baseName}.xlsx";
+                        $relativeTmp = "{$tmpDir}/{$filename}";
+
+                        $export = new BankaoolExcelExport(
+                            collect($detalleFiltrado),
+                            $folioConsecutivo,
+                            $descripcion
+                        );
+
+                        $absoluteTmp = $export->store($relativeTmp, 'public');
+
+                        $zip->addFile($absoluteTmp, $filename);
+
+                        break;
                     case 'Azteca':
                         // Terceros 02
                         $filenameTerceros = "{$baseName}_terceros.xlsx";
@@ -375,7 +496,7 @@ class BancosDispersionController extends Controller
                         $zip->addFile($absoluteTmpInter, $filenameInter);
 
                         break;
-                    case 'Tarjeta facil':
+                    case 'tarjeta_facil_excel':
                         $filename = "{$baseName}.xlsx";
                         $relativeTmp = "{$tmpDir}/{$filename}";
                         $ordenante = $this->datosEmpresaNomina();
@@ -388,6 +509,46 @@ class BancosDispersionController extends Controller
                         $absoluteTmp = storage_path("app/public/{$relativeTmp}");
 
                         $zip->addFile($absoluteTmp, $filename);
+                        break;
+
+                    case 'santander_interbancarios_txt':
+                        // Interbancarios LTX05
+
+                        $folioManual = $camposAdicionales['folio_layout'] ?? null;
+
+                        $folioConsecutivo = $this->obtenerOGenerarFolioDispersion([
+                            'id_nomina_gape_cliente' => $idCliente,
+                            'id_nomina_gape_empresa' => $idEmpresa,
+                            'id_nomina_gape_banco_configuracion' => $configBanco->id,
+                            'ejercicio' => $row['id_ejercicio'] ?? null,
+                            'periodo' => $row['periodo_inicial'] ?? null,
+                            'folio_manual' => $folioManual,
+                            'monto_nomina' => collect($detalleFiltrado)->sum('importe'),
+                            'total_empleados' => collect($detalleFiltrado)->count(),
+                        ]);
+
+                        $descripcion = $camposAdicionales['descripcion_layout'] ?? '';
+
+                        $filenameInter = "{$baseName}_interbancarios.txt";
+                        $relativeTmpInter = "{$tmpDir}/{$filenameInter}";
+
+                        /*
+                        dd([
+                            'row' => $detalleFiltrado,
+                        ]);*/
+
+                        $export = new SantanderInterbancariosTxtExport(
+                            collect($detalleFiltrado),
+                            $cuentaOrigen,
+                            $folioConsecutivo,
+                            $descripcion
+                        );
+
+                        $absoluteTmpInter = $export->storeTxt($relativeTmpInter);
+
+                        $zip->addFile($absoluteTmpInter, $filenameInter);
+
+                        break;
                 }
             }
         }
@@ -403,11 +564,64 @@ class BancosDispersionController extends Controller
             ->deleteFileAfterSend(true);
     }
 
-    private function getIndices(array $data): array
+    private function obtenerOGenerarFolioDispersion(array $data): string
     {
-        return !empty($data) && is_array($data[0])
-            ? array_keys($data[0])
-            : [];
+
+        if (!empty($data['folio_manual'])) {
+            return (string) $data['folio_manual'];
+        }
+
+        return DB::transaction(function () use ($data) {
+
+            $historialExistente = NominaGapeDispersionHistorial::where([
+                'id_nomina_gape_cliente' => $data['id_nomina_gape_cliente'],
+                'id_nomina_gape_empresa' => $data['id_nomina_gape_empresa'],
+                'id_nomina_gape_banco_configuracion' => $data['id_nomina_gape_banco_configuracion'],
+                'ejercicio' => $data['ejercicio'],
+                'periodo' => $data['periodo'],
+            ])
+                ->first();
+
+            if ($historialExistente) {
+                return (string) $historialExistente->folio_dispersion;
+            }
+
+            if (!empty($data['folio_manual'])) {
+                $folio = (string) $data['folio_manual'];
+            } else {
+                $ultimoFolioHistorial = NominaGapeDispersionHistorial::whereNotNull('folio_dispersion')
+                    ->lockForUpdate()
+                    ->orderByRaw('TRY_CAST(folio_dispersion AS BIGINT) DESC')
+                    ->value('folio_dispersion');
+
+                if ($ultimoFolioHistorial !== null) {
+                    $folio = (string) ((int) $ultimoFolioHistorial + 1);
+                } else {
+                    $configGlobal = NominaGapeConfiguracionGlobal::lockForUpdate()->first();
+
+                    $folioBase = $configGlobal?->folio_dispersion_actual ?? 0;
+
+                    $folio = (string) ((int) $folioBase + 1);
+                }
+
+                NominaGapeConfiguracionGlobal::query()->update([
+                    'folio_dispersion_actual' => (int) $folio,
+                ]);
+            }
+
+            NominaGapeDispersionHistorial::create([
+                'id_nomina_gape_cliente' => $data['id_nomina_gape_cliente'],
+                'id_nomina_gape_empresa' => $data['id_nomina_gape_empresa'],
+                'id_nomina_gape_banco_configuracion' => $data['id_nomina_gape_banco_configuracion'],
+                'ejercicio' => $data['ejercicio'],
+                'periodo' => $data['periodo'],
+                'folio_dispersion' => $folio,
+                'monto_nomina' => $data['monto_nomina'] ?? null,
+                'total_empleados' => $data['total_empleados'] ?? null,
+            ]);
+
+            return $folio;
+        });
     }
 
     public function datosEmpresaNomina()
@@ -451,6 +665,12 @@ class BancosDispersionController extends Controller
                     '=',
                     'nge.id'
                 )
+                ->leftJoin(
+                    'nomina_gape_banco_configuracion_datos_extra as ngbcde',
+                    'nomina_gape_banco_configuracion_esquema.id',
+                    '=',
+                    'ngbcde.id_nomina_gape_banco_configuracion'
+                )
                 ->join(
                     'nomina_gape_cliente_esquema_combinacion as ngcec',
                     function ($join) {
@@ -475,14 +695,17 @@ class BancosDispersionController extends Controller
                 ->where('nomina_gape_banco_configuracion_esquema.activo_dispersion', 1)
                 ->select([
                     'nomina_gape_banco_configuracion_esquema.id as id',
+                    'ngbcde.id as id_datos_extra',
+                    'ngb.banco as banco',
+                    'ngb.clave_banco as clave_banco',
+                    'ngb.clave_interna as clave_interna',
                     'nge.esquema AS esquema',
                     DB::raw("
-                        CONCAT_WS(
-                            ' : ',
-                            ngb.banco,
-                            nomina_gape_banco_configuracion_esquema.azteca_cuenta_origen,
-                            nomina_gape_banco_configuracion_esquema.banorte_cuenta_origen
-                        ) as descripcion
+                        CASE
+                            WHEN ngbcde.cuenta IS NOT NULL
+                            THEN CONCAT(ngb.banco, ' : ', ngbcde.cuenta)
+                            ELSE ngb.banco
+                        END as descripcion
                     "),
                 ])
                 ->orderBy('orden')
@@ -496,348 +719,6 @@ class BancosDispersionController extends Controller
             return response()->json([
                 'code' => 500,
                 'message' => 'Error al obtener los esquemas por tipo de periodo.',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
-    }
-
-
-    public function getBancosByEmpresa($idEmpresa)
-    {
-        try {
-            // Consultar cada banco
-            $bancos = NominaGapeBancoDispersion::where('id_nomina_gape_empresa', $idEmpresa)->first();
-
-            if (!$bancos) {
-                $bancos = [
-                    'fondeadora' => false,
-                    'azteca_interbancario' => false,
-                    'azteca_bancario' => false,
-                    'banorte' => false,
-                ];
-            } else {
-                // 3️⃣ Convertir correctamente a booleanos
-                $bancos = [
-                    'fondeadora' => (bool) $bancos->fondeadora,
-                    'azteca_interbancario' => (bool) $bancos->azteca_interbancario,
-                    'azteca_bancario' => (bool) $bancos->azteca_bancario,
-                    'banorte' => (bool) $bancos->banorte,
-                ];
-            }
-            // Azteca - usa el mismo modelo, diferenciando por tipo_banco
-            $aztecaInterbancario = NominaGapeBancoAzteca::where('id_nomina_gape_empresa', $idEmpresa)
-                ->where('tipo_banco', 'interbancario')
-                ->get();
-
-            $aztecaBancario = NominaGapeBancoAzteca::where('id_nomina_gape_empresa', $idEmpresa)
-                ->where('tipo_banco', 'bancario')
-                ->get();
-
-            $banorte = NominaGapeBancoBanorte::where('id_nomina_gape_empresa', $idEmpresa)->get();
-
-            // Respuesta unificada
-            return response()->json([
-                'code' => 200,
-                'message' => 'Datos de bancos obtenidos correctamente',
-                'data' => [
-                    'dispersion' => $bancos,
-                    'azteca_interbancario' => $aztecaInterbancario,
-                    'azteca_bancario' => $aztecaBancario,
-                    'banorte' => $banorte,
-                ]
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'code' => 500,
-                'message' => 'Error al obtener los datos de bancos',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
-    }
-
-
-    public function upsertBancoDispersion(Request $request)
-    {
-        try {
-            // 1️⃣ Validar siempre el id de empresa
-            $validated = $request->validate([
-                'id_nomina_gape_empresa' => 'required|integer|exists:nomina_gape_empresa,id',
-            ]);
-
-            // 2️⃣ Filtrar solo los campos permitidos que vengan en el request
-            $camposPermitidos = ['fondeadora', 'azteca_interbancario', 'azteca_bancario', 'banorte'];
-            $data = array_intersect_key($request->all(), array_flip($camposPermitidos));
-
-            // 3️⃣ Validar que los campos opcionales (si vienen) sean booleanos
-            foreach ($data as $campo => $valor) {
-                if (!is_bool($valor) && !in_array($valor, [0, 1, '0', '1'], true)) {
-                    return response()->json([
-                        'code' => 422,
-                        'message' => "El campo '{$campo}' debe ser booleano (true/false)",
-                    ], 422);
-                }
-                // convertir a boolean real
-                $data[$campo] = filter_var($valor, FILTER_VALIDATE_BOOLEAN);
-            }
-
-            if (empty($data)) {
-                return response()->json([
-                    'code' => 400,
-                    'message' => 'No se recibieron campos válidos para actualizar',
-                ], 400);
-            }
-
-            // 4️⃣ Buscar o crear registro
-            $registro = NominaGapeBancoDispersion::firstOrNew([
-                'id_nomina_gape_empresa' => $validated['id_nomina_gape_empresa'],
-            ]);
-
-            // 5️⃣ Actualizar solo los campos enviados
-            $registro->fill($data);
-            $registro->save();
-
-            // 6️⃣ Responder éxito
-            $message = $registro->wasRecentlyCreated
-                ? 'Registro creado correctamente'
-                : 'Registro actualizado correctamente';
-
-            return response()->json([
-                'code' => 200,
-                'message' => $message,
-                'data' => $registro,
-            ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'code' => 422,
-                'message' => 'Error de validación',
-                'errors' => $e->errors(),
-            ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'code' => 500,
-                'message' => 'Error al guardar o actualizar el registro',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
-    }
-
-
-    public function storeBancoAzteca(Request $request)
-    {
-        try {
-            // 1️⃣ Validar los campos
-            $validatedData = $request->validate([
-                'id_nomina_gape_empresa' => 'required|integer|exists:nomina_gape_empresa,id',
-                'activo_dispersion' => 'required|boolean',
-                'cuenta_origen' => 'nullable|string|max:100',
-                'tipo_banco' => 'required|string|in:bancario,interbancario',
-            ]);
-
-            // 2️⃣ Crear el registro
-            NominaGapeBancoAzteca::create($validatedData);
-
-            // 3️⃣ Respuesta exitosa
-            return response()->json([
-                'code' => 200,
-                'message' => 'Registro guardado correctamente',
-            ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'code' => 422,
-                'message' => 'Error de validación',
-                'errors' => $e->errors(),
-            ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'code' => 500,
-                'message' => 'Se generó un error al guardar',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
-    }
-
-    public function updateBancoAzteca(Request $request, $id)
-    {
-        try {
-            // 1️⃣ Validar los campos
-            $validatedData = $request->validate([
-                'id_nomina_gape_empresa' => 'required|integer|exists:nomina_gape_empresa,id',
-                'activo_dispersion' => 'required|boolean',
-                'cuenta_origen' => 'nullable|string|max:100',
-                'tipo_banco' => 'required|string|in:bancario,interbancario',
-            ]);
-
-            // 2️⃣ Buscar el registro por ID de la tabla nomina_gape_banco_azteca
-            $bancoAzteca = NominaGapeBancoAzteca::find($id);
-
-            // 3️⃣ Si no existe, devolver error
-            if (!$bancoAzteca) {
-                return response()->json([
-                    'code' => 404,
-                    'message' => 'No se encontró el registro especificado',
-                ], 404);
-            }
-
-            // 4️⃣ Actualizar con los datos validados
-            $bancoAzteca->update($validatedData);
-
-            // 5️⃣ Respuesta exitosa
-            return response()->json([
-                'code' => 200,
-                'message' => 'Registro actualizado correctamente',
-            ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'code' => 422,
-                'message' => 'Error de validación',
-                'errors' => $e->errors(),
-            ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'code' => 500,
-                'message' => 'Se generó un error al actualizar',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
-    }
-
-    // 1️⃣ ================= AZTECA =================
-    public function deleteBancoAzteca(string $id)
-    {
-        try {
-            // 1️⃣ Validar el ID del registro a eliminar
-            $cliente = NominaGapeBancoAzteca::findOrFail($id);
-            $cliente->delete();
-
-            // 4️⃣ Responder éxito
-            return response()->json([
-                'code' => 200,
-                'message' => 'Registro eliminado correctamente',
-            ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            // ⚠️ Error de validación
-            return response()->json([
-                'code' => 422,
-                'message' => 'Error de validación',
-                'errors' => $e->errors(),
-            ], 422);
-        } catch (\Exception $e) {
-            // ⚠️ Error general
-            return response()->json([
-                'code' => 500,
-                'message' => 'Error al eliminar el registro',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
-    }
-
-
-
-
-    public function storeBancoBanorte(Request $request)
-    {
-        try {
-            // 1️⃣ Validar los campos
-            $validatedData = $request->validate([
-                'id_nomina_gape_empresa' => 'required|integer|exists:nomina_gape_empresa,id',
-                'activo_dispersion' => 'required|boolean',
-                'cuenta_origen' => 'nullable|string|max:100',
-                'clave_banco' => 'nullable|string|max:50',
-            ]);
-
-            // 2️⃣ Crear el registro
-            NominaGapeBancoBanorte::create($validatedData);
-
-            // 3️⃣ Responder éxito
-            return response()->json([
-                'code' => 200,
-                'message' => 'Registro guardado correctamente',
-            ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'code' => 422,
-                'message' => 'Error de validación',
-                'errors' => $e->errors(),
-            ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'code' => 500,
-                'message' => 'Se generó un error al guardar',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
-    }
-
-    public function updateBancoBanorte(Request $request, $id)
-    {
-        try {
-            // 1️⃣ Validar los campos
-            $validatedData = $request->validate([
-                'id_nomina_gape_empresa' => 'required|integer|exists:nomina_gape_empresa,id',
-                'activo_dispersion' => 'required|boolean',
-                'cuenta_origen' => 'nullable|string|max:100',
-                'clave_banco' => 'nullable|string|max:50',
-            ]);
-
-            // 2️⃣ Buscar el registro por ID de la tabla nomina_gape_banco_banorte
-            $bancoBanorte = NominaGapeBancoBanorte::find($id);
-
-            // 3️⃣ Si no existe, devolver error
-            if (!$bancoBanorte) {
-                return response()->json([
-                    'code' => 404,
-                    'message' => 'No se encontró el registro especificado',
-                ], 404);
-            }
-
-            // 4️⃣ Actualizar con los datos validados
-            $bancoBanorte->update($validatedData);
-
-            // 5️⃣ Respuesta exitosa
-            return response()->json([
-                'code' => 200,
-                'message' => 'Registro actualizado correctamente',
-            ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'code' => 422,
-                'message' => 'Error de validación',
-                'errors' => $e->errors(),
-            ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'code' => 500,
-                'message' => 'Se generó un error al actualizar',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
-    }
-
-    // 2️⃣ ================= BANORTE =================
-    public function deleteBancoBanorte(string $id)
-    {
-        try {
-            $cliente = NominaGapeBancoBanorte::findOrFail($id);
-            // 3️⃣ Eliminar registro
-            $cliente->delete();
-
-            // 5️⃣ Respuesta exitosa
-            return response()->json([
-                'code' => 200,
-                'message' => 'Registro eliminado correctamente',
-            ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            // ⚠️ Error de validación
-            return response()->json([
-                'code' => 422,
-                'message' => 'Error de validación',
-                'errors' => $e->errors(),
-            ], 422);
-        } catch (\Exception $e) {
-            // ⚠️ Error general
-            return response()->json([
-                'code' => 500,
-                'message' => 'Error al eliminar el registro',
                 'error' => $e->getMessage(),
             ], 500);
         }
