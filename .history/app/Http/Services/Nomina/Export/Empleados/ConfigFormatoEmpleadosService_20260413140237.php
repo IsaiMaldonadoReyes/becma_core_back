@@ -6,7 +6,7 @@ class ConfigFormatoEmpleadosService
 {
     /**Retorna la configuración dinámica dependiendo si es fiscal o no fiscal.
      * */
-
+     
     public static function getConfig(bool $fiscal): array
     {
         return [
@@ -60,9 +60,9 @@ class ConfigFormatoEmpleadosService
                     'valorMinimoRequerido'          => '01/01/2000',
                     'valorMaximoRequerido'          => '01/04/2026',
                     'formatoEnExcel'                => 'dd/mm/yyyy',
-                    'ayudaCeldaTitulo'              => 'Fecha de reingreso *',
-                    'ayudaCeldaTexto'               => 'Ingrese una fecha válida usando el formato: dd/mm/yyyy.',
-                    'comentarioTexto'               => '🛈 **Ayuda:** fecha en la que el empleado se reincorporó a la empresa.\n\n⚠ **Advertencia:** las columnas marcadas con (*) son de carácter obligatorio para continuar con el proceso de carga masiva. La ausencia de información en dichos campos impedirá el registro de la fila.',
+                    'ayudaCeldaTitulo'              => 'Fecha de reingreso',
+                    'ayudaCeldaTexto'               => 'Ingrese una fecha válida usando el formato: dd/mm/yyyy',
+                    'comentarioTexto'               => 'Ingresa la fecha de alta valida',
                 ],
                 'mapeoOrigenBD'                       => [
                     'mapeoTabla'                        => '',
@@ -85,8 +85,8 @@ class ConfigFormatoEmpleadosService
                     'valorMinimoRequerido'          => '',
                     'valorMaximoRequerido'          => '',
                     'formatoEnExcel'                => '',
-                    'ayudaCeldaTitulo'              => 'Tipo de contrato',
-                    'ayudaCeldaTexto'               => 'Seleccione una opción de la lista desplegable. No se permiten valores fuera de las opciones disponibles.',
+                    'ayudaCeldaTitulo'              => 'Formato requerido',
+                    'ayudaCeldaTexto'               => 'Seleccione un tipo de contrato válido de la lista desplegable',
                     'comentarioTexto'               => 'Seleccione un tipo de contrato',
                 ],
                 'mapeoOrigenBD'                       => [
@@ -98,7 +98,7 @@ class ConfigFormatoEmpleadosService
                     'mapeoCampo'                        => 'tipoContrato',
                 ],
             ],
-
+            
         ];
     }
 }

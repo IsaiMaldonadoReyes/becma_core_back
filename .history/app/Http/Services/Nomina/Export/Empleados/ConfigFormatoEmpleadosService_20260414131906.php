@@ -62,7 +62,7 @@ class ConfigFormatoEmpleadosService
                     'formatoEnExcel'                => 'dd/mm/yyyy',
                     'ayudaCeldaTitulo'              => 'Fecha de reingreso *',
                     'ayudaCeldaTexto'               => 'Ingrese una fecha válida usando el formato: dd/mm/yyyy.',
-                    'comentarioTexto'               => '🛈 **Ayuda:** fecha en la que el empleado se reincorporó a la empresa.\n\n⚠ **Advertencia:** las columnas marcadas con (*) son de carácter obligatorio para continuar con el proceso de carga masiva. La ausencia de información en dichos campos impedirá el registro de la fila.',
+                    'comentarioTexto'               => '🛈 **Ayuda:** fecha en la que el empleado se reincorporó a la empresa.\n\n⚠ **Advertencia:** as columnas marcadas con (*) son de carácter obligatorio para continuar con el proceso de carga masiva. La ausencia de información en dichos campos impedirá el registro de la fila.',
                 ],
                 'mapeoOrigenBD'                       => [
                     'mapeoTabla'                        => '',

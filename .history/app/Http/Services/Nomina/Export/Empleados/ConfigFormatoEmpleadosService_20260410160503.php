@@ -6,7 +6,7 @@ class ConfigFormatoEmpleadosService
 {
     /**Retorna la configuración dinámica dependiendo si es fiscal o no fiscal.
      * */
-
+     
     public static function getConfig(bool $fiscal): array
     {
         return [
@@ -49,9 +49,34 @@ class ConfigFormatoEmpleadosService
     {
         return [
             [
-                'key'                           => 'fechaReingreso',
-                'titulo'                        => 'Fecha de reingreso',
-                'columna'                       => 'D',
+                'key'                           => 'codigo',
+                'titulo'                        => 'Código',
+                'columna'                       => 'A',
+                'filaInicialTitulos'            => 1,
+                'filaInicialInformacion'        => 2,
+                'tipoDeColumna'                 => 'texto',
+                'validacion'                    => [
+                    'esRequerido'                   => true,
+                    'valorMinimoRequerido'          => '6',
+                    'valorMaximoRequerido'          => '6',
+                    'formatoEnExcel'                => '@',
+                    'ayudaCeldaTitulo'              => 'Formato requerido',
+                    'ayudaCeldaTexto'               => 'El código debe llevar 6 caracteres',
+                    'comentarioTexto'               => 'Ingresa un código valido',
+                ],
+                'mapeoOrigenBD'                       => [
+                    'mapeoTabla'                        => '',
+                    'mapeoCampo'                        => '',
+                ],
+                'mapeoDestinoBD'                      => [
+                    'mapeoTabla'                        => 'adEmpleado',
+                    'mapeoCampo'                        => 'codigo',
+                ],
+            ],
+            [
+                'key'                           => 'fechaAlta',
+                'titulo'                        => 'Fecha de alta',
+                'columna'                       => 'B',
                 'filaInicialTitulos'            => 1,
                 'filaInicialInformacion'        => 2,
                 'tipoDeColumna'                 => 'fecha',
@@ -60,9 +85,9 @@ class ConfigFormatoEmpleadosService
                     'valorMinimoRequerido'          => '01/01/2000',
                     'valorMaximoRequerido'          => '01/04/2026',
                     'formatoEnExcel'                => 'dd/mm/yyyy',
-                    'ayudaCeldaTitulo'              => 'Fecha de reingreso *',
-                    'ayudaCeldaTexto'               => 'Ingrese una fecha válida usando el formato: dd/mm/yyyy.',
-                    'comentarioTexto'               => '🛈 **Ayuda:** fecha en la que el empleado se reincorporó a la empresa.\n\n⚠ **Advertencia:** las columnas marcadas con (*) son de carácter obligatorio para continuar con el proceso de carga masiva. La ausencia de información en dichos campos impedirá el registro de la fila.',
+                    'ayudaCeldaTitulo'              => 'Formato requerido',
+                    'ayudaCeldaTexto'               => 'Ingrese una fecha válida en formato dd/mm/yyyy',
+                    'comentarioTexto'               => 'Ingresa la fecha de alta valida',
                 ],
                 'mapeoOrigenBD'                       => [
                     'mapeoTabla'                        => '',
@@ -70,24 +95,24 @@ class ConfigFormatoEmpleadosService
                 ],
                 'mapeoDestinoBD'                      => [
                     'mapeoTabla'                        => 'adEmpleado',
-                    'mapeoCampo'                        => 'fecha_reingreso',
+                    'mapeoCampo'                        => 'fecha_alta',
                 ],
             ],
             [
-                'key'                           => 'tipoContrato',
-                'titulo'                        => 'Tipo de contrato',
-                'columna'                       => 'E',
+                'key'                           => 'fechaBaja',
+                'titulo'                        => 'Fecha de baja',
+                'columna'                       => 'C',
                 'filaInicialTitulos'            => 1,
                 'filaInicialInformacion'        => 2,
-                'tipoDeColumna'                 => 'combo',
+                'tipoDeColumna'                 => 'fecha',
                 'validacion'                    => [
                     'esRequerido'                   => true,
-                    'valorMinimoRequerido'          => '',
-                    'valorMaximoRequerido'          => '',
-                    'formatoEnExcel'                => '',
-                    'ayudaCeldaTitulo'              => 'Tipo de contrato',
-                    'ayudaCeldaTexto'               => 'Seleccione una opción de la lista desplegable. No se permiten valores fuera de las opciones disponibles.',
-                    'comentarioTexto'               => 'Seleccione un tipo de contrato',
+                    'valorMinimoRequerido'          => '01/01/2000',
+                    'valorMaximoRequerido'          => '01/04/2026',
+                    'formatoEnExcel'                => 'dd/mm/yyyy',
+                    'ayudaCeldaTitulo'              => 'Formato requerido',
+                    'ayudaCeldaTexto'               => 'Ingrese una fecha válida en formato dd/mm/yyyy',
+                    'comentarioTexto'               => 'Ingresa la fecha de alta valida',
                 ],
                 'mapeoOrigenBD'                       => [
                     'mapeoTabla'                        => '',
@@ -95,10 +120,9 @@ class ConfigFormatoEmpleadosService
                 ],
                 'mapeoDestinoBD'                      => [
                     'mapeoTabla'                        => 'adEmpleado',
-                    'mapeoCampo'                        => 'tipoContrato',
+                    'mapeoCampo'                        => 'fecha_baja',
                 ],
             ],
-
         ];
     }
 }

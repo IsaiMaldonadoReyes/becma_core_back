@@ -29,14 +29,14 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
+use App\Http\Services\Nomina\Export\Empleados\ConfigFormatoEmpleadosService;
 
 use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
 
 
-use App\Http\Services\Nomina\Export\Empleados\ConfigFormatoEmpleadosService;
-use App\Http\Services\Nomina\Export\Empleados\CatalogoBuilderService;
-use App\Http\Services\Excel\Builders\ExcelLayoutBuilder;
-use App\Http\Services\Excel\Builders\CatalogSheetBuilder;
+    use App\Services\Excel\Builders\ExcelLayoutBuilder;
+use App\Services\ConfigFormatoEmpleadosService;
+
 
 class EmpleadoController extends Controller
 {
@@ -1324,7 +1324,7 @@ class EmpleadoController extends Controller
     /**
      * Descargar formato base para importación masiva de empleados
      */
-    public function descargaFormatoOriginal(
+    public function descargaFormato(
         Request $request,
         //IncidenciasQueryService $queryService,
         //ExportIncidenciasService $exporter
@@ -1434,62 +1434,36 @@ class EmpleadoController extends Controller
 
 
 
-    public function descargaFormato(Request $request)
-    {
-        $validated = $request->validate([
-            'fiscal' => 'required|boolean',
-        ]);
+public function descargaFormato(Request $request)
+{
+    $validated = $request->validate([
+        'fiscal' => 'required|boolean',
+    ]);
 
-        $fiscal = $validated['fiscal'];
+    $fiscal = $validated['fiscal'];
 
-        // 1. CONFIG GENERAL
-        $config = ConfigFormatoEmpleadosService::getConfig($fiscal);
+    // 1. CONFIG GENERAL
+    $config = ConfigFormatoEmpleadosService::getConfig($fiscal);
 
-        // 2. CONFIG CELDAS
-        $cellsConfig = ConfigFormatoEmpleadosService::getCellsConfig();
+    // 2. CONFIG CELDAS
+    $cellsConfig = ConfigFormatoEmpleadosService::getCellsConfig();
 
-        // 🔥 3. INYECTAR CATÁLOGO DESDE CONTROLLER
-        foreach ($cellsConfig as &$column) {
+    // 3. EXCEL
+    $spreadsheet = $this->loadTemplate($config['path']);
+    $sheet = $this->getWorksheet($spreadsheet, $config['sheet_name']);
 
-            if ($column['key'] === 'tipoContrato') {
+    // 4. BUILDER (🔥 AQUÍ ESTÁ TODO)
+    $builder = app(ExcelLayoutBuilder::class);
+    $builder->apply($sheet, $cellsConfig);
 
-                $column['options'] = [
-                    '01-Contrato de trabajo por tiempo indeterminado',
-                    '02-Contrato de trabajo para obra determinada',
-                    '03-Contrato de trabajo por tiempo determinado',
-                    '04-Contrato de trabajo por temporada',
-                    '05-Contrato de trabajo sujeto a prueba',
-                    '06-Contrato de trabajo con capacitación inicial',
-                    '07-Modalidad de contratación por pago de hora laborada',
-                    '08-Modalidad de trabajo por comisión laboral',
-                    '09-Modalidades de contratación donde no existe relación de trabajo',
-                    '10-Jubilación, pensión, retiro',
-                    '99-Otro contrato',
-                ];
-            }
-        }
-        unset($column); // buena práctica
+    // 5. DESCARGA
+    $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
 
-        // 4. EXCEL
-        $spreadsheet = $this->loadTemplate($config['path']);
-        $sheet = $this->getWorksheet($spreadsheet, $config['sheet_name']);
-
-        // 🔥 PASO NUEVO
-        $catalogBuilder = app(\App\Http\Services\Excel\Builders\CatalogSheetBuilder::class);
-        $catalogBuilder->build($spreadsheet, $cellsConfig);
-
-        // 5. BUILDER
-        $builder = app(\App\Http\Services\Excel\Builders\ExcelLayoutBuilder::class);
-        $builder->apply($sheet, $cellsConfig);
-
-        // 6. DESCARGA
-        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
-
-        return response()->streamDownload(function () use ($writer) {
-            if (ob_get_level()) ob_end_clean();
-            $writer->save('php://output');
-        }, 'formato_empleados.xlsx');
-    }
+    return response()->streamDownload(function () use ($writer) {
+        if (ob_get_level()) ob_end_clean();
+        $writer->save('php://output');
+    }, 'formato_empleados.xlsx');
+}
 
     public function descargarFormato1(DescargarFormatoRequest $request)
     {
