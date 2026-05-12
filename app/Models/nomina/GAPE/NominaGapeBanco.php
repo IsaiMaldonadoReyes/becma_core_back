@@ -15,5 +15,6 @@ class NominaGapeBanco extends Model
 
     protected $casts = [
         'estado' => 'boolean',
+        'requiere_cuenta_origen' => 'boolean',
     ];
 }

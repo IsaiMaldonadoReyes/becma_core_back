@@ -14,13 +14,16 @@ use App\Http\Requests\nomina\gape\empresa\UpdateEmpresaRequest;
 use App\Models\core\Conexion;
 use App\Models\nomina\GAPE\NominaGapeEmpresa;
 use App\Models\nomina\GAPE\NominaGapeClienteEsquemaCombinacion;
+use App\Models\nomina\GAPE\NominaGapeBanco;
 use App\Models\nomina\GAPE\NominaGapeBancoConfiguracionEsquema;
+use App\Models\nomina\GAPE\NominaGapeBancoConfiguracionDatosExtra;
 use App\Models\nomina\GAPE\NominaGapeFormulasContpaq;
 use App\Models\nomina\nomGenerales\NominaEmpresa;
 use App\Models\core\EmpresaDatabase;
 
 use App\Http\Services\Core\HelperService;
 use App\Models\nomina\default\TipoPeriodo;
+
 use App\Models\nomina\default\Conceptos;
 use App\Models\nomina\GAPE\NominaGapeCombinacionPrevision;
 use App\Models\nomina\GAPE\NominaGapeEmpresaPeriodoCombinacionParametrizacion;
@@ -285,6 +288,7 @@ class EmpresaController extends Controller
                 ");
             }
 
+
             /* =========================================================
          * 2️⃣ COMBINACIONES + TOPES
          * =======================================================*/
@@ -343,8 +347,8 @@ class EmpresaController extends Controller
             }
 
             /* =========================================================
-         * 5️⃣ BANCOS POR ESQUEMA
-         * =======================================================*/
+            * 5️⃣ BANCOS POR ESQUEMA
+            * =======================================================*/
 
             foreach ($request->input('bancos', []) as $item) {
 
@@ -352,26 +356,31 @@ class EmpresaController extends Controller
 
                 foreach ($item['bancos'] as $banco) {
 
-                    NominaGapeBancoConfiguracionEsquema::create([
+                    // 1. Crear configuración principal del banco
+                    $configuracionBanco = NominaGapeBancoConfiguracionEsquema::create([
                         'estado' => $banco['estado'],
                         'activo_dispersion' => $banco['estado'],
+
                         'id_nomina_gape_cliente' => $empresa->id_nomina_gape_cliente,
                         'id_nomina_gape_empresa' => $idEmpresa,
                         'id_nomina_gape_esquema' => $idEsquema,
 
-                        // ⚠️ Ajusta este mapeo según tu catálogo real
-                        'id_nomina_gape_banco' => $this->mapBancoId($banco['banco']),
-
-                        'azteca_cuenta_origen' =>
-                        $banco['banco'] === 'Azteca'
-                            ? ($banco['cuentas_origen'][0]['cuenta'] ?? null)
-                            : null,
-
-                        'banorte_cuenta_origen' =>
-                        $banco['banco'] === 'Banorte'
-                            ? ($banco['cuentas_origen'][0]['cuenta'] ?? null)
-                            : null,
+                        // Ahora debe venir desde el front
+                        'id_nomina_gape_banco' => $banco['id_banco'] ?? null,
                     ]);
+
+                    // 2. Insertar cuentas origen en tabla hija
+                    foreach (($banco['cuentas_origen'] ?? []) as $cuenta) {
+
+                        if (empty($cuenta['cuenta'])) {
+                            continue;
+                        }
+
+                        NominaGapeBancoConfiguracionDatosExtra::create([
+                            'id_nomina_gape_banco_configuracion' => $configuracionBanco->id,
+                            'cuenta' => $cuenta['cuenta'],
+                        ]);
+                    }
                 }
             }
 
@@ -394,17 +403,6 @@ class EmpresaController extends Controller
         }
     }
 
-    private function mapBancoId(string $nombre): int
-    {
-        return match ($nombre) {
-            'Fondeadora' => 1,
-            'Banorte' => 2,
-            'Azteca' => 4,
-            'Tarjeta facil' => 5,
-            default => throw new \Exception("Banco no soportado: {$nombre}")
-        };
-    }
-
     /**
      * Display the specified resource.
      */
@@ -415,8 +413,8 @@ class EmpresaController extends Controller
             $empresa = NominaGapeEmpresa::findOrFail($idEmpresa);
 
             /* =====================================================
-     * 1️⃣ COMBINACIONES + TOPES
-     * ===================================================== */
+            * 1️⃣ COMBINACIONES + TOPES
+            * ===================================================== */
 
             $idEmpresaDatabase = $empresa->id_empresa_database;
 
@@ -467,8 +465,8 @@ class EmpresaController extends Controller
                 ->values();
 
             /* =====================================================
-     * 2️⃣ PARAMETRIZACIÓN + PREVISIONES
-     * ===================================================== */
+            * 2️⃣ PARAMETRIZACIÓN + PREVISIONES
+            * ===================================================== */
             $paramRows =
                 NominaGapeEmpresaPeriodoCombinacionParametrizacion::where(
                     'id_nomina_gape_empresa',
@@ -506,27 +504,63 @@ class EmpresaController extends Controller
             });
 
             /* =====================================================
-     * 3️⃣ BANCOS POR ESQUEMA
-     * ===================================================== */
+            * 3️⃣ BANCOS POR ESQUEMA
+            * ===================================================== */
 
-            $bancosRows =
-                NominaGapeBancoConfiguracionEsquema::where(
-                    'id_nomina_gape_empresa',
-                    $idEmpresa
-                )->get()
+
+            $bancosCatalogo = NominaGapeBanco::where('estado', 1)->get();
+
+            $bancosRows = NominaGapeBancoConfiguracionEsquema::where(
+                'id_nomina_gape_empresa',
+                $idEmpresa
+            )
+                ->with(['datosExtra', 'banco'])
+                ->get()
                 ->groupBy('id_nomina_gape_esquema');
 
-            $bancos = $bancosRows->map(function ($rows, $idEsquema) {
+            $idsEsquemasConfigurados = $rows
+                ->pluck('id_nomina_gape_esquema')
+                ->unique()
+                ->values();
+
+            $bancos = $idsEsquemasConfigurados->map(function ($idEsquema) use (
+                $bancosRows,
+                $bancosCatalogo
+            ) {
+                $configuracionesDelEsquema = $bancosRows[$idEsquema] ?? collect();
+
                 return [
-                    'id_esquema' => $idEsquema,
-                    'bancos' => $rows->map(function ($b) {
+                    'id_esquema' => (int) $idEsquema,
+
+                    'bancos' => $bancosCatalogo->map(function ($bancoCatalogo) use (
+                        $configuracionesDelEsquema
+                    ) {
+                        $configExistente = $configuracionesDelEsquema
+                            ->firstWhere('id_nomina_gape_banco', $bancoCatalogo->id);
+
                         return [
-                            'banco' => $this->mapBancoNombre($b->id_nomina_gape_banco),
-                            'estado' => (int) $b->estado,
-                            'cuentasOrigen' => collect([
-                                $b->azteca_cuenta_origen,
-                                $b->banorte_cuenta_origen,
-                            ])->filter()->map(fn($c) => ['cuentaOrigen' => $c])->values(),
+                            // id de nomina_gape_banco_configuracion_esquema
+                            'id' => $configExistente?->id,
+
+                            // id real del catálogo nomina_gape_banco
+                            'id_banco' => $bancoCatalogo->id,
+                            'id_nomina_gape_banco' => $bancoCatalogo->id,
+
+                            'banco' => $bancoCatalogo->banco,
+                            'clave_banco' => $bancoCatalogo->clave_banco,
+                            'clave_interna' => $bancoCatalogo->clave_interna,
+                            'requiere_cuenta_origen' => (bool) $bancoCatalogo->requiere_cuenta_origen,
+
+                            // si no existía antes, aparece apagado
+                            'estado' => (bool) ($configExistente?->estado ?? false),
+                            'activo_dispersion' => (bool) ($configExistente?->activo_dispersion ?? false),
+
+                            'cuentasOrigen' => $configExistente
+                                ? $configExistente->datosExtra->map(fn($c) => [
+                                    'id' => $c->id,
+                                    'cuentaOrigen' => $c->cuenta,
+                                ])->values()
+                                : [],
                         ];
                     })->values(),
                 ];
@@ -553,15 +587,10 @@ class EmpresaController extends Controller
         }
     }
 
-    private function mapBancoNombre(?int $idBanco): string
+    private function bancoRequiereCuentaOrigen($idBanco): bool
     {
-        return match ($idBanco) {
-            1 => 'Fondeadora',
-            2 => 'Banorte',
-            4 => 'Azteca',
-            5 => 'Tarjeta facil',
-            default => 'Desconocido',
-        };
+        return NominaGapeBanco::where('id', $idBanco)
+            ->value('requiere_cuenta_origen') == true;
     }
 
     private function getNombreEsquema(int $idEsquema): string
@@ -683,8 +712,8 @@ class EmpresaController extends Controller
                 ->delete();
 
             /* =========================================================
-         * 4️⃣ BANCOS POR ESQUEMA
-         * =======================================================*/
+            * 4️⃣ BANCOS POR ESQUEMA
+            * =======================================================*/
             $idsBancos = [];
 
             foreach ($request->input('bancos', []) as $item) {
@@ -693,34 +722,59 @@ class EmpresaController extends Controller
 
                 foreach ($item['bancos'] as $banco) {
 
-                    $cuentas = $banco['cuentasOrigen']
-                        ?? $banco['cuentas_origen']
+                    $cuentas = $banco['cuentas_origen']
+                        ?? $banco['cuentasOrigen']
                         ?? [];
 
+                    $idBanco = $banco['id_banco']
+                        ?? $banco['id_nomina_gape_banco']
+                        ?? null;
+
+                    if (!$idBanco) {
+                        continue;
+                    }
+
+                    // 1. Crear / actualizar configuración principal del banco
                     $registro = NominaGapeBancoConfiguracionEsquema::updateOrCreate(
                         [
                             'id_nomina_gape_empresa' => $empresa->id,
                             'id_nomina_gape_esquema' => $idEsquema,
-                            'id_nomina_gape_banco' => $this->mapBancoId($banco['banco']),
+                            'id_nomina_gape_banco' => $idBanco,
                         ],
                         [
                             'estado' => (bool) $banco['estado'],
                             'activo_dispersion' => (bool) $banco['estado'],
                             'id_nomina_gape_cliente' => $empresa->id_nomina_gape_cliente,
 
-                            'azteca_cuenta_origen' =>
-                            $banco['banco'] === 'Azteca'
-                                ? ($cuentas[0]['cuenta'] ?? null)
-                                : null,
-
-                            'banorte_cuenta_origen' =>
-                            $banco['banco'] === 'Banorte'
-                                ? ($cuentas[0]['cuenta'] ?? null)
-                                : null,
+                            // Déjalo solo si aún lo necesitas
+                            'banorte_clave_banco' => $banco['clave_banco'] ?? null,
                         ]
                     );
 
                     $idsBancos[] = $registro->id;
+
+                    // 2. Reset controlado de cuentas origen del banco
+                    NominaGapeBancoConfiguracionDatosExtra::where(
+                        'id_nomina_gape_banco_configuracion',
+                        $registro->id
+                    )->delete();
+
+                    // 3. Insertar cuentas origen actuales
+                    foreach ($cuentas as $cuenta) {
+
+                        $valorCuenta = $cuenta['cuenta']
+                            ?? $cuenta['cuentaOrigen']
+                            ?? null;
+
+                        if (empty($valorCuenta)) {
+                            continue;
+                        }
+
+                        NominaGapeBancoConfiguracionDatosExtra::create([
+                            'id_nomina_gape_banco_configuracion' => $registro->id,
+                            'cuenta' => $valorCuenta,
+                        ]);
+                    }
                 }
             }
 

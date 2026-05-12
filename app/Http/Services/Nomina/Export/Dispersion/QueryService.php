@@ -407,8 +407,12 @@ class QueryService
                                 SUBSTRING(CONVERT(char(10), emp.fechanacimiento, 126), 3, 2) +
                                 SUBSTRING(CONVERT(char(10), emp.fechanacimiento, 126), 6, 2) +
                                 SUBSTRING(CONVERT(char(10), emp.fechanacimiento, 126), 9, 2) +
-                                emp.homoclave as rfc
+                                emp.homoclave as rfc,
+                                bankaool.descripcion AS bancoDestinoBankaool,
+                                bankaool.clave_transferencia AS bancoClaveTransferencia
                             FROM nom10001 emp ' + '
+                            LEFT JOIN [becma-core2].dbo.nomina_gape_catalogo_bankaool AS bankaool
+                                ON emp.bancopagoelectronico = bankaool.clave_banco
                             INNER JOIN nom10034 empPeriodo
                                 ON emp.idempleado = empPeriodo.idempleado
                                     AND empPeriodo.cidperiodo = @idPeriodo
@@ -457,7 +461,9 @@ class QueryService
                                 emp.ClabeInterbancaria,
                                 emp.campoextra3,
                                 emp.ccampoextranumerico3,
-                                emp.ccampoextranumerico4
+                                emp.ccampoextranumerico4,
+                                bankaool.descripcion,
+                                bankaool.clave_transferencia
                     ), ' + '
                     PensionGeneralQ3 AS (
                         SELECT
@@ -495,7 +501,9 @@ class QueryService
                                 sdi,
                                 SUM(CASE WHEN tipoConcepto = ''P'' THEN monto ELSE 0 END) AS total_percepciones,
                                 SUM(CASE WHEN tipoConcepto = ''D'' THEN monto ELSE 0 END) AS total_deducciones,
-                                pension AS porcentajePension
+                                pension AS porcentajePension,
+                                bancoDestinoBankaool AS bancoDestinoBankaool,
+                                bancoClaveTransferencia AS bancoClaveTransferencia
                             FROM MovimientosSumaQ3
                             GROUP BY
                                 codigoempleado,
@@ -511,7 +519,9 @@ class QueryService
                                 cuentaPagoElectronico,
                                 clabeInterbancaria,
                                 campoextra3,
-                                tarjetafacil
+                                tarjetafacil,
+                                bancoDestinoBankaool,
+                                bancoClaveTransferencia
                     ), ' + '
                     preTotalesProrrateo AS (
                         SELECT
@@ -618,7 +628,9 @@ class QueryService
                             MAX(cuentaPagoElectronico)  AS cuentaPagoElectronico,
                             MAX(clabeInterbancaria)  AS clabeInterbancaria,
                             MAX(campoextra3) AS campoextra3,
-                            MAX(tarjetafacil) AS tarjetafacil
+                            MAX(tarjetafacil) AS tarjetafacil,
+                            MAX(bancoDestinoBankaool) AS bancoDestinoBankaool,
+                            MAX(bancoClaveTransferencia) AS bancoClaveTransferencia
                         FROM TotalesPorEmpleadoQ3
                         GROUP BY
                             codigoempleado
@@ -636,6 +648,8 @@ class QueryService
                             clabeInterbancaria,
                             campoextra3,
                             tarjetafacil,
+                            bancoDestinoBankaool,
+                            bancoClaveTransferencia,
                             ''Sueldo IMSS'' AS concepto,
                             (total_percepciones - total_deducciones) AS monto_asignado
                         FROM TotalesPorEmpleadoQ3
@@ -654,6 +668,8 @@ class QueryService
                             d.clabeInterbancaria,
                             d.campoextra3,
                             d.tarjetafacil,
+                            d.bancoDestinoBankaool,
+                            d.bancoClaveTransferencia,
                             r.concepto,
                             r.monto_asignado
                         FROM ProrrateoRecursivo r
@@ -661,7 +677,7 @@ class QueryService
                             ON d.codigoempleado = r.codigoempleado
                     ) ' + '
 
-                SELECT p.codigoempleado, p.nombre, p.ap, p.am, p.nombreCompleto, p.rfc, p.claveBanco, p.cuentaPagoElectronico, p.clabeInterbancaria, p.campoextra3, p.tarjetafacil, ' + @cols + '
+                SELECT p.codigoempleado, p.nombre, p.ap, p.am, p.nombreCompleto, p.rfc, p.claveBanco, p.cuentaPagoElectronico, p.clabeInterbancaria, p.campoextra3, p.tarjetafacil, p.bancoDestinoBankaool, bancoClaveTransferencia, ' + @cols + '
                 FROM ProrrateoFinal
                 PIVOT (
                     SUM(monto_asignado)
@@ -676,8 +692,8 @@ class QueryService
             /*
             dd([
                 'row' => $sql,
-            ]);
-            */
+            ]);*/
+
 
             //return $sql;
             $result = DB::connection('sqlsrv_dynamic')->select($sql);

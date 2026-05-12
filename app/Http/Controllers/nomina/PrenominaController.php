@@ -65,8 +65,10 @@ class PrenominaController extends Controller
             )
             ->where('ngepcp.id_nomina_gape_cliente', $idCliente)
             ->where('ngepcp.id_nomina_gape_empresa', $idEmpresa)
-            ->where('ngcec.id_nomina_gape_cliente', $idCliente)
             ->where('ngepcp.idtipoperiodo', $idTipoPeriodo)
+
+            ->where('ngcec.id_nomina_gape_cliente', $idCliente)
+            ->where('ngcec.id_nomina_gape_empresa', $idEmpresa)
             ->whereIn('ngcec.combinacion', $idEsquemas)
             ->where('ngcec.orden', 1)
             ->select('nge.esquema', 'ngcec.combinacion AS id', 'nge.id AS id_nomina_gape_esquema', 'ngepcp.base_fee AS base_fee')

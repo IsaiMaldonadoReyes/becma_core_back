@@ -19,6 +19,7 @@ use App\Http\Controllers\nomina\ParametrizacionController;
 use App\Http\Controllers\nomina\PrenominaController;
 
 use App\Http\Controllers\nomina\IncidenciaController;
+use App\Http\Controllers\nomina\BancoController;
 
 Route::get('/', function () {
     return 'API test becma-core';
@@ -98,16 +99,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
         // Fondeadora
         Route::post('upsertBancoDispersion', [BancosDispersionController::class, 'upsertBancoDispersion']);
-
-        // Azteca
-        Route::post('storeBancoAzteca', [BancosDispersionController::class, 'storeBancoAzteca']);
-        Route::put('updateBancoAzteca/{id}', [BancosDispersionController::class, 'updateBancoAzteca']);
-        Route::delete('deleteBancoAzteca/{id}', [BancosDispersionController::class, 'deleteBancoAzteca']);
-
-        // Banorte
-        Route::post('storeBancoBanorte', [BancosDispersionController::class, 'storeBancoBanorte']);
-        Route::put('updateBancoBanorte/{id}', [BancosDispersionController::class, 'updateBancoBanorte']);
-        Route::delete('deleteBancoBanorte/{id}', [BancosDispersionController::class, 'deleteBancoBanorte']);
     });
 
     // Bancos dispersion
@@ -159,6 +150,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('upsertConcepto', [ParametrizacionController::class, 'upsertConceptoPagoParametrizacion']);
 
         Route::post('upsertParametrizacion', [ParametrizacionController::class, 'upsertParametrizacion']);
+    });
+
+
+    // catalogo bancos dispersion
+
+    Route::prefix('nominaGapeBanco')->group(function () {
+        Route::get('bancos', [BancoController::class, 'bancos']);
     });
 
     // cliente catalogo
