@@ -97,9 +97,11 @@ class HelperService
                 ->where('sistema.codigo', '=', $codigoSistema)
                 ->first();
 
+            /*
             if (!$conexion) {
                 throw new \Exception("No se encontró conexión válida para la base con ID {$idNominaGapeEmpresa}");
             }
+            */
 
             return $conexion;
         } catch (\Exception $e) {

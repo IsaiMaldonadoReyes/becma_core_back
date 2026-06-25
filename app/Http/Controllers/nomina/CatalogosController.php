@@ -416,10 +416,18 @@ class CatalogosController extends Controller
                 ->where('id_nomina_gape_cliente', $idNominaGapeCliente)
                 ->whereNotNull('fee')
                 ->whereNotNull('base_fee')
-                ->whereNotNull('provisiones')
+                //->whereNotNull('provisiones')
                 ->select('id_nomina_gape_tipo_periodo', 'idtipoperiodo')
                 ->groupBy('id_nomina_gape_tipo_periodo', 'idtipoperiodo')
                 ->get();
+
+
+            /*
+            dd([
+                'row' => $periodosConfigurados,
+            ]);
+            */
+
 
             // 2️⃣ Separar fiscales / no fiscales
             $fiscalesIds = $periodosConfigurados

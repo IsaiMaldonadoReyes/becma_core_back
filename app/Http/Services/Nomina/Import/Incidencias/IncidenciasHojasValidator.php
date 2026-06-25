@@ -40,11 +40,18 @@ class IncidenciasHojasValidator
             ->where('ngepcp.id_nomina_gape_cliente', $idCliente)
             ->where('ngepcp.id_nomina_gape_empresa', $idEmpresa)
             ->where('ngcec.id_nomina_gape_cliente', $idCliente)
+            ->where('ngcec.id_nomina_gape_empresa', $idEmpresa)
             ->whereIn('ngcec.combinacion', $idEsquema)
             ->where('ngcec.orden', 1)
             ->distinct()
             ->pluck('nge.esquema')
             ->toArray();
+
+        /*
+        dd([
+            'row' => $esquemasPermitidos,
+        ]);
+        */
 
         /**
          * 2️⃣ Mapa esquema → nombre de hoja

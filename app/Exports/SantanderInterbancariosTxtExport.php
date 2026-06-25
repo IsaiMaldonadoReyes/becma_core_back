@@ -61,7 +61,7 @@ class SantanderInterbancariosTxtExport
             $this->formatClabe($row['clabeInterbancaria'] ?? ''),
             $this->formatBancoReceptor($row['bancoClaveTransferencia'] ?? ''),
             $this->formatNombre($row['nombreCompleto'] ?? ''),
-            '0101',
+            '0100',
             $this->formatAmountSantander($row['importe'] ?? 0),
             '01001',
             $this->formatDescripcion($this->descripcion ?? ''),
@@ -82,7 +82,7 @@ class SantanderInterbancariosTxtExport
         $value = preg_replace('/\D/', '', (string) $value);
         $value = substr($value, 0, 20);
 
-        return str_pad($value, 20, '0', STR_PAD_LEFT);
+        return str_pad($value, 20, ' ', STR_PAD_RIGHT);
     }
 
     private function formatBancoReceptor(?string $value): string

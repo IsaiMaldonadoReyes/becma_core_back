@@ -31,6 +31,12 @@ use App\Exports\TarjetaFacilExport;
 use App\Exports\BankaoolExcelExport;
 
 use App\Exports\SantanderInterbancariosTxtExport;
+use App\Exports\SantanderTercerosTxtExport;
+
+use App\Exports\AfirmeTxtExport;
+use App\Exports\AztecaExcelExport;
+
+use App\Exports\BanorteWebPagExport;
 
 use App\Http\Services\Core\HelperService;
 
@@ -58,6 +64,7 @@ class BancosDispersionController extends Controller
             'claveBanco',
             'cuentaPagoElectronico',
             'clabeInterbancaria',
+            'campoextra1',
             'campoextra3',
             'tarjetafacil',
             'bancoDestinoBankaool',
@@ -94,6 +101,7 @@ class BancosDispersionController extends Controller
                 'claveBanco'                => $row['claveBanco'],
                 'cuentaPagoElectronico'     => $row['cuentaPagoElectronico'],
                 'clabeInterbancaria'        => $row['clabeInterbancaria'],
+                'campoextra1'               => $row['campoextra1'],
                 'campoextra3'               => $row['campoextra3'],
                 'tarjetafacil'              => $row['tarjetafacil'],
                 'importe'                   => $row[$esquema],
@@ -547,6 +555,117 @@ class BancosDispersionController extends Controller
                         $absoluteTmpInter = $export->storeTxt($relativeTmpInter);
 
                         $zip->addFile($absoluteTmpInter, $filenameInter);
+
+                        break;
+                    case 'santander_terceros_txt':
+
+                        $folioManual = $camposAdicionales['folio_layout'] ?? null;
+
+                        $folioConsecutivo = $this->obtenerOGenerarFolioDispersion([
+                            'id_nomina_gape_cliente' => $idCliente,
+                            'id_nomina_gape_empresa' => $idEmpresa,
+                            'id_nomina_gape_banco_configuracion' => $configBanco->id,
+                            'ejercicio' => $row['id_ejercicio'] ?? null,
+                            'periodo' => $row['periodo_inicial'] ?? null,
+                            'folio_manual' => $folioManual,
+                            'monto_nomina' => collect($detalleFiltrado)->sum('importe'),
+                            'total_empleados' => collect($detalleFiltrado)->count(),
+                        ]);
+
+                        $fechaAplicacion = $camposAdicionales['fecha_aplicacion'] ?? null;
+
+                        $filenameInter = "{$baseName}_terceros.txt";
+                        $relativeTmpInter = "{$tmpDir}/{$filenameInter}";
+
+                        /*
+                        dd([
+                            'row' => $detalleFiltrado,
+                        ]);*/
+
+                        $export = new SantanderTercerosTxtExport(
+                            collect($detalleFiltrado),
+                            $cuentaOrigen,
+                            $fechaAplicacion
+                        );
+
+                        $absoluteTmpInter = $export->storeTxt($relativeTmpInter);
+
+                        $zip->addFile($absoluteTmpInter, $filenameInter);
+
+                        break;
+
+                    case 'afirme_txt':
+
+                        $folioManual = $camposAdicionales['folio_layout'] ?? null;
+
+                        $folioConsecutivo = $this->obtenerOGenerarFolioDispersion([
+                            'id_nomina_gape_cliente' => $idCliente,
+                            'id_nomina_gape_empresa' => $idEmpresa,
+                            'id_nomina_gape_banco_configuracion' => $configBanco->id,
+                            'ejercicio' => $row['id_ejercicio'] ?? null,
+                            'periodo' => $row['periodo_inicial'] ?? null,
+                            'folio_manual' => $folioManual,
+                            'monto_nomina' => collect($detalleFiltrado)->sum('importe'),
+                            'total_empleados' => collect($detalleFiltrado)->count(),
+                        ]);
+
+                        $descripcion = $camposAdicionales['descripcion_layout'] ?? '';
+                        $fechaAplicacion = $camposAdicionales['fecha_aplicacion'] ?? now()->format('Y-m-d');
+
+                        $filename = "{$baseName}_afirme.txt";
+                        $relativeTmp = "{$tmpDir}/{$filename}";
+
+                        $ordenante = $this->datosEmpresaNomina();
+
+                        $export = new AfirmeTxtExport(
+                            collect($detalleFiltrado),
+                            $cuentaOrigen,
+                            $ordenante->rfc,
+                            $ordenante->NombreEmpresaFiscal,
+                            $fechaAplicacion,
+                            $descripcion
+                        );
+
+                        $absoluteTmp = $export->storeTxt($relativeTmp);
+
+                        $zip->addFile($absoluteTmp, $filename);
+
+                        break;
+
+                    case 'azteca_excel':
+
+                        $filename = "{$baseName}.xlsx";
+                        $relativeTmp = "{$tmpDir}/{$filename}";
+
+                        $descripcion = $camposAdicionales['descripcion_layout'] ?? null;
+
+                        Excel::store(
+                            new AztecaExcelExport(collect($detalleFiltrado), $descripcion),
+                            $relativeTmp,
+                            'public'
+                        );
+
+                        $absoluteTmp = storage_path("app/public/{$relativeTmp}");
+
+                        $zip->addFile($absoluteTmp, $filename);
+                        break;
+
+                    case 'banorte_web_pag':
+
+                        $fechaAplicacion = $camposAdicionales['fecha_aplicacion'] ?? now()->format('Y-m-d');
+
+                        $filename = "{$baseName}.pag";
+                        $relativeTmp = "{$tmpDir}/{$filename}";
+
+                        $export = new BanorteWebPagExport(
+                            collect($detalleFiltrado),
+                            $cuentaOrigen,
+                            $fechaAplicacion
+                        );
+
+                        $absoluteTmp = $export->storeTxt($relativeTmp);
+
+                        $zip->addFile($absoluteTmp, $filename);
 
                         break;
                 }

@@ -401,6 +401,7 @@ class QueryService
                                 emp.bancopagoelectronico AS claveBanco,
                                 emp.cuentapagoelectronico AS cuentaPagoElectronico,
                                 emp.ClabeInterbancaria AS clabeInterbancaria,
+                                ISNULL(CAST(emp.campoextra1 AS NVARCHAR(50)), '''') AS campoextra1,
                                 ISNULL(CAST(emp.campoextra3 AS NVARCHAR(50)), '''') AS campoextra3,
                                 ISNULL(CAST(emp.ccampoextranumerico4 AS NVARCHAR(50)), '''') AS tarjetafacil,
                                 emp.rfc +
@@ -459,6 +460,7 @@ class QueryService
                                 emp.bancopagoelectronico,
                                 emp.cuentapagoelectronico,
                                 emp.ClabeInterbancaria,
+                                emp.campoextra1,
                                 emp.campoextra3,
                                 emp.ccampoextranumerico3,
                                 emp.ccampoextranumerico4,
@@ -496,6 +498,7 @@ class QueryService
                                 cuentaPagoElectronico,
                                 clabeInterbancaria,
                                 campoextra3,
+                                campoextra1,
                                 tarjetafacil,
                                 sd,
                                 sdi,
@@ -518,6 +521,7 @@ class QueryService
                                 claveBanco,
                                 cuentaPagoElectronico,
                                 clabeInterbancaria,
+                                campoextra1,
                                 campoextra3,
                                 tarjetafacil,
                                 bancoDestinoBankaool,
@@ -627,6 +631,7 @@ class QueryService
                             MAX(claveBanco)  AS claveBanco,
                             MAX(cuentaPagoElectronico)  AS cuentaPagoElectronico,
                             MAX(clabeInterbancaria)  AS clabeInterbancaria,
+                            MAX(campoextra1) AS campoextra1,
                             MAX(campoextra3) AS campoextra3,
                             MAX(tarjetafacil) AS tarjetafacil,
                             MAX(bancoDestinoBankaool) AS bancoDestinoBankaool,
@@ -646,6 +651,7 @@ class QueryService
                             claveBanco,
                             cuentaPagoElectronico,
                             clabeInterbancaria,
+                            campoextra1,
                             campoextra3,
                             tarjetafacil,
                             bancoDestinoBankaool,
@@ -666,6 +672,7 @@ class QueryService
                             d.claveBanco,
                             d.cuentaPagoElectronico,
                             d.clabeInterbancaria,
+                            d.campoextra1,
                             d.campoextra3,
                             d.tarjetafacil,
                             d.bancoDestinoBankaool,
@@ -677,7 +684,7 @@ class QueryService
                             ON d.codigoempleado = r.codigoempleado
                     ) ' + '
 
-                SELECT p.codigoempleado, p.nombre, p.ap, p.am, p.nombreCompleto, p.rfc, p.claveBanco, p.cuentaPagoElectronico, p.clabeInterbancaria, p.campoextra3, p.tarjetafacil, p.bancoDestinoBankaool, bancoClaveTransferencia, ' + @cols + '
+                SELECT p.codigoempleado, p.nombre, p.ap, p.am, p.nombreCompleto, p.rfc, p.claveBanco, p.cuentaPagoElectronico, p.clabeInterbancaria, p.campoextra1, p.campoextra3, p.tarjetafacil, p.bancoDestinoBankaool, p.bancoClaveTransferencia, ' + @cols + '
                 FROM ProrrateoFinal
                 PIVOT (
                     SUM(monto_asignado)
@@ -689,10 +696,12 @@ class QueryService
                 EXEC(@sql);
             ";
 
+
             /*
             dd([
                 'row' => $sql,
-            ]);*/
+            ]);
+            */
 
 
             //return $sql;
@@ -1481,7 +1490,7 @@ class QueryService
                             (''Bono'',                      ngid.bono),
                             (''Comisiones'',                ngid.comision),
                             (''Dia Festivo cantidad'',      ngid.cantidad_dias_festivos),
-                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2 * 2),
+                            (''Dia Festivo monto'',         ISNULL(ngid.cantidad_dias_festivos, 0) * emp.ccampoextranumerico2),
                             (''Horas Extra Doble cantidad'', ngid.horas_extra_doble_cantidad),
                             (''Horas Extra Doble monto'',    ISNULL(ngid.horas_extra_doble_cantidad, 0) * (emp.ccampoextranumerico2 / 8.0) * 2),
                             (''Horas Extra Triple cantidad'', ngid.horas_extra_triple_cantidad),

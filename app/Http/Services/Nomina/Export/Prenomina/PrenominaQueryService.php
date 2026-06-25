@@ -3195,6 +3195,12 @@ class PrenominaQueryService
                     EXEC(@sql);
             ";
 
+            /*
+            dd([
+                'row' => $sql,
+            ]);
+            */
+
             //return $sql;
             $result = DB::connection('sqlsrv_dynamic')->select($sql);
 
@@ -13001,11 +13007,14 @@ class PrenominaQueryService
 
             //return $sql;
 
+
             /*
             dd([
                 'row' => $sql,
             ]);
+
             */
+
 
             $result = DB::select($sql);
 
@@ -13136,6 +13145,7 @@ class PrenominaQueryService
                             ngepcp.id_nomina_gape_cliente = @idNominaGapeCliente
                             AND ngepcp.id_nomina_gape_empresa = @idNominaGapeEmpresa
                             AND ngcec.id_nomina_gape_cliente = @idNominaGapeCliente
+                            AND ngcec.id_nomina_gape_empresa = @idNominaGapeEmpresa
                             AND ngcec.combinacion = @idEsquemaCombinacion
                             AND ngcec.orden = 1
                     ), ' + '

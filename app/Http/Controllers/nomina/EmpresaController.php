@@ -88,58 +88,6 @@ class EmpresaController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store2(StoreEmpresaRequest $request)
-    {
-        try {
-
-
-
-            $validatedData = $request->validated();
-            $empresa = NominaGapeEmpresa::create($validatedData);
-
-            $idEmpresa = $empresa->id;
-
-
-            // en combinacion se tiene que guardar el idEmpresa en id_nomina_gape_empresa, y aquí mi array de combinaciones Y MI ARRAY DE TOPES POR CADA UNA DE LAS FILAS esquemas[combinaciones] para llenar los campos de topes, orden etc
-            // en el campo de combinacion debes de poner el que traes del array, tal cual la combinacion
-
-            $combinacion = NominaGapeClienteEsquemaCombinacion::create();
-
-            $idCombinacion = $combinacion->combinacion;
-
-
-            // guardar en el campo id_nomina_gape_cliente_esquema_combinacion el campo de mi $idCombinacion
-
-            $parametrizacion = NominaGapeEmpresaPeriodoCombinacionParametrizacion::create();
-
-            $idParametrizacion = $parametrizacion->id;
-
-            // en la tabla NominaGapeCombinacionPrevision tengo que guardar el id de la parametrizacion y tengo que guardar por fila el array de parametrizacion[].prevision[]
-
-            $prevision = NominaGapeCombinacionPrevision::create();
-
-            // en esta tabla tengo que guardar mi array de bancos
-
-            // estado = activo_dispersion
-            // y por cada uno de los array de los bancos pore ejemplo AZTECA que puede tener un array, tiene que ir en una fila independiente
-
-            $prevision = NominaGapeBancoConfiguracionEsquema::create();
-
-
-
-            return response()->json([
-                'code' => 200,
-                'message' => 'Registro guardado correctamente',
-                'id' => $empresa->id,
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'code' => 500,
-                'message' => 'Se generó un error al guardar',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
-    }
 
     public function store(Request $request, HelperService $helper)
     {
@@ -161,9 +109,18 @@ class EmpresaController extends Controller
 
             $conexion = $helper->getConexionDatabaseNGE($idEmpresa, 'Nom');
 
-            $helper->setDatabaseConnection($conexion, $conexion->nombre_base);
+            /*
+            dd([
+                'row' => $conexion,
+            ]);
+
+            */
+
 
             if (!empty($conexion)) {
+
+                $helper->setDatabaseConnection($conexion, $conexion->nombre_base);
+
                 // 1️⃣ Conceptos existentes tipo obligación
                 $conceptosExistentes = Conceptos::where('tipoconcepto', 'O')
                     ->pluck('numeroconcepto')
@@ -330,7 +287,13 @@ class EmpresaController extends Controller
                     'estado' => $param['estado'],
                     'id_nomina_gape_cliente' => $empresa->id_nomina_gape_cliente,
                     'id_nomina_gape_empresa' => $idEmpresa,
-                    'idtipoperiodo' => $param['id_periodo'],
+                    'idtipoperiodo' => !empty($conexion)
+                        ? $param['id_periodo']
+                        : null,
+
+                    'id_nomina_gape_tipo_periodo' => empty($conexion)
+                        ? $param['id_periodo']
+                        : null,
                     'id_nomina_gape_cliente_esquema_combinacion' => $param['combinacion_key'],
                     'fee' => $param['fee'],
                     'base_fee' => $param['base_fee'],
@@ -406,7 +369,7 @@ class EmpresaController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($idEmpresa, HelperService $helper)
+    public function show3($idEmpresa, HelperService $helper)
     {
         try {
 
@@ -480,6 +443,7 @@ class EmpresaController extends Controller
                 )->get()
                 ->groupBy('nomina_gape_empresa_periodo_combinacion_parametrizacion');
 
+
             $parametrizacion = $paramRows->map(function ($p) use ($previsiones, $mapPeriodos) {
                 $idPeriodo = $p->idtipoperiodo ?? $p->id_nomina_gape_tipo_periodo;
 
@@ -552,6 +516,408 @@ class EmpresaController extends Controller
                             'requiere_cuenta_origen' => (bool) $bancoCatalogo->requiere_cuenta_origen,
 
                             // si no existía antes, aparece apagado
+                            'estado' => (bool) ($configExistente?->estado ?? false),
+                            'activo_dispersion' => (bool) ($configExistente?->activo_dispersion ?? false),
+
+                            'cuentasOrigen' => $configExistente
+                                ? $configExistente->datosExtra->map(fn($c) => [
+                                    'id' => $c->id,
+                                    'cuentaOrigen' => $c->cuenta,
+                                ])->values()
+                                : [],
+                        ];
+                    })->values(),
+                ];
+            })->values();
+
+            $data = [
+                'empresa' => $empresa,
+                'combinaciones' => $combinaciones,
+                'parametrizacion' => $parametrizacion,
+                'bancos' => $bancos,
+            ];
+
+            return response()->json([
+                'code' => 200,
+                'message' => 'Datos obtenidos correctamente',
+                'data' => $data,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'code' => 500,
+                'message' => 'Error al obtener los datos',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function show2($idEmpresa, HelperService $helper)
+    {
+        try {
+
+            $empresa = NominaGapeEmpresa::findOrFail($idEmpresa);
+
+            /* =====================================================
+        * 1️⃣ COMBINACIONES + TOPES
+        * ===================================================== */
+
+            $idEmpresaDatabase = $empresa->id_empresa_database;
+            $tipoPeriodo = null;
+
+            if ($idEmpresaDatabase !== null) {
+                $conexion = $helper->getConexionDatabaseNGE($idEmpresa, 'Nom');
+                $helper->setDatabaseConnection($conexion, $conexion->nombre_base);
+
+                $tipoPeriodo = TipoPeriodo::select('idtipoperiodo', 'nombretipoperiodo')
+                    ->get();
+            } else {
+                $tipoPeriodo = NominaGapeTipoPeriodo::select('id', 'nombretipoperiodo')
+                    ->get();
+            }
+
+            $mapPeriodos = $tipoPeriodo->pluck(
+                'nombretipoperiodo',
+                $idEmpresaDatabase ? 'idtipoperiodo' : 'id'
+            );
+
+            $rows = NominaGapeClienteEsquemaCombinacion::where(
+                'id_nomina_gape_empresa',
+                $idEmpresa
+            )->get();
+
+            $combinaciones = $rows
+                ->groupBy('combinacion')
+                ->map(function ($items, $key) {
+                    return [
+                        'combinacion' => $key,
+                        'estado' => $items->first()->estado,
+                        'esquemas' => $items->map(fn($i) => [
+                            'id' => $i->id_nomina_gape_esquema,
+                            'esquema' => $this->getNombreEsquema($i->id_nomina_gape_esquema),
+                            'contpaqi' => $this->esContpaqi($i->id_nomina_gape_esquema),
+                        ])->values(),
+
+                        'topes' => $items->map(fn($i) => [
+                            'id' => $i->id,
+                            'id_esquema' => $i->id_nomina_gape_esquema,
+                            'tope' => $i->tope,
+                            'orden' => (int) $i->orden,
+                        ])->values(),
+                    ];
+                })
+                ->values();
+
+            /* =====================================================
+        * 2️⃣ PARAMETRIZACIÓN + PREVISIONES
+        * ===================================================== */
+
+            $paramRows = NominaGapeEmpresaPeriodoCombinacionParametrizacion::where(
+                'id_nomina_gape_empresa',
+                $idEmpresa
+            )->get();
+
+            $previsiones = NominaGapeCombinacionPrevision::whereIn(
+                'nomina_gape_empresa_periodo_combinacion_parametrizacion',
+                $paramRows->pluck('id')
+            )
+                ->get()
+                ->groupBy('nomina_gape_empresa_periodo_combinacion_parametrizacion');
+
+            $paramRowsIndexados = $paramRows->keyBy(function ($p) {
+                $idPeriodo = $p->idtipoperiodo ?? $p->id_nomina_gape_tipo_periodo;
+
+                return $p->id_nomina_gape_cliente_esquema_combinacion . '_' . $idPeriodo;
+            });
+
+            /*
+        |--------------------------------------------------------------------------
+        | Tomamos solo una fila por combinación.
+        | $rows tiene varias filas porque cada combinación contiene varios esquemas.
+        |--------------------------------------------------------------------------
+        */
+            $combinacionesBase = $rows
+                ->groupBy('combinacion')
+                ->map(fn($items) => $items->first())
+                ->values();
+
+            $parametrizacion = collect();
+
+            foreach ($combinacionesBase as $rowCombinacion) {
+                foreach ($mapPeriodos as $idPeriodo => $nombrePeriodo) {
+
+                    $key = $rowCombinacion->id . '_' . $idPeriodo;
+
+                    $p = $paramRowsIndexados->get($key);
+
+                    $parametrizacion->push([
+                        'id' => $p?->id,
+
+                        'estado' => $p ? (bool) $p->estado : false,
+
+                        'combinacionKey' => $rowCombinacion->id,
+
+                        'idPeriodo' => (int) $idPeriodo,
+                        'periodo' => $nombrePeriodo,
+
+                        'fee' => $p?->fee,
+                        'baseFee' => $p?->base_fee,
+                        'provisiones' => $p?->provisiones ?? false,
+
+                        'prevision' => $p
+                            ? ($previsiones[$p->id] ?? collect())->map(fn($x) => [
+                                'idconcepto' => (int) $x->id_concepto,
+                            ])->values()
+                            : [],
+                    ]);
+                }
+            }
+
+            $parametrizacion = $parametrizacion->values();
+
+            /* =====================================================
+        * 3️⃣ BANCOS POR ESQUEMA
+        * ===================================================== */
+
+            $bancosCatalogo = NominaGapeBanco::where('estado', 1)->get();
+
+            $bancosRows = NominaGapeBancoConfiguracionEsquema::where(
+                'id_nomina_gape_empresa',
+                $idEmpresa
+            )
+                ->with(['datosExtra', 'banco'])
+                ->get()
+                ->groupBy('id_nomina_gape_esquema');
+
+            $idsEsquemasConfigurados = $rows
+                ->pluck('id_nomina_gape_esquema')
+                ->unique()
+                ->values();
+
+            $bancos = $idsEsquemasConfigurados->map(function ($idEsquema) use (
+                $bancosRows,
+                $bancosCatalogo
+            ) {
+                $configuracionesDelEsquema = $bancosRows[$idEsquema] ?? collect();
+
+                return [
+                    'id_esquema' => (int) $idEsquema,
+
+                    'bancos' => $bancosCatalogo->map(function ($bancoCatalogo) use (
+                        $configuracionesDelEsquema
+                    ) {
+                        $configExistente = $configuracionesDelEsquema
+                            ->firstWhere('id_nomina_gape_banco', $bancoCatalogo->id);
+
+                        return [
+                            'id' => $configExistente?->id,
+
+                            'id_banco' => $bancoCatalogo->id,
+                            'id_nomina_gape_banco' => $bancoCatalogo->id,
+
+                            'banco' => $bancoCatalogo->banco,
+                            'clave_banco' => $bancoCatalogo->clave_banco,
+                            'clave_interna' => $bancoCatalogo->clave_interna,
+                            'requiere_cuenta_origen' => (bool) $bancoCatalogo->requiere_cuenta_origen,
+
+                            'estado' => (bool) ($configExistente?->estado ?? false),
+                            'activo_dispersion' => (bool) ($configExistente?->activo_dispersion ?? false),
+
+                            'cuentasOrigen' => $configExistente
+                                ? $configExistente->datosExtra->map(fn($c) => [
+                                    'id' => $c->id,
+                                    'cuentaOrigen' => $c->cuenta,
+                                ])->values()
+                                : [],
+                        ];
+                    })->values(),
+                ];
+            })->values();
+
+            $data = [
+                'empresa' => $empresa,
+                'combinaciones' => $combinaciones,
+                'parametrizacion' => $parametrizacion,
+                'bancos' => $bancos,
+            ];
+
+            return response()->json([
+                'code' => 200,
+                'message' => 'Datos obtenidos correctamente',
+                'data' => $data,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'code' => 500,
+                'message' => 'Error al obtener los datos',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function show($idEmpresa, HelperService $helper)
+    {
+        try {
+
+            $empresa = NominaGapeEmpresa::findOrFail($idEmpresa);
+
+            /* =====================================================
+        * 1️⃣ COMBINACIONES + TOPES
+        * ===================================================== */
+
+            $idEmpresaDatabase = $empresa->id_empresa_database;
+
+            if ($idEmpresaDatabase !== null) {
+                $conexion = $helper->getConexionDatabaseNGE($idEmpresa, 'Nom');
+                $helper->setDatabaseConnection($conexion, $conexion->nombre_base);
+
+                $tipoPeriodo = TipoPeriodo::select('idtipoperiodo', 'nombretipoperiodo')
+                    ->get();
+            } else {
+                $tipoPeriodo = NominaGapeTipoPeriodo::select('id', 'nombretipoperiodo')
+                    ->get();
+            }
+
+            $mapPeriodos = $tipoPeriodo->pluck(
+                'nombretipoperiodo',
+                $idEmpresaDatabase ? 'idtipoperiodo' : 'id'
+            );
+
+            $rows = NominaGapeClienteEsquemaCombinacion::where(
+                'id_nomina_gape_empresa',
+                $idEmpresa
+            )->get();
+
+            $combinaciones = $rows
+                ->groupBy('combinacion')
+                ->map(function ($items, $key) {
+                    return [
+                        'combinacion' => $key,
+                        'estado' => $items->first()->estado,
+
+                        'esquemas' => $items->map(fn($i) => [
+                            'id' => $i->id_nomina_gape_esquema,
+                            'esquema' => $this->getNombreEsquema($i->id_nomina_gape_esquema),
+                            'contpaqi' => $this->esContpaqi($i->id_nomina_gape_esquema),
+                        ])->values(),
+
+                        'topes' => $items->map(fn($i) => [
+                            'id' => $i->id,
+                            'id_esquema' => $i->id_nomina_gape_esquema,
+                            'tope' => $i->tope,
+                            'orden' => (int) $i->orden,
+                        ])->values(),
+                    ];
+                })
+                ->values();
+
+            /* =====================================================
+        * 2️⃣ PARAMETRIZACIÓN + PREVISIONES
+        * ===================================================== */
+
+            $paramRows = NominaGapeEmpresaPeriodoCombinacionParametrizacion::where(
+                'id_nomina_gape_empresa',
+                $idEmpresa
+            )->get();
+
+            $previsiones = NominaGapeCombinacionPrevision::whereIn(
+                'nomina_gape_empresa_periodo_combinacion_parametrizacion',
+                $paramRows->pluck('id')
+            )
+                ->get()
+                ->groupBy('nomina_gape_empresa_periodo_combinacion_parametrizacion');
+
+            $paramRowsIndexados = $paramRows->keyBy(function ($p) {
+                $idPeriodo = $p->idtipoperiodo ?? $p->id_nomina_gape_tipo_periodo;
+
+                return $p->id_nomina_gape_cliente_esquema_combinacion . '_' . $idPeriodo;
+            });
+
+            $combinacionesBase = $rows
+                ->groupBy('combinacion')
+                ->map(fn($items) => $items->first())
+                ->values();
+
+            $parametrizacion = collect();
+
+            foreach ($combinacionesBase as $rowCombinacion) {
+                foreach ($mapPeriodos as $idPeriodo => $nombrePeriodo) {
+
+                    $combinacionKey = $rowCombinacion->combinacion;
+
+                    $key = $combinacionKey . '_' . $idPeriodo;
+
+                    $p = $paramRowsIndexados->get($key);
+
+                    $parametrizacion->push([
+                        'id' => $p?->id,
+
+                        'estado' => $p ? (bool) $p->estado : false,
+
+                        'combinacionKey' => (string) $combinacionKey,
+
+                        'idPeriodo' => (string) $idPeriodo,
+                        'periodo' => $nombrePeriodo,
+
+                        'fee' => $p?->fee,
+                        'baseFee' => $p?->base_fee,
+                        'provisiones' => $p?->provisiones ?? null,
+
+                        'prevision' => $p
+                            ? ($previsiones[$p->id] ?? collect())->map(fn($x) => [
+                                'idconcepto' => (int) $x->id_concepto,
+                            ])->values()
+                            : [],
+                    ]);
+                }
+            }
+
+            $parametrizacion = $parametrizacion->values();
+
+            /* =====================================================
+        * 3️⃣ BANCOS POR ESQUEMA
+        * ===================================================== */
+
+            $bancosCatalogo = NominaGapeBanco::where('estado', 1)->get();
+
+            $bancosRows = NominaGapeBancoConfiguracionEsquema::where(
+                'id_nomina_gape_empresa',
+                $idEmpresa
+            )
+                ->with(['datosExtra', 'banco'])
+                ->get()
+                ->groupBy('id_nomina_gape_esquema');
+
+            $idsEsquemasConfigurados = $rows
+                ->pluck('id_nomina_gape_esquema')
+                ->unique()
+                ->values();
+
+            $bancos = $idsEsquemasConfigurados->map(function ($idEsquema) use (
+                $bancosRows,
+                $bancosCatalogo
+            ) {
+                $configuracionesDelEsquema = $bancosRows[$idEsquema] ?? collect();
+
+                return [
+                    'id_esquema' => (int) $idEsquema,
+
+                    'bancos' => $bancosCatalogo->map(function ($bancoCatalogo) use (
+                        $configuracionesDelEsquema
+                    ) {
+                        $configExistente = $configuracionesDelEsquema
+                            ->firstWhere('id_nomina_gape_banco', $bancoCatalogo->id);
+
+                        return [
+                            'id' => $configExistente?->id,
+
+                            'id_banco' => $bancoCatalogo->id,
+                            'id_nomina_gape_banco' => $bancoCatalogo->id,
+
+                            'banco' => $bancoCatalogo->banco,
+                            'clave_banco' => $bancoCatalogo->clave_banco,
+                            'clave_interna' => $bancoCatalogo->clave_interna,
+                            'requiere_cuenta_origen' => (bool) $bancoCatalogo->requiere_cuenta_origen,
+
                             'estado' => (bool) ($configExistente?->estado ?? false),
                             'activo_dispersion' => (bool) ($configExistente?->activo_dispersion ?? false),
 
@@ -1044,21 +1410,26 @@ class EmpresaController extends Controller
     {
         try {
             $validated = $request->validate([
-                'idEmpresaDatabase'     => 'nullable',
+                'idEmpresaDatabase' => 'nullable',
             ]);
 
-            $idEmpresaDatabase = $validated['idEmpresaDatabase'];
+            $idEmpresaDatabase = $validated['idEmpresaDatabase'] ?? null;
 
-            $tipoPeriodo = null;
             if (empty($idEmpresaDatabase)) {
-                $tipoPeriodo = NominaGapeTipoPeriodo::select('id AS idtipoperiodo', 'nombretipoperiodo')
+                $tipoPeriodo = NominaGapeTipoPeriodo::select(
+                    'id AS idtipoperiodo',
+                    'nombretipoperiodo'
+                )
                     ->get();
             } else {
                 $conexion = $helper->getConexionDatabaseById($idEmpresaDatabase, 'Nom');
                 $helper->setDatabaseConnection($conexion, $conexion->nombre_base);
 
-                $tipoPeriodo = TipoPeriodo::select('idtipoperiodo', 'nombretipoperiodo')
-                    ->where('diasdelperiodo', '>', 1)
+                $tipoPeriodo = TipoPeriodo::select(
+                    'idtipoperiodo',
+                    'nombretipoperiodo'
+                )
+                    //|->where('diasdelperiodo', '>', 1)
                     ->get();
             }
 
@@ -1080,7 +1451,7 @@ class EmpresaController extends Controller
         try {
             $idEmpresaDatabase = $request->input('idEmpresaDatabase');
 
-            $prevision = null;
+            $prevision = collect();
             if (!empty($idEmpresaDatabase)) {
 
                 $conexion = $helper->getConexionDatabaseById($idEmpresaDatabase, 'Nom');

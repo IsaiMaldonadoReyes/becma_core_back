@@ -142,6 +142,7 @@ class EmpleadoController extends Controller
                 ->where('ngepcp.id_nomina_gape_cliente', $idNominaGapeCliente)
                 ->where('ngepcp.id_nomina_gape_empresa', $idNominaGapeEmpresa)
                 ->where('ngcec.id_nomina_gape_cliente', $idNominaGapeCliente)
+                ->where('ngcec.id_nomina_gape_empresa', $idNominaGapeEmpresa)
                 ->where('ngcec.combinacion', $idEsquema)
                 ->where('ngcec.orden', 1)
                 ->pluck('nge.id');
@@ -438,6 +439,8 @@ class EmpleadoController extends Controller
             // 🔹 4️⃣ Transacción anidada sobre la conexión dinámica
             DB::transaction(function () use ($empleado) {
                 // 4.1️⃣ Obtener la configuración de empresa
+
+                /*
                 $empresa = Empresa::select('mascarillacodigo')
                     ->first();
 
@@ -454,6 +457,7 @@ class EmpleadoController extends Controller
 
                 // 4.4️⃣ Actualizar en modelo principal
                 $empleado->codigoempleado = $nuevoCodigo;
+                */
                 $empleado->save();
 
                 // 🔹 4.5️⃣ Preparar datos para insertar en Empleado (base dinámica)
