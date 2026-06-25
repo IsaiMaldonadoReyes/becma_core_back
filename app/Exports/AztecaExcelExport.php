@@ -8,7 +8,7 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithCustomCsvSettings;
 use Maatwebsite\Excel\Concerns\Exportable;
 
-class FondeadoraExport implements FromCollection, WithHeadings, WithCustomCsvSettings
+class AztecaExcelExport implements FromCollection, WithCustomCsvSettings
 {
     use Exportable;
 
@@ -49,29 +49,16 @@ class FondeadoraExport implements FromCollection, WithHeadings, WithCustomCsvSet
 
             $monto  = number_format((float) $row['importe'], 2, '.', '');
 
+            $campoextra1 = $this->cleanText($row['campoextra1'] ?? '');
+
             return [
                 $clabe,
-                $nombre,
                 $monto,
                 $this->concepto, // Concepto fijo
-                '', // Email (opcional)
-                '', // Tags (opcional)
-                '', // Comentario (opcional)
+                $campoextra1,
+                $nombre,
             ];
         });
-    }
-
-    public function headings(): array
-    {
-        return [
-            'Clabe destinatario',
-            'Nombre o razon social destinatario',
-            'Monto',
-            'Concepto',
-            'Email (opcional)',
-            'Tags separados por comas (opcional)',
-            'Comentario (opcional)',
-        ];
     }
 
     public function getCsvSettings(): array

@@ -65,7 +65,11 @@ class PrenominaController extends Controller
             )
             ->where('ngepcp.id_nomina_gape_cliente', $idCliente)
             ->where('ngepcp.id_nomina_gape_empresa', $idEmpresa)
-            ->where('ngepcp.idtipoperiodo', $idTipoPeriodo)
+
+            ->where(function ($query) use ($idTipoPeriodo) {
+                $query->where('ngepcp.idtipoperiodo', $idTipoPeriodo)
+                    ->orWhere('ngepcp.id_nomina_gape_tipo_periodo', $idTipoPeriodo);
+            })
 
             ->where('ngcec.id_nomina_gape_cliente', $idCliente)
             ->where('ngcec.id_nomina_gape_empresa', $idEmpresa)
@@ -79,8 +83,10 @@ class PrenominaController extends Controller
         }
 
         $conexion = $helper->getConexionDatabaseNGE($idEmpresa, 'Nom');
-        $helper->setDatabaseConnection($conexion, $conexion->nombre_base);
 
+        if (!empty($conexion)) {
+            $helper->setDatabaseConnection($conexion, $conexion->nombre_base);
+        }
         // 1. CONFIG
         $config = ConfigFormatoPrenominaService::getConfig();
 

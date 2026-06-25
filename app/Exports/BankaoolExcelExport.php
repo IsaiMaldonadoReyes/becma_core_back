@@ -6,6 +6,7 @@ use Illuminate\Support\Collection;
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 
 class BankaoolExcelExport
 {
@@ -53,7 +54,13 @@ class BankaoolExcelExport
 
         foreach ($this->collection() as $row) {
             $sheet->setCellValue("A{$filaActual}", $row['banco_destino']);
-            $sheet->setCellValue("B{$filaActual}", $row['cuenta_clabe']);
+
+            $sheet->setCellValueExplicit(
+                "B{$filaActual}",
+                $row['cuenta_clabe'],
+                DataType::TYPE_STRING
+            );
+
             $sheet->setCellValue("C{$filaActual}", $row['nombre_beneficiario']);
             $sheet->setCellValue("D{$filaActual}", $row['monto']);
             $sheet->setCellValue("E{$filaActual}", $row['referencia']);

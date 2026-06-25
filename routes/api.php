@@ -21,6 +21,9 @@ use App\Http\Controllers\nomina\PrenominaController;
 use App\Http\Controllers\nomina\IncidenciaController;
 use App\Http\Controllers\nomina\BancoController;
 
+use App\Http\Controllers\nomina\ReporteController;
+
+
 Route::get('/', function () {
     return 'API test becma-core';
 });
@@ -61,6 +64,15 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('updateSistema/{id}', [SistemaController::class, 'update']);
     Route::delete('/destroySistema/{id}', [SistemaController::class, 'destroy']);
     Route::delete('/destroySistemaByIds', [SistemaController::class, 'destroyByIds']);
+
+
+    // Reportes
+    Route::prefix('nominaGapeReporte')->group(function () {
+        // General
+        Route::get('getParametrizacionConfigurada', [ReporteController::class, 'getParametrizacionConfigurada']);
+
+        Route::post('getReporteNomina', [ReporteController::class, 'reporte_nomina_01']);
+    });
 
     // cliente
     Route::prefix('nominaGapeCliente')->group(function () {

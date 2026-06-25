@@ -75,7 +75,10 @@ class IncidenciaController extends Controller
             ->where('ngepcp.id_nomina_gape_empresa', $idEmpresa)
             ->where('ngcec.id_nomina_gape_empresa', $idEmpresa)
             ->where('ngcec.id_nomina_gape_cliente', $idCliente)
-            ->where('ngepcp.idtipoperiodo', $idTipoPeriodo)
+            ->where(function ($query) use ($idTipoPeriodo) {
+                $query->where('ngepcp.idtipoperiodo', $idTipoPeriodo)
+                    ->orWhere('ngepcp.id_nomina_gape_tipo_periodo', $idTipoPeriodo);
+            })
             ->whereIn('ngcec.combinacion', $idEsquemas)
             ->where('ngcec.orden', 1)
             ->select('nge.esquema')
@@ -211,8 +214,10 @@ class IncidenciaController extends Controller
         }
 
         $conexion = $helper->getConexionDatabaseNGE($idNominaGapeEmpresa, 'Nom');
-        $helper->setDatabaseConnection($conexion, $conexion->nombre_base);
 
+        if (!empty($conexion)) {
+            $helper->setDatabaseConnection($conexion, $conexion->nombre_base);
+        }
         $result = $importer->procesarArchivo($request);
 
         $erroresGlobales = [];
@@ -316,15 +321,26 @@ class IncidenciaController extends Controller
 
             foreach ($resultadoHoja->filasValidas as $row) {
 
-                $detalle = $saver->guardarDetalle(
-                    $resultadoHoja->sheet,
-                    $row,
-                    $incidencia->id,
-                    $nombreHoja,  // 👈 MUY IMPORTANTE,
-                    $idsEsquema['id_nomina_gape_esquema'],
-                    $idsEsquema['id_nomina_gape_esquema_combinacion']
-                );
+                if (in_array($nombreHoja, $hojasAplicaNomina)) {
 
+                    $detalle = $saver->guardarDetalle(
+                        $resultadoHoja->sheet,
+                        $row,
+                        $incidencia->id,
+                        $nombreHoja,  // 👈 MUY IMPORTANTE,
+                        $idsEsquema['id_nomina_gape_esquema'],
+                        $idsEsquema['id_nomina_gape_esquema_combinacion']
+                    );
+                } else {
+                    $detalle = $saver->guardarDetalleExcedente(
+                        $resultadoHoja->sheet,
+                        $row,
+                        $incidencia->id,
+                        $nombreHoja,  // 👈 MUY IMPORTANTE,
+                        $idsEsquema['id_nomina_gape_esquema'],
+                        $idsEsquema['id_nomina_gape_esquema_combinacion']
+                    );
+                }
                 // SOLO APLICAR NOMINA PARA ESTAS HOJAS
                 if (in_array($nombreHoja, $hojasAplicaNomina)) {
                     $applier->aplicar(
